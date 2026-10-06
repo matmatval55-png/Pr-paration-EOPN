@@ -1,0 +1,11 @@
+{
+  "name": "prepa-eopn",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Application de préparation à la sélection EOPN (PWA, sans backend)",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "serve": "npx http-server -c-1 -p 8080 ."
+  }
+}

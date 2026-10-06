@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Prépa EOPN</title>
+    <meta name="description" content="Préparation à la sélection EOPN : psychotechniques, maths, physique, anglais, culture aéronautique, entretien et sport." />
+    <meta name="theme-color" content="#f3f5f9" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Prépa EOPN" />
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#/"><img src="icons/icon.svg" alt="" />Prépa EOPN</a>
+      <a class="btn-icon" href="#/stats" aria-label="Tableau de bord" style="display:grid;place-items:center;text-decoration:none">📊</a>
+    </header>
+    <main id="view" aria-live="polite">
+      <noscript>Cette application nécessite JavaScript.</noscript>
+    </main>
+    <nav class="bottomnav" aria-label="Navigation principale">
+      <a href="#/" data-tab="home"><span class="ico">🏠</span>Accueil</a>
+      <a href="#/psycho" data-tab="psycho"><span class="ico">🧠</span>Psycho</a>
+      <a href="#/maths" data-tab="maths"><span class="ico">📐</span>Maths</a>
+      <a href="#/stats" data-tab="stats"><span class="ico">📊</span>Stats</a>
+      <a href="#/plus" data-tab="plus"><span class="ico">☰</span>Plus</a>
+    </nav>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
