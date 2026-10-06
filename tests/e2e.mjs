@@ -47,7 +47,7 @@ async function answerOne() {
 }
 
 // 1. Pages principales
-for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
+for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/bibliotheque', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
   await go(h);
   await shot('page-' + (h.replace(/[#/]/g, '') || 'home'));
 }
@@ -109,6 +109,21 @@ for (let i = 0; i < 20; i++) {
 }
 await page.waitForSelector('.summary', { timeout: 10000 });
 await shot('exam-result');
+
+// 5 ter. Bibliothèque : ouvrir chaque fiche, en marquer une comme lue
+const fiches = await page.evaluate(async () => (await import('./js/cours/index.js')).SECTIONS.flatMap((s) => s.fiches.map((f) => `${s.id}/${f.id}`)));
+for (const f of fiches) {
+  await go('#/fiche/' + f);
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+  if (over > 1) errors.push(`débordement horizontal de ${over}px sur la fiche ${f}`);
+}
+await go('#/fiche/psycho/suites');
+await shot('fiche');
+await page.locator('[data-read]').click();
+await page.waitForTimeout(200);
+await go('#/bibliotheque');
+if (!(await page.locator('a[href="#/fiche/psycho/suites"] .badge.ok').count())) errors.push('bibliothèque : la fiche lue n’est pas marquée');
+await shot('bibliotheque');
 
 // 5 bis. Nouveaux modules
 // Physique : chapitre + 3 exercices

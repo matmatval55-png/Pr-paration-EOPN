@@ -25,6 +25,7 @@ import { GROUPS as CULTURE_GROUPS } from './culture/index.js';
 import { renderEntretien, renderSimulation } from './pages/entretien.js';
 import { renderSport } from './pages/sport.js';
 import { renderPlanning } from './pages/planning.js';
+import { renderBibliotheque, renderFiche } from './pages/bibliotheque.js';
 
 const view = document.getElementById('view');
 
@@ -61,6 +62,8 @@ const routes = [
   [/^sport$/, () => renderSport(view), 'cours'],
   [/^planning$/, () => renderPlanning(view), 'planning'],
   [/^cours$/, () => renderCours(view), 'cours'],
+  [/^bibliotheque$/, () => renderBibliotheque(view), 'biblio'],
+  [/^fiche\/([^/]+)\/([^/]+)$/, (m) => renderFiche(view, m[1], m[2]), 'biblio'],
   [/^revision$/, () => renderReview(view), 'home'],
   [/^stats$/, () => renderStats(view), 'stats'],
   [/^(reglages|plus)$/, () => renderSettings(view), 'plus'],

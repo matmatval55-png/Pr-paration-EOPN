@@ -8,6 +8,7 @@ Pensée pour le téléphone, installable (PWA), utilisable **hors ligne**, sans 
 ## Modules
 | Module | Contenu |
 |---|---|
+| 📖 Cours | Bibliothèque de 53 fiches à lire (psychotechniques, maths, physique, anglais, culture, BIA, entretien, sport), avec suivi de lecture |
 | 🧠 Psychotechniques | 20 exercices (dont 19 générateurs infinis) : suites, matrices, dominos, raisonnement verbal, rotations, patrons de cubes, mécanique, barrage, comptage, codage, mémoire, calcul, problèmes, multitâche, instruments, caps · 3 examens blancs |
 | 📐 Maths | 10 chapitres (seconde → terminale) : cours, méthode, exercices générés corrigés pas à pas |
 | ⚛️ Physique | 7 chapitres : unités, cinématique, Newton, énergie, électricité, optique, mécanique du vol |
@@ -60,6 +61,7 @@ js/app.js                                 navigation
 js/core/                                  stockage, stats, révision espacée, moteur de quiz, graphiques
 js/psycho/                                générateurs psychotechniques + examens blancs
 js/maths/                                 chapitres de maths (cours, méthode, exercices générés)
+js/cours/                                 fiches de la bibliothèque de cours
 js/pages/                                 écrans
 docs/selection-eopn.md                    résumé de la sélection et sources
 tests/                                    tests automatiques

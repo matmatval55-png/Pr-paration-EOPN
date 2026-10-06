@@ -6,8 +6,9 @@ import { MODULES } from './modules.js';
 export function renderCours(root) {
   const ids = ['maths', 'physique', 'anglais', 'culture', 'entretien', 'sport'];
   root.innerHTML = `
-    <h1>Réviser</h1>
-    <p class="muted">Cours, exercices corrigés et entraînements. Les psychotechniques ont leur propre onglet.</p>
+    <h1>Exercices</h1>
+    <p class="muted">Exercices corrigés, tests blancs et entraînements par module. Les psychotechniques ont leur propre onglet ; les fiches à lire sont dans l’onglet Cours.</p>
+    <a class="row-link" href="#/bibliotheque" style="margin-bottom:12px"><span style="font-size:1.4rem">📖</span><span class="grow"><span class="title">Bibliothèque de cours</span><br><span class="sub">Toutes les fiches, sans exercices</span></span><span class="chev">›</span></a>
     <div class="grid">${MODULES.filter((m) => ids.includes(m.id))
       .map((m) => {
         const s = ['entretien', 'sport'].includes(m.id) ? null : moduleSummary(m.id, 30);

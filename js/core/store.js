@@ -46,7 +46,7 @@ function flush() {
     storageOk = false;
   }
 }
-addEventListener('pagehide', () => memory && flush());
+globalThis.addEventListener?.('pagehide', () => memory && flush());
 
 export const store = {
   get data() {

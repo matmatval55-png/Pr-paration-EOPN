@@ -4,7 +4,7 @@ const CHK = '<span class="badge warn">à vérifier</span>';
 
 export function renderSelection(root) {
   root.innerHTML = `
-    <a href="#/plus" class="small">← Retour</a>
+    <a href="#/bibliotheque" class="small">← Cours</a>
     <h1>La sélection EOPN</h1>
     <p class="muted small">Synthèse faite en octobre 2026 à partir des sources officielles. Les formats évoluent : fais toujours confirmer par ton CIRFA.</p>
 

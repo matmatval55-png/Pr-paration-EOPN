@@ -364,3 +364,6 @@ input[type='date'], input[type='number'], select, textarea {
 .daypick input { width: 20px; height: 20px; accent-color: var(--accent); }
 textarea { resize: vertical; min-height: 90px; }
 details.card > summary, details.review-item > summary { cursor: pointer; }
+.fiche h2 { color: var(--accent); border-top: 1px solid var(--line); padding-top: 12px; }
+.fiche { line-height: 1.6; }
+.topbar .btn-icon + .btn-icon { margin-left: 2px; }

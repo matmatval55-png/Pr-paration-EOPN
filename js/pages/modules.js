@@ -1,5 +1,6 @@
 // Liste des modules de l'application.
 export const MODULES = [
+  { id: 'bibliotheque', ico: '📖', title: 'Cours', sub: 'Fiches à lire', href: '#/bibliotheque' },
   { id: 'psycho', ico: '🧠', title: 'Psychotechniques', sub: 'Priorité n° 1', href: '#/psycho' },
   { id: 'maths', ico: '📐', title: 'Maths', sub: '10 chapitres', href: '#/maths' },
   { id: 'physique', ico: '⚛️', title: 'Physique', sub: '7 chapitres', href: '#/physique' },

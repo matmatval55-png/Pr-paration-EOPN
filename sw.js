@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan (la nouvelle version s'affiche au lancement suivant).
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -16,23 +16,10 @@ const FILES = [
   './js/app.js',
   './js/exams.js',
   './js/theme.js',
-  './js/culture/bia.js',
-  './js/culture/histoire-aae.js',
-  './js/culture/index.js',
-  './js/planning/plan.js',
-  './js/maths/ch-algebre.js',
-  './js/maths/ch-analyse.js',
-  './js/maths/ch-nombres.js',
-  './js/maths/helpers.js',
-  './js/maths/index.js',
   './js/anglais/grammar.js',
   './js/anglais/index.js',
   './js/anglais/reading.js',
   './js/anglais/vocab.js',
-  './js/sport/bareme.js',
-  './js/physique/chapters.js',
-  './js/physique/index.js',
-  './js/entretien/data.js',
   './js/core/bank.js',
   './js/core/charts.js',
   './js/core/course.js',
@@ -44,6 +31,20 @@ const FILES = [
   './js/core/stats.js',
   './js/core/store.js',
   './js/core/ui.js',
+  './js/cours/anglais.js',
+  './js/cours/culture.js',
+  './js/cours/index.js',
+  './js/cours/psycho.js',
+  './js/culture/bia.js',
+  './js/culture/histoire-aae.js',
+  './js/culture/index.js',
+  './js/entretien/data.js',
+  './js/maths/ch-algebre.js',
+  './js/maths/ch-analyse.js',
+  './js/maths/ch-nombres.js',
+  './js/maths/helpers.js',
+  './js/maths/index.js',
+  './js/pages/bibliotheque.js',
   './js/pages/cours.js',
   './js/pages/course.js',
   './js/pages/entretien.js',
@@ -60,6 +61,9 @@ const FILES = [
   './js/pages/sport.js',
   './js/pages/stats.js',
   './js/pages/train.js',
+  './js/physique/chapters.js',
+  './js/physique/index.js',
+  './js/planning/plan.js',
   './js/psycho/attention.js',
   './js/psycho/calcul.js',
   './js/psycho/index.js',
@@ -70,6 +74,7 @@ const FILES = [
   './js/psycho/spatial.js',
   './js/psycho/suites.js',
   './js/psycho/verbal.js',
+  './js/sport/bareme.js',
 ];
 
 self.addEventListener('install', (e) => {

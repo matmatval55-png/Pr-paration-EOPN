@@ -7,7 +7,7 @@ import { el, esc, toast } from '../core/ui.js';
 
 const lastTest = () => store.data.sport.filter((t) => t.type === 'test').slice(-1)[0];
 
-function baremeTable(sex) {
+export function baremeTable(sex) {
   const rows = [];
   for (let i = 0; i < 20; i++) {
     rows.push(`<tr><td><b>${20 - i}</b></td><td>${fmtLeger(BAREME.leger[sex][i])}</td><td>${BAREME.killy[i]} s</td><td>${BAREME.bras[sex][i] ?? '/'}${i === 0 && sex === 'F' ? ' et +' : ''}</td></tr>`);
