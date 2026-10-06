@@ -7,9 +7,10 @@ import './memoire.js';
 import './calcul.js';
 import './multitache.js';
 import './instruments.js';
+import './verbal.js';
 
 // Ordre d'affichage des groupes
-export const GROUPS = ['Suites logiques', 'Raisonnement spatial', 'Compréhension mécanique', 'Attention', 'Mémoire', 'Calcul', 'Multitâche', 'Instruments'];
+export const GROUPS = ['Suites logiques', 'Raisonnement verbal', 'Raisonnement spatial', 'Compréhension mécanique', 'Attention', 'Mémoire', 'Calcul', 'Multitâche', 'Instruments'];
 
 // Formats d'examen blanc. ⚠️ Ce sont des SIMULATIONS : la durée et le nombre exacts de
 // questions des épreuves officielles ne sont pas publiés (voir docs/selection-eopn.md).
@@ -17,9 +18,10 @@ export const EXAMS = [
   {
     id: 'tamic',
     title: 'Batterie type TAMI-C',
-    desc: 'Raisonnement, spatial, arithmétique, attention, codage — format simulé.',
+    desc: 'Raisonnement, verbal, spatial, arithmétique, attention, codage — format simulé.',
     sections: [
       { title: 'Raisonnement logique', gens: ['psy.suites-nombres', 'psy.suites-lettres', 'psy.matrices', 'psy.dominos'], count: 10, time: 8 * 60 },
+      { title: 'Raisonnement verbal', gens: ['psy.verbal'], count: 10, time: 4 * 60 },
       { title: 'Raisonnement spatial', gens: ['psy.rotations', 'psy.cubes'], count: 8, time: 6 * 60 },
       { title: 'Arithmétique', gens: ['psy.calcul', 'psy.problemes'], count: 12, time: 8 * 60 },
       { title: 'Attention et codage', gens: ['psy.codage', 'psy.comptage'], count: 12, time: 5 * 60 },

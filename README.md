@@ -6,12 +6,17 @@ Pensée pour le téléphone, installable (PWA), utilisable **hors ligne**, sans 
 > Application personnelle et non officielle. Le déroulé de la sélection est résumé dans [`docs/selection-eopn.md`](docs/selection-eopn.md) avec ce qui est confirmé et ce qui reste à vérifier.
 
 ## Modules
-| Module | État |
+| Module | Contenu |
 |---|---|
-| Tests psychotechniques (29 générateurs infinis + 3 examens blancs) | ✅ |
-| Maths (10 chapitres, de la seconde à la terminale) | ✅ |
-| Tableau de bord, révision espacée, séries de jours | ✅ |
-| Physique, Anglais, Culture & BIA, Entretien, Sport, Planning | à venir |
+| 🧠 Psychotechniques | 20 exercices (dont 19 générateurs infinis) : suites, matrices, dominos, raisonnement verbal, rotations, patrons de cubes, mécanique, barrage, comptage, codage, mémoire, calcul, problèmes, multitâche, instruments, caps · 3 examens blancs |
+| 📐 Maths | 10 chapitres (seconde → terminale) : cours, méthode, exercices générés corrigés pas à pas |
+| ⚛️ Physique | 7 chapitres : unités, cinématique, Newton, énergie, électricité, optique, mécanique du vol |
+| 🇬🇧 Anglais | Grammaire (48), vocabulaire C1 (36), vocabulaire aéro (80), phraséologie OACI (32), alphabet OACI (générateur), compréhension écrite (7 textes, 35 q), flashcards, test type Chambéry 150 q / 55 min |
+| ✈️ Culture & BIA | Histoire de l’aviation, Armée de l’Air et de l’Espace, défense et géopolitique, 4 thèmes du BIA (≈ 30 q chacun), BIA blanc |
+| 🎤 Entretien | 36 questions avec attentes du jury, plan et pièges, notes personnelles, simulation chronométrée + auto-évaluation |
+| 🏃 Sport | Barème officiel (sept. 2025), calculateur de notes, suivi et graphiques, programme de 12 semaines |
+| 🗓️ Planning | Programme hebdomadaire selon la date de sélection, les heures et jours disponibles, et les points faibles |
+| 📊 Tableau de bord | Statistiques, graphiques, points faibles, révision espacée, séries de jours |
 
 ## Mettre le site en ligne gratuitement
 

@@ -10,7 +10,10 @@ const DEFAULT = () => ({
   srs: {}, // clé -> { spec, box, due, lapses }
   exams: [], // historique des examens blancs
   progress: {}, // ex. 'maths.fractions' -> { read: true }
-  sport: [], // performances sportives (module sport)
+  sport: [], // tests et séances de sport
+  cards: {}, // flashcards : 'paquet|n' -> { box, due, seen }
+  interview: { notes: {}, sessions: [] }, // entretien
+  planning: { days: [0, 1, 2, 3, 4, 5, 6], done: {} },
 });
 
 let memory = null;

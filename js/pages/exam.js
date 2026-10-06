@@ -1,6 +1,6 @@
 // Examen blanc : enchaînement de sections chronométrées, correction à la fin.
-import { EXAMS } from '../psycho/index.js';
-import { newSpec } from '../core/registry.js';
+import { EXAMS } from '../exams.js';
+import { newSpec, getGen } from '../core/registry.js';
 import { runQuiz, summaryHTML, fmtClock } from '../core/quiz.js';
 import { store } from '../core/store.js';
 import { el, esc } from '../core/ui.js';
@@ -17,7 +17,7 @@ export function renderExam(root, id) {
   root.innerHTML = '';
   const page = el(`
     <div>
-      <a href="#/psycho" class="small">← Retour</a>
+      <a href="${ex.back || '#/psycho'}" class="small">← Retour</a>
       <h1>${esc(ex.title)}</h1>
       <p class="muted">${esc(ex.desc)}</p>
       <div class="card">
@@ -41,6 +41,16 @@ export function renderExam(root, id) {
   function runSections() {
     const results = [];
     const rng = makeRng(newSeed());
+    const decks = {};
+    // Banques de questions : on pioche dans un paquet mélangé, sans remise.
+    const pick = (gid) => {
+      const g = getGen(gid);
+      if (!g.bank) return newSpec(gid, Math.min(level, g.levels));
+      const lvl = 0;
+      const key = gid + lvl;
+      if (!decks[key]?.length) decks[key] = rng.shuffle([...Array(g.bankSize(lvl)).keys()]);
+      return newSpec(gid, lvl, decks[key].pop());
+    };
     document.body.classList.add('in-quiz');
     const step = (k) => {
       if (k >= ex.sections.length) return finish(results);
@@ -67,7 +77,7 @@ export function renderExam(root, id) {
           total: s.count,
           mode: 'exam',
           totalTime: s.time,
-          next: (i) => (i < s.count ? newSpec(gens[i], level) : null),
+          next: (i) => (i < s.count ? pick(gens[i]) : null),
           onFinish(history) {
             results.push({ title: s.title, total: s.count, history });
             step(k + 1);
@@ -103,7 +113,7 @@ export function renderExam(root, id) {
           })
           .join('')}</div>
         ${summaryHTML(all, { title: 'Correction détaillée' })}
-        <div class="btn-row"><button class="btn primary" data-again>Refaire</button><a class="btn" href="#/psycho">Retour</a></div>
+        <div class="btn-row"><button class="btn primary" data-again>Refaire</button><a class="btn" href="${ex.back || '#/psycho'}">Retour</a></div>
       </div>`);
     page.querySelector('[data-again]').onclick = () => renderExam(root, id);
     root.append(page);

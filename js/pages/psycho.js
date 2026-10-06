@@ -3,7 +3,7 @@ import { GROUPS, EXAMS } from '../psycho/index.js';
 import { genSummary } from '../core/stats.js';
 import { esc, pct } from '../core/ui.js';
 
-const ICONS = { 'Suites logiques': '🔢', 'Raisonnement spatial': '🧊', 'Compréhension mécanique': '⚙️', Attention: '🎯', Mémoire: '🧠', Calcul: '➗', Multitâche: '🕹️', Instruments: '🧭' };
+const ICONS = { 'Suites logiques': '🔢', 'Raisonnement verbal': '🔤', 'Raisonnement spatial': '🧊', 'Compréhension mécanique': '⚙️', Attention: '🎯', Mémoire: '🧠', Calcul: '➗', Multitâche: '🕹️', Instruments: '🧭' };
 
 export function renderPsycho(root) {
   const gens = listGens('psycho');

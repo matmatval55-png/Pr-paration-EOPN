@@ -21,13 +21,13 @@ export function listGens(module) {
 export function makeQuestion(spec) {
   const g = gens.get(spec.gen);
   if (!g) throw new Error('Générateur inconnu : ' + spec.gen);
-  const q = g.make(spec.level, makeRng(spec.seed));
+  const q = g.make(spec.level, makeRng(spec.seed), spec);
   q.spec = spec;
   q.genTitle = g.title;
   q.module = g.module;
   return q;
 }
 
-export function newSpec(gen, level) {
-  return { gen, level, seed: newSeed() };
+export function newSpec(gen, level, seed = newSeed()) {
+  return { gen, level, seed };
 }

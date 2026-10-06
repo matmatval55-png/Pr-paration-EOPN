@@ -6,6 +6,7 @@ import { rateChart, hbars } from '../core/charts.js';
 import { esc, pct, fmtMs } from '../core/ui.js';
 
 const MOD_NAMES = { psycho: 'Psychotechniques', maths: 'Maths', physique: 'Physique', anglais: 'Anglais', culture: 'Culture & BIA' };
+const ACTIVITY = (s) => `${(s.interview?.sessions || []).length} simulation(s) d’entretien · ${(s.sport || []).filter((x) => x.type === 'seance').length} séance(s) de sport · ${(s.sport || []).filter((x) => x.type === 'test').length} test(s) sportif(s)`;
 
 export function renderStats(root) {
   const mods = Object.keys(MOD_NAMES).filter((m) => listGens(m).length);
@@ -48,6 +49,7 @@ export function renderStats(root) {
           )}</details>`,
         )
         .join('')}
+      <div class="card small"><b>Autres activités :</b> ${ACTIVITY(store.data)}</div>
       <div class="card"><h3>Examens blancs</h3>${exams.length ? exams.map((e) => `<div class="section-res"><span>${esc(e.title)}<br><span class="small muted">${new Date(e.ts).toLocaleDateString('fr-FR')} · niveau ${e.level}</span></span><b>${Math.round((e.ok / e.n) * 100)} %</b></div>`).join('') : '<p class="muted">Aucun examen blanc pour l’instant.</p>'}</div>`;
     root.querySelectorAll('[data-r]').forEach((b) => (b.onclick = () => ((range = Number(b.dataset.r)), draw())));
   };

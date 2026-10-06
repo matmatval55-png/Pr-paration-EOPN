@@ -47,7 +47,7 @@ async function answerOne() {
 }
 
 // 1. Pages principales
-for (const h of ['', '#/psycho', '#/maths', '#/stats', '#/plus', '#/selection', '#/revision']) {
+for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
   await go(h);
   await shot('page-' + (h.replace(/[#/]/g, '') || 'home'));
 }
@@ -110,6 +110,57 @@ for (let i = 0; i < 20; i++) {
 await page.waitForSelector('.summary', { timeout: 10000 });
 await shot('exam-result');
 
+// 5 bis. Nouveaux modules
+// Physique : chapitre + 3 exercices
+await go('#/physique/vol');
+await page.locator('.tabs button[data-t="exos"]').click();
+await page.locator('[data-mode="prog"]').click();
+await page.locator('[data-start]').click();
+for (let i = 0; i < 3; i++) { await answerOne(); await page.locator('.fb-next').click(); }
+await shot('physique-q');
+// Flashcards : retourner et noter 3 cartes
+await go('#/flashcards/aero');
+for (let i = 0; i < 3; i++) {
+  await page.locator('.flashcard').click();
+  await page.locator(`[data-k="${i % 2}"]`).click();
+}
+await shot('flashcards');
+// Entretien : note + simulation jusqu'à l'auto-évaluation
+await go('#/entretien');
+await page.locator('details.review-item').first().locator('summary').click();
+await page.locator('textarea[data-note]').first().fill('Déclic : baptême de l’air');
+await go('#/entretien/simulation');
+await page.locator('[data-go]').click();
+await page.locator('[data-next]').click();
+await page.locator('[data-next]').click();
+await page.locator('input[data-c]').first().check();
+await shot('entretien-eval');
+await page.locator('[data-save]').click();
+// Sport : saisir un test
+await go('#/sport');
+await page.locator('[data-add]').click();
+await page.fill('input[name="palier"]', '7');
+await page.fill('input[name="sec"]', '15');
+await page.fill('input[name="bras"]', '7');
+await page.fill('input[name="killy"]', '88');
+const prev = await page.locator('.calc-preview').innerText();
+if (!prev.includes('moyenne 10/20')) errors.push('sport : calcul de note inattendu : ' + prev);
+await page.locator('[data-save]').click();
+await page.waitForTimeout(200);
+await shot('sport');
+// Planning : cocher un créneau, retirer le dimanche
+await go('#/planning');
+await page.locator('[data-done]').first().click().catch(() => {});
+await page.locator('[data-day="6"]').uncheck();
+await shot('planning');
+// Mini-test d'anglais : première section (réponses rapides)
+await go('#/exam/en-mini');
+await page.locator('[data-start]').click();
+await page.locator('[data-go]').click();
+for (let i = 0; i < 15; i++) { await page.waitForSelector('.qcard'); await page.locator('.qcard .choice:not([disabled])').first().click(); await page.waitForTimeout(40); }
+await page.waitForSelector('[data-go]');
+await shot('en-section2');
+
 // 6. Révisions + tableau de bord avec données
 await go('#/revision');
 await shot('revision');
@@ -119,7 +170,7 @@ await go('');
 await shot('home-data');
 
 // 7. Débordement horizontal (la page ne doit jamais défiler en largeur)
-for (const h of ['', '#/psycho', '#/maths/trigo', '#/stats', '#/selection']) {
+for (const h of ['', '#/psycho', '#/maths/trigo', '#/physique/optique', '#/anglais', '#/train/en.reading', '#/culture', '#/entretien', '#/sport', '#/planning', '#/stats', '#/selection']) {
   await go(h);
   const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (over > 1) errors.push(`débordement horizontal de ${over}px sur ${h || 'accueil'}`);

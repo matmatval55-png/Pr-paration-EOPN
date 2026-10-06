@@ -120,3 +120,14 @@ export function weakPoints(limit = 5) {
 export function totalAnswers() {
   return Object.values(store.data.days).reduce((a, d) => a + d.n, 0);
 }
+
+// Activité hors questions (flashcards, simulation d'entretien, sport…) : compte pour la série de jours.
+export function recordActivity(ms, n = 1) {
+  const d = today();
+  store.update((s) => {
+    const day = (s.days[d] ||= { n: 0, ok: 0, ms: 0 });
+    day.n += n;
+    day.ok += n;
+    day.ms += Math.round(ms || 0);
+  });
+}

@@ -345,3 +345,22 @@ input[type='date'], input[type='number'], select, textarea {
   .choices.row:has(> :nth-child(5)) { grid-template-columns: repeat(5, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+/* Flashcards */
+.flashcard {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  width: 100%; min-height: 220px; padding: 20px; margin: 8px 0 12px; border-radius: 18px;
+  border: 2px solid var(--line); background: var(--card); box-shadow: var(--shadow); cursor: pointer; text-align: center;
+}
+.flashcard .fc-front { font-size: 1.5rem; font-weight: 800; }
+.flashcard .fc-back { font-size: 1.25rem; color: var(--accent); font-weight: 700; }
+.flashcard.flipped { border-color: var(--accent); }
+/* Texte support (compréhension écrite) */
+.passage { background: var(--card2); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; font-size: 0.95rem; font-weight: 400; line-height: 1.55; max-height: 45vh; overflow-y: auto; }
+.check { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.check input { width: 22px; height: 22px; flex: none; margin-top: 1px; accent-color: var(--accent); }
+.daypick { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.daypick label { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 650; padding: 6px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.daypick input { width: 20px; height: 20px; accent-color: var(--accent); }
+textarea { resize: vertical; min-height: 90px; }
+details.card > summary, details.review-item > summary { cursor: pointer; }

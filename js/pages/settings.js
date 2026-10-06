@@ -40,8 +40,8 @@ export function renderSettings(root) {
         <h3>Installer sur iPhone</h3>
         <p>Dans Safari : bouton Partager → « Sur l’écran d’accueil ». Sur Android (Chrome) : menu ⋮ → « Installer l’application ». Une fois installée, l’application fonctionne hors ligne.</p>
       </div>
-      <h2>Autres modules</h2>
-      <div class="list">${MODULES.map((m) => `<a class="row-link" href="${m.ready ? m.href : '#/plus'}"><span>${m.ico}</span><span class="grow"><span class="title">${m.title}</span></span><span class="badge ${m.ready ? 'ok' : ''}">${m.ready ? 'disponible' : 'bientôt'}</span></a>`).join('')}
+      <h2>Tous les modules</h2>
+      <div class="list">${MODULES.map((m) => `<a class="row-link" href="${m.href}"><span>${m.ico}</span><span class="grow"><span class="title">${m.title}</span><br><span class="sub">${m.sub}</span></span><span class="chev">›</span></a>`).join('')}
         <a class="row-link" href="#/selection"><span>ℹ️</span><span class="grow"><span class="title">La sélection EOPN (sources)</span></span><span class="chev">›</span></a>
       </div>
       <p class="small muted center">Prépa EOPN · application personnelle de révision, non officielle.</p>

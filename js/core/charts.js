@@ -36,3 +36,24 @@ export function hbars(items) {
     })
     .join('');
 }
+
+// Courbe de valeurs (ex. notes /20). points = [{ d: 'AAAA-MM-JJ', v }]
+export function lineChart(points, max, label = '') {
+  const W = 340, H = 130, L = 26, R = 10, T = 14, B = 20;
+  const w = W - L - R, h = H - T - B;
+  const x = (i) => L + (points.length === 1 ? w / 2 : (i / (points.length - 1)) * w);
+  const y = (v) => T + h - (v / max) * h;
+  let grid = '';
+  for (const v of [0, max / 2, max]) grid += `<line class="grid-l" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 4}" y="${y(v) + 3}" text-anchor="end">${v}</text>`;
+  const pts = points.map((p, i) => [x(i), y(p.v)]);
+  const lab = (i, a) => {
+    const [, m, d] = points[i].d.split('-');
+    return `<text x="${x(i)}" y="${H - 5}" text-anchor="${a}">${d}/${m}</text>`;
+  };
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">
+    <text x="${L}" y="10" style="font-weight:700">${esc(label)}</text>${grid}
+    <polyline class="line" points="${pts.map((p) => p.join(',')).join(' ')}"/>
+    ${pts.map(([a, b], i) => `<circle class="dot" cx="${a}" cy="${b}" r="3.5"/><text x="${a}" y="${b - 6}" text-anchor="middle">${points[i].v}</text>`).join('')}
+    ${points.length ? lab(0, 'start') + (points.length > 1 ? lab(points.length - 1, 'end') : '') : ''}
+  </svg>`;
+}

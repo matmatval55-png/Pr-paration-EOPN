@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import { listGens, makeQuestion } from '../js/core/registry.js';
 import '../js/psycho/index.js';
 import '../js/maths/index.js';
+import '../js/physique/index.js';
+import '../js/anglais/index.js';
+import '../js/culture/index.js';
 import { parseNum } from '../js/core/ui.js';
 
 const RUNS = 400;
@@ -45,3 +48,16 @@ for (const g of listGens()) {
     }
   });
 }
+
+// Banques : la bonne réponse ne doit pas figurer parmi les distracteurs (sinon le QCM serait faux),
+// et chaque élément doit avoir au moins 2 distracteurs distincts.
+test('banques de questions bien formées', () => {
+  for (const g of listGens().filter((x) => x.bank)) {
+    const n = g.bankSize(0);
+    for (let i = 0; i < n; i++) {
+      const q = makeQuestion({ gen: g.id, level: 0, seed: i });
+      assert.ok(q.choices.length >= 3, `${g.id} #${i} : pas assez de choix`);
+      assert.equal(new Set(q.choices).size, q.choices.length, `${g.id} #${i} : doublon dans les choix`);
+    }
+  }
+});
