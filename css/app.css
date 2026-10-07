@@ -422,3 +422,19 @@ details.card > summary, details.review-item > summary { cursor: pointer; }
 .facts dt { color: var(--muted); font-weight: 650; }
 .facts dd { margin: 0; }
 .aero-card { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 18px; }
+
+/* Situations (suite) : vues d'avion et icônes animées */
+.vue { display: block; margin: 0 auto; max-width: 100%; height: auto; color: var(--text); }
+.vue-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+.sit-ico { font-size: 3rem; text-align: center; line-height: 1.2; margin: .5rem 0; }
+.sit-ico.pulse { animation: sit-pulse 1.6s ease-in-out infinite; }
+.sit-ico.drift { animation: sit-drift 3s ease-in-out infinite; }
+.sit-ico.flash { animation: sit-flash 1s steps(2, start) infinite; }
+.sit-ico.fade { animation: sit-fade 2.5s ease-in-out infinite; }
+.sit-ico.spin { animation: sit-spin 1.5s linear infinite; }
+@keyframes sit-pulse { 50% { transform: scale(1.15); } }
+@keyframes sit-drift { 0%, 100% { transform: translate(-20px, 0); } 50% { transform: translate(20px, 8px); } }
+@keyframes sit-flash { 50% { opacity: .35; } }
+@keyframes sit-fade { 50% { opacity: .3; filter: blur(2px); } }
+@keyframes sit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sit-ico { animation: none !important; } }

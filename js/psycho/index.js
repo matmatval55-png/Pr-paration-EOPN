@@ -10,6 +10,7 @@ import './instruments.js';
 import './verbal.js';
 import './psychomoteur.js';
 import './situations.js';
+import './situations2.js';
 
 // Ordre d'affichage des groupes
 export const GROUPS = ['Suites logiques', 'Raisonnement verbal', 'Raisonnement spatial', 'Compréhension mécanique', 'Attention', 'Mémoire', 'Calcul', 'Multitâche', 'Psychomotricité', 'Instruments', 'Conscience de la situation'];
@@ -36,7 +37,7 @@ export const EXAMS = [
     sections: [
       { title: 'Lecture d’instruments', gens: ['psy.instruments', 'psy.horizon'], count: 15, time: 6 * 60 },
       { title: 'Orientation et caps', gens: ['psy.caps', 'psy.horizon', 'psy.vor'], count: 10, time: 5 * 60 },
-      { title: 'Conscience de la situation', gens: ['psy.vor', 'psy.vent', 'psy.circuit', 'psy.papi', 'psy.attitudes', 'psy.trafic'], count: 12, time: 5 * 60 },
+      { title: 'Conscience de la situation', gens: ['psy.vor', 'psy.vent', 'psy.circuit', 'psy.papi', 'psy.attitudes', 'psy.trafic', 'psy.orientation', 'psy.navaig', 'psy.attente', 'psy.signaux', 'psy.interception', 'psy.urgences'], count: 16, time: 7 * 60 },
       { title: 'Problèmes arithmétiques', gens: ['psy.problemes'], count: 10, time: 10 * 60 },
       { title: 'Mémoire', gens: ['psy.memoire-chiffres', 'psy.memoire-images'], count: 6, time: 4 * 60 },
       { title: 'Multitâche', gens: ['psy.multitache'], count: 1, time: 90 },

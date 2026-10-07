@@ -1,5 +1,7 @@
 // Fiches animées : situations de vol expliquées avec des schémas qui bougent.
 import { rmiSVG, radialMap, windSVG, circuitSVG, papiSVG, horizonAnimSVG, trafficSVG } from '../psycho/situations.js';
+import { avionVue, cdiSVG, ilsSVG, holdingSVG, SIGNAUX, signalSVG, interceptionSVG } from '../psycho/situations2.js';
+import { horizonSVG } from '../psycho/instruments.js';
 
 // Écoulement de l'air autour d'un profil : normal ou décroché (filets animés).
 export function ecoulementSVG(stall) {
@@ -87,5 +89,58 @@ export const FICHES_ANIME = [
     html: `<p>En vol à vue, chaque pilote est responsable de <b>voir et éviter</b> les autres aéronefs. On annonce un trafic comme sur une horloge : 12 h devant, 3 h à droite, 9 h à gauche.</p>
       <div class="instr-row"><figure class="schema">${trafficSVG(2, true, false)}<figcaption>Trafic à 2 h qui reste au même endroit du pare-brise et grossit : <b>collision</b> !</figcaption></figure><figure class="schema">${trafficSVG(2, false, true)}<figcaption>Trafic qui glisse dans le pare-brise : il passera devant.</figcaption></figure></div>
       <ul><li><b>Position relative constante + distance qui diminue = trajectoire de collision.</b></li><li>Convergence : priorité à l’aéronef qui vient de la <b>droite</b>.</li><li>Face à face : chacun s’écarte vers sa <b>droite</b>.</li><li>Dépassement : par la droite.</li></ul>`,
+  },
+  {
+    id: 'visualisation',
+    title: 'Des instruments à l’image de l’avion',
+    train: '#/train/psy.orientation',
+    html: `<p>Épreuve classique : on te montre l’horizon artificiel (et parfois le cap) et tu dois retrouver l’image de l’avion. La maquette de l’horizon, c’est <b>toi</b> ; c’est le décor qui bouge.</p>
+      <div class="instr-row"><figure class="schema">${horizonSVG(10, 30, 'fv1')}<figcaption>Instrument : nez haut, incliné à droite</figcaption></figure><figure class="schema">${avionVue({ bank: 30, pitch: 10, heading: 90 })}<figcaption>Image : aile droite basse, montée, cap est</figcaption></figure></div>
+      <h3>Méthode en 3 critères</h3><ol><li><b>Inclinaison</b> : la ligne d’horizon penche à l’<b>inverse</b> de l’avion : en virage à droite, elle remonte du côté droit. Le plus simple : l’aile de la maquette qui « plonge » vers la terre (vers le marron) indique le côté du virage.</li><li><b>Assiette</b> : la maquette au-dessus de l’horizon (on voit du ciel bleu sous le point central) = nez haut.</li><li><b>Cap</b> : lis le conservateur de cap (000 = nord, 090 = est, 180 = sud, 270 = ouest).</li></ol>
+      <p class="tip">Élimine les propositions critère par critère : en général 2 réponses tombent sur l’inclinaison, 1 sur l’assiette ou le cap.</p>`,
+  },
+  {
+    id: 'cdi-ils',
+    title: 'Aiguilles CDI et ILS (animé)',
+    train: '#/train/psy.navaig',
+    html: `<p>Le <b>CDI</b> (VOR) et l’<b>ILS</b> montrent un écart par rapport à une route ou à un plan de descente. Règle d’or : <b>on vole vers l’aiguille</b>.</p>
+      <div class="instr-row"><figure class="schema">${cdiSVG(3)}<figcaption>Aiguille à droite : la route est à droite, je corrige à droite.</figcaption></figure><figure class="schema">${ilsSVG(-2, 1)}<figcaption>Axe à gauche (je suis à droite) ; plan au-dessus (je suis trop bas).</figcaption></figure></div>
+      <ul><li><b>Alignement de piste</b> (aiguille verticale) : indique où est l’axe de piste.</li><li><b>Pente</b> (aiguille horizontale) : en haut = le plan est au-dessus de toi = tu es <b>trop bas</b> → réduis le taux de descente.</li><li>Les deux aiguilles centrées en croix : parfait, sur l’axe et sur le plan.</li></ul>
+      <p class="tip">Sur un VOR, 1 point ≈ 2° d’écart. L’indicateur TO/FROM dit si la route affichée te rapproche (TO) ou t’éloigne (FROM) de la balise.</p>`,
+  },
+  {
+    id: 'attente',
+    title: 'Le circuit d’attente (animé)',
+    train: '#/train/psy.attente',
+    html: `<p>Quand le contrôle fait patienter un avion, celui-ci tourne en <b>hippodrome</b> autour d’un point (balise ou point de report).</p>
+      ${fig(holdingSVG(null), 'Attente standard : virages à droite, branche de rapprochement vers le point d’attente.')}
+      <ul><li><b>Branche de rapprochement</b> : vers le point d’attente, 1 min jusqu’au FL 140 (1 min 30 au-dessus).</li><li>Au point : virage (taux standard 3°/s, donc 1 min pour 180°), puis <b>branche d’éloignement</b>.</li><li>Attente <b>standard</b> = virages à <b>droite</b> ; virages à gauche = non standard (publié sur la carte).</li></ul>
+      <p class="tip">À l’entretien ou en vol, savoir dire « circuit d’attente = hippodrome, virages à droite, 1 minute » suffit largement.</p>`,
+  },
+  {
+    id: 'signaux',
+    title: 'Signaux lumineux de la tour (animé)',
+    train: '#/train/psy.signaux',
+    html: `<p>Si la radio tombe en panne (transpondeur <b>7600</b>), la tour peut communiquer avec un projecteur de couleur.</p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${SIGNAUX.map((s) => `<figure class="schema" style="margin:0">${signalSVG(s)}<figcaption><b>En vol</b> : ${s.air}<br><b>Au sol</b> : ${s.sol}</figcaption></figure>`).join('')}</div>
+      <p class="tip">Mémo : <b>vert</b> = oui (fixe : vas-y ; clignotant : prépare-toi), <b>rouge</b> = non (fixe : attends ; clignotant : danger, pas ici), <b>blanc clignotant</b> = « pose-toi / rentre au parking ».</p>`,
+  },
+  {
+    id: 'interception',
+    title: 'Être intercepté : les signaux (animé)',
+    train: '#/train/psy.interception',
+    html: `<p>La <b>police du ciel</b> vue de l’autre côté : un avion qui ne répond pas à la radio peut être intercepté par un chasseur en alerte (Rafale, Mirage 2000) ou un hélicoptère.</p>
+      <div class="instr-row"><figure class="schema">${interceptionSVG('suivre')}<figcaption>Balancement des ailes : « suivez-moi »</figcaption></figure><figure class="schema">${interceptionSVG('liberer')}<figcaption>Dégagement en virage montant : « continuez »</figcaption></figure><figure class="schema">${interceptionSVG('atterrir')}<figcaption>Train sorti, phares, survol de piste : « atterrissez ici »</figcaption></figure></div>
+      <h3>Conduite à tenir</h3><ol><li>Suivre les instructions visuelles de l’intercepteur.</li><li>Répondre en <b>balançant les ailes</b>.</li><li>Appeler sur <b>121,5 MHz</b> et afficher <b>7700</b> (sauf instruction contraire).</li></ol>`,
+  },
+  {
+    id: 'urgences',
+    title: 'Urgences en vol : les bons réflexes',
+    train: '#/train/psy.urgences',
+    html: `<p>Les questions de « jugement » testent tes priorités. La règle universelle : <b>Piloter, Naviguer, Communiquer</b> (aviate, navigate, communicate).</p>
+      <div class="sit-ico drift">✈️💨</div>
+      <ul><li><b>Panne moteur au décollage</b> : garder la vitesse, se poser devant (pas de demi-tour à basse hauteur).</li><li><b>Panne en croisière</b> : vitesse de meilleur plané, choix d’un champ, recherche de panne, MAYDAY + 7700.</li><li><b>Givrage carburateur</b> : baisse de régime par temps humide → réchauffage carburateur.</li><li><b>Cumulonimbus</b> : on le contourne largement, jamais dessous ni dedans.</li><li><b>Météo qui se dégrade</b> : demi-tour <b>tôt</b>.</li><li><b>Entrée dans un nuage</b> : instruments, ailes à plat, virage modéré pour ressortir.</li><li><b>Avertisseur de décrochage</b> : rendre la main + puissance.</li><li><b>Approche non stabilisée</b> : remise de gaz.</li><li><b>Perdu</b> : cap constant, position estimée, repère marquant, appel au SIV.</li></ul>
+      <h3>Codes transpondeur</h3><table class="tbl"><tr><th>Code</th><th>Signification</th><th>Mémo</th></tr><tr><td>7500</td><td>Intervention illicite</td><td>« seven-five, man with a knife »</td></tr><tr><td>7600</td><td>Panne radio</td><td>« seven-six, radio fix »</td></tr><tr><td>7700</td><td>Détresse</td><td>« seven-seven, going to heaven »</td></tr></table>
+      <p class="tip">Message de détresse : « MAYDAY MAYDAY MAYDAY », indicatif, nature du problème, intentions, position, altitude. Urgence sans danger immédiat : « PAN PAN ».</p>`,
   },
 ];
