@@ -386,3 +386,39 @@ details.card > summary, details.review-item > summary { cursor: pointer; }
 .check-item:last-child .check { border-bottom: 0; }
 
 .search { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); font: inherit; margin: 6px 0; }
+
+/* Fiches visuelles */
+.schema { margin: 12px 0; }
+.schema svg { width: 100%; height: auto; color: var(--text); display: block; }
+.schema figcaption, .photo figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+.legend { columns: 2; column-gap: 18px; font-size: 0.85rem; padding-left: 1.4em; }
+@media (max-width: 480px) { .legend { columns: 1; } }
+.grades { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0; }
+.grade { display: flex; flex-direction: column; align-items: center; width: 92px; text-align: center; font-size: 0.75rem; font-weight: 650; }
+.org { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.org-box { border: 2px solid var(--line); background: var(--card2); border-radius: 12px; padding: 8px 12px; text-align: center; width: 100%; max-width: 460px; }
+.org-box b { display: block; }
+.org-box span { font-size: 0.8rem; color: var(--muted); }
+.org-box.top { border-color: var(--warn); }
+.org-box.accent { border-color: var(--accent); }
+.org-arrow { color: var(--accent); font-weight: 800; }
+.org-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; width: 100%; }
+.org-row .org-box { max-width: none; }
+.org-row.two { grid-template-columns: 1fr 1fr; }
+@media (max-width: 480px) { .org-row.two { grid-template-columns: 1fr; } }
+.flow-step { display: flex; gap: 12px; align-items: flex-start; background: var(--card2); border-radius: 12px; padding: 10px 12px; }
+.flow-step p { margin: 2px 0 0; font-size: 0.88rem; }
+.flow-ico { font-size: 1.6rem; }
+.flow-arrow { text-align: center; color: var(--accent); font-weight: 800; }
+.frise { position: relative; padding-left: 8px; }
+.frise-item { display: grid; grid-template-columns: 52px 18px 1fr; align-items: center; min-height: 40px; }
+.frise-year { font-weight: 800; color: var(--accent); }
+.frise-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); justify-self: center; position: relative; }
+.frise-item:not(:last-child) .frise-dot::after { content: ''; position: absolute; left: 5px; top: 12px; width: 2px; height: 30px; background: var(--line); }
+.frise-txt { font-size: 0.92rem; }
+.photo { margin: 10px 0 14px; }
+.photo img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 12px; background: var(--card2); display: block; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.9rem; margin: 8px 0; }
+.facts dt { color: var(--muted); font-weight: 650; }
+.facts dd { margin: 0; }
+.aero-card { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 18px; }

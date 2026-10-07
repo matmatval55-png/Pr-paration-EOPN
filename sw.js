@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan (la nouvelle version s'affiche au lancement suivant).
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -17,6 +17,7 @@ const FILES = [
   './js/exams.js',
   './js/theme.js',
   './js/anglais/atc.js',
+  './js/anglais/extra.js',
   './js/anglais/grammar.js',
   './js/anglais/index.js',
   './js/anglais/reading.js',
@@ -34,10 +35,14 @@ const FILES = [
   './js/core/store.js',
   './js/core/ui.js',
   './js/cours/anglais.js',
+  './js/cours/credits.js',
   './js/cours/culture.js',
   './js/cours/index.js',
   './js/cours/psycho.js',
+  './js/cours/schemas.js',
+  './js/cours/visuel.js',
   './js/culture/bia.js',
+  './js/culture/extra.js',
   './js/culture/histoire-aae.js',
   './js/culture/index.js',
   './js/entretien/data.js',

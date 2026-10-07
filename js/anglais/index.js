@@ -7,6 +7,7 @@ import { GRAMMAR } from './grammar.js';
 import { GENERAL, PHRASEO, AERO, AERO_ITEMS } from './vocab.js';
 import { READING } from './reading.js';
 import './atc.js';
+import { READING_EXTRA, GRAMMAR_EXTRA, VOCAB_EXTRA } from './extra.js';
 
 const M = 'anglais';
 
@@ -14,11 +15,11 @@ export const ICAO = ['Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Go
 const DIGITS = ['ZE-RO', 'WUN', 'TOO', 'TREE', 'FOW-ER', 'FIFE', 'SIX', 'SEV-EN', 'AIT', 'NIN-ER'];
 const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-registerBank({ id: 'en.grammar', module: M, group: 'Grammar', title: 'Grammar', desc: 'Tenses, conditionals, passive, modals, inversion… (B1 → C1).', items: GRAMMAR, timeLimit: 30 });
-registerBank({ id: 'en.vocab', module: M, group: 'Vocabulary', title: 'General vocabulary (C1)', desc: 'False friends, phrasal verbs, collocations, idioms.', items: GENERAL, timeLimit: 25 });
+registerBank({ id: 'en.grammar', module: M, group: 'Grammar', title: 'Grammar', desc: 'Tenses, conditionals, passive, modals, inversion… (B1 → C1).', items: [...GRAMMAR, ...GRAMMAR_EXTRA], timeLimit: 30 });
+registerBank({ id: 'en.vocab', module: M, group: 'Vocabulary', title: 'General vocabulary (C1)', desc: 'False friends, phrasal verbs, collocations, idioms.', items: [...GENERAL, ...VOCAB_EXTRA], timeLimit: 25 });
 registerBank({ id: 'en.aero', module: M, group: 'Vocabulary', title: 'Aviation vocabulary', desc: 'Aircraft, airfield, flight, weather — French ↔ English.', items: AERO_ITEMS, timeLimit: 20 });
 registerBank({ id: 'en.phraseo', module: M, group: 'Radiotelephony', title: 'ICAO phraseology', desc: 'Standard words, emergency, clearances, codes.', items: PHRASEO, timeLimit: 25 });
-registerBank({ id: 'en.reading', module: M, group: 'Reading', title: 'Reading comprehension', desc: '7 texts (aviation, defence, space, daily life), 35 questions.', items: READING, timeLimit: 90 });
+registerBank({ id: 'en.reading', module: M, group: 'Reading', title: 'Reading comprehension', desc: '12 texts (aviation, defence, space, daily life), 60 questions.', items: [...READING, ...READING_EXTRA], timeLimit: 90 });
 
 register({
   id: 'en.icao',

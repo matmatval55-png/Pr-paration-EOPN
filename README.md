@@ -8,16 +8,21 @@ Pensée pour le téléphone, installable (PWA), utilisable **hors ligne**, sans 
 ## Modules
 | Module | Contenu |
 |---|---|
-| 📖 Cours | Bibliothèque de 53 fiches à lire (psychotechniques, maths, physique, anglais, culture, BIA, entretien, sport), avec suivi de lecture |
-| 🧠 Psychotechniques | 20 exercices (dont 19 générateurs infinis) : suites, matrices, dominos, raisonnement verbal, rotations, patrons de cubes, mécanique, barrage, comptage, codage, mémoire, calcul, problèmes, multitâche, instruments, caps · 3 examens blancs |
-| 📐 Maths | 10 chapitres (seconde → terminale) : cours, méthode, exercices générés corrigés pas à pas |
+| 📖 Cours | Bibliothèque de fiches à lire (dont **fiches visuelles** : photos d’aéronefs, carte des bases, insignes, organigramme, schémas), recherche plein texte, suivi de lecture |
+| 🧠 Psychotechniques | 21 exercices : suites, matrices, dominos, raisonnement verbal (40 q), rotations, patrons de cubes, mécanique, barrage, comptage, codage, mémoire, calcul, problèmes, multitâche, **manche et palonniers au gyroscope**, instruments, caps · 3 examens blancs |
+| 📐 Maths | 10 chapitres (seconde → terminale), exercices générés corrigés pas à pas, **test de positionnement** |
 | ⚛️ Physique | 7 chapitres : unités, cinématique, Newton, énergie, électricité, optique, mécanique du vol |
-| 🇬🇧 Anglais | Grammaire (48), vocabulaire C1 (36), vocabulaire aéro (80), phraséologie OACI (32), alphabet OACI (générateur), compréhension écrite (7 textes, 35 q), flashcards, test type Chambéry 150 q / 55 min |
-| ✈️ Culture & BIA | Histoire de l’aviation, Armée de l’Air et de l’Espace, défense et géopolitique, 4 thèmes du BIA (≈ 30 q chacun), BIA blanc |
-| 🎤 Entretien | 36 questions avec attentes du jury, plan et pièges, notes personnelles, simulation chronométrée + auto-évaluation |
-| 🏃 Sport | Barème officiel (sept. 2025), calculateur de notes, suivi et graphiques, programme de 12 semaines |
-| 🗓️ Planning | Programme hebdomadaire selon la date de sélection, les heures et jours disponibles, et les points faibles |
-| 📊 Tableau de bord | Statistiques, graphiques, points faibles, révision espacée, séries de jours |
+| 🇬🇧 Anglais | Grammaire (68), vocabulaire C1 (56), vocabulaire aéro (80), phraséologie (32), alphabet OACI, **écoute de messages ATC**, compréhension écrite (12 textes, 60 q), flashcards, test type Chambéry 150 q / 55 min |
+| ✈️ Culture & BIA | Histoire (42), AAE (52), défense (45), 4 thèmes BIA (40 chacun), BIA blanc ; faits vérifiés : `docs/verification.md` |
+| 🎤 Entretien | 36 questions commentées, notes, simulation chronométrée **avec enregistrement vocal**, auto-évaluation |
+| 🏃 Sport | Barème officiel, calculateur, **bande sonore Luc Léger intégrée**, suivi et graphiques, programme de 12 semaines |
+| 🗓️ Planning | Programme hebdomadaire (date, heures, jours, points faibles), **export vers l’agenda (.ics)** |
+| ✅ Checklist | Étapes de candidature (CIRFA, dossier, médical, jour J) avec sources |
+| 📊 Tableau de bord | Statistiques, graphiques, points faibles, révision espacée, séries, **signalement d’erreurs**, rappel de sauvegarde |
+
+### Crédits
+- Photos d’aéronefs : Wikimedia Commons, licences libres (auteur et licence affichés sous chaque photo, liste dans `js/cours/credits.js`).
+- Contour de la France : IGN Admin Express (Licence ouverte Etalab), via le projet france-geojson.
 
 ## Mettre le site en ligne gratuitement
 
