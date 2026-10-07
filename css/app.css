@@ -417,7 +417,7 @@ details.card > summary, details.review-item > summary { cursor: pointer; }
 .frise-item:not(:last-child) .frise-dot::after { content: ''; position: absolute; left: 5px; top: 12px; width: 2px; height: 30px; background: var(--line); }
 .frise-txt { font-size: 0.92rem; }
 .photo { margin: 10px 0 14px; }
-.photo img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 12px; background: var(--card2); display: block; }
+.photo img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--card2); display: block; }
 .facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.9rem; margin: 8px 0; }
 .facts dt { color: var(--muted); font-weight: 650; }
 .facts dd { margin: 0; }

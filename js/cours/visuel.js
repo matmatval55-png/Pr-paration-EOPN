@@ -19,7 +19,7 @@ export const AERONEFS = [
 function photo(id, alt) {
   const c = CREDITS[id];
   if (!c) return '';
-  return `<figure class="photo"><img src="images/aeronefs/${id}.jpg" alt="${alt}" loading="lazy" width="800" height="533"><figcaption>Photo : ${c.artist || 'auteur inconnu'} — <a href="${c.page}" target="_blank" rel="noopener">Wikimedia Commons</a>, licence ${c.licenseUrl ? `<a href="${c.licenseUrl}" target="_blank" rel="noopener">${c.license}</a>` : c.license}.</figcaption></figure>`;
+  return `<figure class="photo"><img src="images/aeronefs/${id}.jpg" alt="${alt}" loading="lazy" width="792" height="445"><figcaption>Photo : ${c.artist} — <a href="${c.page}" target="_blank" rel="noopener">fiche officielle</a>.</figcaption></figure>`;
 }
 
 const dl = (facts) => `<dl class="facts">${Object.entries(facts).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;

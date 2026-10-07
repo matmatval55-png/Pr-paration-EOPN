@@ -21,7 +21,7 @@ Pensée pour le téléphone, installable (PWA), utilisable **hors ligne**, sans 
 | 📊 Tableau de bord | Statistiques, graphiques, points faibles, révision espacée, séries, **signalement d’erreurs**, rappel de sauvegarde |
 
 ### Crédits
-- Photos d’aéronefs : Wikimedia Commons, licences libres (auteur et licence affichés sous chaque photo, liste dans `js/cours/credits.js`).
+- Photos d’aéronefs : fiches officielles du ministère des Armées (defense.gouv.fr), utilisées pour une révision personnelle ; source indiquée sous chaque photo (`js/cours/credits.js`).
 - Contour de la France : IGN Admin Express (Licence ouverte Etalab), via le projet france-geojson.
 
 ## Mettre le site en ligne gratuitement

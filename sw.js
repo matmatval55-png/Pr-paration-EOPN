@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan (la nouvelle version s'affiche au lancement suivant).
-const VERSION = 'v6';
+const VERSION = 'v7';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -89,6 +89,16 @@ const FILES = [
   './js/psycho/suites.js',
   './js/psycho/verbal.js',
   './js/sport/bareme.js',
+  './images/aeronefs/a400m.jpg',
+  './images/aeronefs/c130.jpg',
+  './images/aeronefs/caracal.jpg',
+  './images/aeronefs/e3f.jpg',
+  './images/aeronefs/mirage2000d.jpg',
+  './images/aeronefs/mrtt.jpg',
+  './images/aeronefs/paf.jpg',
+  './images/aeronefs/pc21.jpg',
+  './images/aeronefs/rafale.jpg',
+  './images/aeronefs/reaper.jpg',
 ];
 
 self.addEventListener('install', (e) => {
