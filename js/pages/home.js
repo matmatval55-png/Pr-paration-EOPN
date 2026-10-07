@@ -6,6 +6,7 @@ import { MODULES } from './modules.js';
 import { todayBlocks, suggestion } from './planning.js';
 import { MODS } from '../planning/plan.js';
 import { backupDue, downloadBackup } from '../core/reports.js';
+import { coachTeaser } from './coach.js';
 
 export function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -49,6 +50,7 @@ export function renderHome(root) {
     ${dleft == null ? `<div class="card small">📅 Saisis la date (même approximative) de ta sélection dans <a href="#/reglages">Réglages</a> pour le compte à rebours et le planning.</div>` : ''}
     ${backupDue() ? `<div class="card" style="border-color:var(--warn)"><b>💾 Pense à sauvegarder ta progression</b><p class="small">Aucun export depuis plus de 7 jours. Sur iPhone, les données d’un site peuvent être effacées s’il n’est pas installé sur l’écran d’accueil.</p><button class="btn primary block" data-backup>Exporter maintenant</button></div>` : ''}
     ${todayHTML()}
+    ${totalAnswers() ? coachTeaser() : ''}
     ${
       due
         ? `<a class="row-link" href="#/revision" style="margin-top:12px;border-color:var(--accent)"><span style="font-size:1.4rem">🔁</span><span class="grow"><span class="title">Révisions du jour : ${due} question${due > 1 ? 's' : ''}</span><br><span class="sub">Les questions ratées reviennent à intervalles croissants.</span></span><span class="chev">›</span></a>`

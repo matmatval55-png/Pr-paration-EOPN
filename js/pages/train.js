@@ -1,4 +1,5 @@
 // Page d'entraînement générique pour un générateur (psycho, maths, physique…).
+import { levelFor } from '../core/mastery.js';
 import { getGen, newSpec } from '../core/registry.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
 import { genSummary } from '../core/stats.js';
@@ -62,7 +63,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
         ${g.levels > 1 ? `<div class="field"><label>Niveau</label>${seg('level', [...(progressive ? [['prog', 'Progressif']] : [['auto', 'Auto']]), ...[[1, 'Facile'], [2, 'Moyen'], [3, 'Difficile']].slice(0, g.levels)], state.level)}</div>` : ''}
         <div class="field"><label>Nombre de questions</label>${seg('count', [[10, '10'], [20, '20'], ['inf', 'Illimité']], state.count)}</div>
         <div class="field"><label>Chronomètre par question</label>${seg('chrono', [[1, 'Oui'], [0, 'Non']], state.chrono)}</div>
-        <p class="small muted">${g.bank ? `Banque de ${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + g.bankSize(l), 0)} questions, tirées sans répétition jusqu’à épuisement.` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? 'Auto : le niveau monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.' : ''} Correction détaillée après chaque réponse.</p>
+        <p class="small muted">${g.bank ? `Banque de ${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + g.bankSize(l), 0)} questions, tirées sans répétition jusqu’à épuisement.` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${['', 'facile', 'moyen', 'difficile'][levelFor(genId)]}) ; il monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
         <button class="btn primary block" data-start>Commencer</button>
       </div>
     </div>`);
@@ -89,7 +90,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
       next(i, history) {
         if (total && i >= total) return null;
         let lvl;
-        if (state.level === 'auto') lvl = adaptiveLevel(history, 1, g.levels);
+        if (state.level === 'auto') lvl = adaptiveLevel(history, levelFor(genId), g.levels);
         else if (state.level === 'prog') lvl = prog[Math.min(prog.length - 1, Math.floor((i / (total || 10)) * prog.length))];
         else lvl = Number(state.level);
         lvl = Math.min(lvl, g.levels);

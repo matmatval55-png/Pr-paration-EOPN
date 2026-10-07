@@ -8,6 +8,7 @@ const DEFAULT = () => ({
   days: {}, // 'AAAA-MM-JJ' -> { n, ok, ms }
   stats: {}, // idExercice -> { 'AAAA-MM-JJ': [n, ok, ms] }
   srs: {}, // clé -> { spec, box, due, lapses }
+  mastery: {}, // idExercice -> { lvl, best, n, ok, last, h } (niveau mémorisé, voir mastery.js)
   exams: [], // historique des examens blancs
   progress: {}, // ex. 'maths.fractions' -> { read: true }
   sport: [], // tests et séances de sport

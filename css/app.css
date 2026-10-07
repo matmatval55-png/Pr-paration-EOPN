@@ -438,3 +438,14 @@ details.card > summary, details.review-item > summary { cursor: pointer; }
 @keyframes sit-fade { 50% { opacity: .3; filter: blur(2px); } }
 @keyframes sit-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sit-ico { animation: none !important; } }
+
+/* Suivi / coach */
+.mbar { height: 6px; border-radius: 99px; background: var(--card2); overflow: hidden; margin: 6px 0 4px; }
+.mbar > div { height: 100%; background: var(--accent); border-radius: 99px; }
+.mrow { margin: 10px 0; }
+.mrow-h { display: flex; justify-content: space-between; }
+.mitem .title { display: inline; }
+.trend { font-size: .75rem; font-weight: 700; color: var(--muted); margin-left: 4px; }
+.trend.up { color: var(--ok); }
+.trend.down { color: var(--danger); }
+.seg.wrap { flex-wrap: wrap; }

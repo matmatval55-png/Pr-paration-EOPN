@@ -29,6 +29,7 @@ import { renderDiagnostic } from './pages/diagnostic.js';
 import { renderChecklist } from './pages/checklist.js';
 import { renderPlanning } from './pages/planning.js';
 import { renderBibliotheque, renderFiche } from './pages/bibliotheque.js';
+import { renderCoach, renderSuivi } from './pages/coach.js';
 
 const view = document.getElementById('view');
 
@@ -71,6 +72,8 @@ const routes = [
   [/^bibliotheque$/, () => renderBibliotheque(view), 'biblio'],
   [/^fiche\/([^/]+)\/([^/]+)$/, (m) => renderFiche(view, m[1], m[2]), 'biblio'],
   [/^revision$/, () => renderReview(view), 'home'],
+  [/^coach(?:\/([a-z]+))?$/, (m) => renderCoach(view, m[1] || null), 'home'],
+  [/^suivi$/, () => renderSuivi(view), 'stats'],
   [/^stats$/, () => renderStats(view), 'stats'],
   [/^(reglages|plus)$/, () => renderSettings(view), 'plus'],
   [/^selection$/, () => renderSelection(view), 'plus'],

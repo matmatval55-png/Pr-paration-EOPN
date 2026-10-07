@@ -17,6 +17,7 @@ export function renderStats(root) {
     const timeTotal = Object.values(store.data.days).reduce((a, d) => a + d.ms, 0);
     root.innerHTML = `
       <h1>Tableau de bord</h1>
+      <a class="row-link" href="#/suivi" style="border-color:var(--accent);margin-bottom:12px"><span style="font-size:1.4rem">📈</span><span class="grow"><span class="title">Suivi détaillé et conseils du coach</span><br><span class="sub">Niveau et maîtrise par exercice, tendances, examens blancs</span></span><span class="chev">›</span></a>
       <div class="stat-row">
         <div class="stat"><b>${streak()} 🔥</b><span>série actuelle</span></div>
         <div class="stat"><b>${bestStreak()}</b><span>meilleure série</span></div>

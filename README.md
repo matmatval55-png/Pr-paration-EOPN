@@ -9,6 +9,7 @@ Pensée pour le téléphone, installable (PWA), utilisable **hors ligne**, sans 
 | Module | Contenu |
 |---|---|
 | 📖 Cours | Bibliothèque de fiches à lire (dont **fiches visuelles** : photos d’aéronefs, carte des bases, insignes, organigramme, schémas), recherche plein texte, suivi de lecture |
+| 🧭 Coach et suivi | Niveau mémorisé par exercice (monte à 4/5, baisse après 2 erreurs), séances personnalisées (révisions dues, points faibles, exercices oubliés, découverte), suivi de maîtrise, tendances 7 j, conseils, évolution des examens blancs |
 | 🧠 Psychotechniques | 21 exercices : suites, matrices, dominos, raisonnement verbal (40 q), rotations, patrons de cubes, mécanique, barrage, comptage, codage, mémoire, calcul, problèmes, multitâche, **manche et palonniers au gyroscope**, instruments, caps, **situations de vol animées** (VOR/RMI, vent, tour de piste, PAPI, attitudes, anticollision, instruments → image de l’avion, CDI/ILS, circuit d’attente, signaux lumineux, interception, 30 urgences) · 3 examens blancs |
 | 📐 Maths | 10 chapitres (seconde → terminale), exercices générés corrigés pas à pas, **test de positionnement** |
 | ⚛️ Physique | 7 chapitres : unités, cinématique, Newton, énergie, électricité, optique, mécanique du vol |
