@@ -5,6 +5,7 @@ import { FICHES_PSYCHO } from './psycho.js';
 import { FICHES_ANGLAIS } from './anglais.js';
 import { FICHES_CULTURE, FICHES_BIA } from './culture.js';
 import { FICHES_VISUEL } from './visuel.js';
+import { FICHES_ANIME } from './anime.js';
 import { METHODE, QUESTIONS, THEMES } from '../entretien/data.js';
 import { baremeTable } from '../pages/sport.js';
 
@@ -53,6 +54,7 @@ export const SECTIONS = [
   { id: 'maths', ico: '📐', title: 'Maths', fiches: fromChapters('maths', MATHS) },
   { id: 'physique', ico: '⚛️', title: 'Physique', fiches: fromChapters('physique', PHYS) },
   { id: 'anglais', ico: '🇬🇧', title: 'Anglais', fiches: FICHES_ANGLAIS },
+  { id: 'anime', ico: '🎬', title: 'Schémas animés : situations de vol', fiches: FICHES_ANIME },
   { id: 'visuel', ico: '🖼️', title: 'Fiches visuelles : culture de l’armée', fiches: FICHES_VISUEL },
   { id: 'culture', ico: '🎖️', title: 'Culture militaire et aéronautique', fiches: FICHES_CULTURE },
   { id: 'bia', ico: '🛩️', title: 'Révision du BIA', fiches: FICHES_BIA },

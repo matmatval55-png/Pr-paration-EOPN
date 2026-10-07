@@ -48,7 +48,7 @@ async function answerOne() {
 }
 
 // 1. Pages principales
-for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/bibliotheque', '#/checklist', '#/sport/leger', '#/maths/test', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
+for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/bibliotheque', '#/fiche/anime/portance', '#/fiche/visuel/carte', '#/checklist', '#/sport/leger', '#/maths/test', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
   await go(h);
   await shot('page-' + (h.replace(/[#/]/g, '') || 'home'));
 }

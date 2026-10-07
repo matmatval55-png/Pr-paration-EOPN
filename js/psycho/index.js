@@ -9,9 +9,10 @@ import './multitache.js';
 import './instruments.js';
 import './verbal.js';
 import './psychomoteur.js';
+import './situations.js';
 
 // Ordre d'affichage des groupes
-export const GROUPS = ['Suites logiques', 'Raisonnement verbal', 'Raisonnement spatial', 'Compréhension mécanique', 'Attention', 'Mémoire', 'Calcul', 'Multitâche', 'Psychomotricité', 'Instruments'];
+export const GROUPS = ['Suites logiques', 'Raisonnement verbal', 'Raisonnement spatial', 'Compréhension mécanique', 'Attention', 'Mémoire', 'Calcul', 'Multitâche', 'Psychomotricité', 'Instruments', 'Conscience de la situation'];
 
 // Formats d'examen blanc. ⚠️ Ce sont des SIMULATIONS : la durée et le nombre exacts de
 // questions des épreuves officielles ne sont pas publiés (voir docs/selection-eopn.md).
@@ -34,7 +35,8 @@ export const EXAMS = [
     desc: 'Instruments, orientation, problèmes, mémoire, multitâche — format simulé.',
     sections: [
       { title: 'Lecture d’instruments', gens: ['psy.instruments', 'psy.horizon'], count: 15, time: 6 * 60 },
-      { title: 'Orientation et caps', gens: ['psy.caps', 'psy.horizon'], count: 10, time: 5 * 60 },
+      { title: 'Orientation et caps', gens: ['psy.caps', 'psy.horizon', 'psy.vor'], count: 10, time: 5 * 60 },
+      { title: 'Conscience de la situation', gens: ['psy.vor', 'psy.vent', 'psy.circuit', 'psy.papi', 'psy.attitudes', 'psy.trafic'], count: 12, time: 5 * 60 },
       { title: 'Problèmes arithmétiques', gens: ['psy.problemes'], count: 10, time: 10 * 60 },
       { title: 'Mémoire', gens: ['psy.memoire-chiffres', 'psy.memoire-images'], count: 6, time: 4 * 60 },
       { title: 'Multitâche', gens: ['psy.multitache'], count: 1, time: 90 },
