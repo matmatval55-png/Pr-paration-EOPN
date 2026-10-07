@@ -1,7 +1,9 @@
 import { store } from '../core/store.js';
 import { toast, el } from '../core/ui.js';
-import { applyTheme } from '../theme.js';
+import { applyTheme, applyFontSize } from '../theme.js';
 import { MODULES } from './modules.js';
+import { downloadBackup, reportsText, githubIssueUrl } from '../core/reports.js';
+import { esc } from '../core/ui.js';
 
 let deferredPrompt = null;
 addEventListener('beforeinstallprompt', (e) => {
@@ -25,13 +27,22 @@ export function renderSettings(root) {
       <div class="card">
         <h3>Apparence</h3>
         <div class="seg" data-k="theme"><button data-v="auto" class="${s.theme === 'auto' ? 'on' : ''}">Auto</button><button data-v="light" class="${s.theme === 'light' ? 'on' : ''}">Clair</button><button data-v="dark" class="${s.theme === 'dark' ? 'on' : ''}">Sombre</button></div>
+        <div class="field"><label>Taille du texte</label><div class="seg" data-k="fontSize"><button data-v="normal" class="${(s.fontSize || 'normal') === 'normal' ? 'on' : ''}">Normale</button><button data-v="grand" class="${s.fontSize === 'grand' ? 'on' : ''}">Grande</button><button data-v="xl" class="${s.fontSize === 'xl' ? 'on' : ''}">Très grande</button></div></div>
       </div>
       <div class="card">
         <h3>Sauvegarde</h3>
-        <p class="small muted">Tes données restent sur ce téléphone (stockage local). Exporte-les régulièrement en fichier JSON pour ne rien perdre (changement de téléphone, nettoyage du navigateur…).</p>
+        <p class="small muted">Tes données restent sur ce téléphone (stockage local). Exporte-les régulièrement en fichier JSON pour ne rien perdre (changement de téléphone, nettoyage du navigateur…). Dernier export : <b>${s.lastExport ? new Date(s.lastExport).toLocaleDateString('fr-FR') : 'jamais'}</b>.</p>
         <div class="btn-row"><button class="btn" data-export>⬇️ Exporter</button><label class="btn">⬆️ Importer<input type="file" accept="application/json,.json" data-import hidden></label></div>
         <button class="btn block danger" data-reset>Tout effacer</button>
       </div>
+      ${(() => {
+        const r = store.data.reports || [];
+        return `<div class="card"><h3>Mes signalements d’erreurs (${r.length})</h3>${
+          r.length
+            ? `<pre class="report-box">${esc(reportsText())}</pre><div class="btn-row"><button class="btn" data-copy>📋 Copier</button><a class="btn" href="${githubIssueUrl()}" target="_blank" rel="noopener">Envoyer sur GitHub</a></div><button class="btn block danger" data-clear-reports>Vider la liste</button>`
+            : '<p class="small muted">Après chaque correction, le lien « ⚑ Signaler une erreur » enregistre la question ici. Tu peux ensuite me les envoyer (copier-coller ou GitHub).</p>'
+        }</div>`;
+      })()}
       <div class="card" data-install-card ${deferredPrompt ? '' : 'hidden'}>
         <h3>Installer l’application</h3>
         <button class="btn primary block" data-install>📲 Installer sur l’écran d’accueil</button>
@@ -57,16 +68,11 @@ export function renderSettings(root) {
       sg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
       store.update((d) => (d.settings[sg.dataset.k] = b.dataset.v));
       if (sg.dataset.k === 'theme') applyTheme();
+      if (sg.dataset.k === 'fontSize') applyFontSize();
     }),
   );
   page.querySelector('[data-export]').onclick = () => {
-    const blob = new Blob([store.exportJSON()], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `prepa-eopn-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.append(a);
-    a.click();
-    setTimeout(() => (URL.revokeObjectURL(a.href), a.remove()), 1000);
+    downloadBackup();
     toast('Sauvegarde exportée');
   };
   page.querySelector('[data-import]').onchange = async (e) => {
@@ -89,6 +95,19 @@ export function renderSettings(root) {
       renderSettings(root);
     }
   };
+  page.querySelector('[data-copy]')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(reportsText());
+      toast('Copié ✓');
+    } catch {
+      toast('Copie impossible : sélectionne le texte à la main');
+    }
+  });
+  page.querySelector('[data-clear-reports]')?.addEventListener('click', () => {
+    if (!confirm('Vider la liste des signalements ?')) return;
+    store.update((d) => (d.reports = []));
+    renderSettings(root);
+  });
   const inst = page.querySelector('[data-install]');
   inst.onclick = async () => {
     if (!deferredPrompt) return;

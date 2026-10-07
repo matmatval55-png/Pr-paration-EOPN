@@ -3,12 +3,14 @@ import { genSummary } from '../core/stats.js';
 import { store } from '../core/store.js';
 import { esc, pct, el } from '../core/ui.js';
 import { renderTrain } from './train.js';
+import { diagResult, DIAG_LABEL } from './diagnostic.js';
 
 export function renderCourseList(root, { module, title, intro, chapters }) {
   const prog = store.data.progress;
   root.innerHTML = `
     <h1>${esc(title)}</h1>
     <p class="muted">${intro}</p>
+    ${module === 'maths' ? `<a class="row-link" href="#/maths/test" style="margin-bottom:12px;border-color:var(--accent)"><span style="font-size:1.4rem">🎯</span><span class="grow"><span class="title">Test de positionnement</span><br><span class="sub">${store.data.mathsDiag ? `Dernier résultat : ${store.data.mathsDiag.ok}/20 — refaire le test` : '20 questions pour savoir par où commencer'}</span></span><span class="chev">›</span></a>` : ''}
     <div class="list">${chapters
       .map((ch, i) => {
         const s = genSummary(ch.genId, 3650);
@@ -17,7 +19,7 @@ export function renderCourseList(root, { module, title, intro, chapters }) {
         return `<a class="row-link" href="#/${module}/${ch.id}">
           <span class="badge">${i + 1}</span>
           <span class="grow"><span class="title">${esc(ch.title)}</span><br><span class="sub">${esc(ch.niveau)} · ${read ? '✓ cours lu' : 'cours non lu'} · ${s.n} exercice${s.n > 1 ? 's' : ''} faits</span></span>
-          <span class="badge ${cls}">${s.n ? pct(s.rate) : '—'}</span><span class="chev">›</span></a>`;
+          ${module === 'maths' && diagResult(ch.id) != null ? `<span class="badge ${DIAG_LABEL[diagResult(ch.id)][1]}">${DIAG_LABEL[diagResult(ch.id)][0]}</span>` : `<span class="badge ${cls}">${s.n ? pct(s.rate) : '—'}</span>`}<span class="chev">›</span></a>`;
       })
       .join('')}</div>`;
 }

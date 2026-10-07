@@ -7,3 +7,8 @@ export function applyTheme() {
   const dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0b1220' : '#f3f5f9');
 }
+
+export function applyFontSize() {
+  const f = store.data.settings.fontSize || 'normal';
+  document.documentElement.style.fontSize = { normal: '16px', grand: '18px', xl: '20px' }[f] || '16px';
+}

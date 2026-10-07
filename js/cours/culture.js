@@ -46,7 +46,7 @@ export const FICHES_CULTURE = [
     train: '#/train/cult.aae',
     html: `
       <h3>Repères</h3>
-      <ul><li>Armée autonome depuis 1934 ; nom actuel depuis le 11 septembre 2020.</li><li>Environ 40 000 aviateurs (militaires et civils).</li><li>Le <b>Président de la République est le chef des armées</b> (art. 15 de la Constitution). L’AAE est commandée par son chef d’état-major (<b>CEMAAE</b>), sous l’autorité du chef d’état-major des armées (<b>CEMA</b>).</li><li>Devise de l’École de l’air et de l’espace : <b>« Faire face »</b> (Guynemer).</li></ul>
+      <ul><li>Armée autonome depuis 1934 ; nom actuel depuis le 11 septembre 2020.</li><li>Environ 40 000 militaires et 5 200 civils.</li><li>Le <b>Président de la République est le chef des armées</b> (art. 15 de la Constitution). L’AAE est commandée par son chef d’état-major (<b>CEMAAE</b>), sous l’autorité du chef d’état-major des armées (<b>CEMA</b>).</li><li>Devise de l’École de l’air et de l’espace : <b>« Faire face »</b> (Guynemer).</li></ul>
       <h3>Les grandes missions</h3>
       <ul>
         <li><b>Protection</b> : la posture permanente de sûreté aérienne (PPS) surveille le ciel français 24 h/24, avec des chasseurs en alerte.</li>

@@ -5,6 +5,7 @@ import { esc, pct } from '../core/ui.js';
 import { MODULES } from './modules.js';
 import { todayBlocks, suggestion } from './planning.js';
 import { MODS } from '../planning/plan.js';
+import { backupDue, downloadBackup } from '../core/reports.js';
 
 export function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -28,6 +29,12 @@ function todayHTML() {
 export function renderHome(root) {
   const s = store.data;
   const st = streak();
+  queueMicrotask(() =>
+    root.querySelector('[data-backup]')?.addEventListener('click', () => {
+      downloadBackup();
+      renderHome(root);
+    }),
+  );
   const due = dueItems().length;
   const weak = weakPoints(3);
   const dleft = daysUntil(s.settings.selectionDate);
@@ -40,6 +47,7 @@ export function renderHome(root) {
       <div class="stat"><b>${dleft == null ? '—' : dleft}</b><span>${dleft == null ? 'date à saisir' : 'jours avant J'}</span></div>
     </div>
     ${dleft == null ? `<div class="card small">📅 Saisis la date (même approximative) de ta sélection dans <a href="#/reglages">Réglages</a> pour le compte à rebours et le planning.</div>` : ''}
+    ${backupDue() ? `<div class="card" style="border-color:var(--warn)"><b>💾 Pense à sauvegarder ta progression</b><p class="small">Aucun export depuis plus de 7 jours. Sur iPhone, les données d’un site peuvent être effacées s’il n’est pas installé sur l’écran d’accueil.</p><button class="btn primary block" data-backup>Exporter maintenant</button></div>` : ''}
     ${todayHTML()}
     ${
       due

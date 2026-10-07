@@ -14,6 +14,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ ...devices['iPhone 13'], colorScheme: process.env.DARK ? 'dark' : 'light' });
 const page = await ctx.newPage();
 page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+page.on('dialog', (d) => d.accept(d.type() === 'prompt' ? 'test' : undefined).catch(() => {}));
 page.on('console', (m) => m.type() === 'error' && errors.push('console: ' + m.text()));
 const shot = async (name) => SHOTS && (await page.screenshot({ path: `${SHOTS}/${name}.png`, fullPage: false }));
 
@@ -39,7 +40,7 @@ async function answerOne() {
   } else if (await page.locator('.simon').count()) {
     await page.waitForSelector('.simon button:not([disabled])', { timeout: 15000 });
     for (let i = 0; i < 8 && (await page.locator('.simon button:not([disabled])').count()); i++) await page.locator('.simon button').nth(i % 9).click();
-  } else if (await page.locator('.mt').count()) {
+  } else if ((await page.locator('.mt').count()) || (await page.locator('.pm').count())) {
     return 'skip';
   }
   await page.waitForSelector('.feedback, .summary', { timeout: 70000 });
@@ -47,7 +48,7 @@ async function answerOne() {
 }
 
 // 1. Pages principales
-for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/bibliotheque', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
+for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais', '#/flashcards', '#/culture', '#/bibliotheque', '#/checklist', '#/sport/leger', '#/maths/test', '#/entretien', '#/sport', '#/planning', '#/stats', '#/plus', '#/selection', '#/revision']) {
   await go(h);
   await shot('page-' + (h.replace(/[#/]/g, '') || 'home'));
 }
@@ -56,7 +57,7 @@ for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais'
 const gens = await page.evaluate(async () => (await import('./js/core/registry.js')).listGens().map((g) => g.id));
 console.log('générateurs :', gens.length);
 for (const id of gens) {
-  if (id === 'psy.multitache') continue;
+  if (id === 'psy.multitache' || id === 'psy.manche') continue;
   await go('#/train/' + id);
   await page.locator('.seg[data-name="chrono"] button[data-v="0"]').click();
   await page.locator('[data-start]').click();
@@ -67,9 +68,7 @@ for (const id of gens) {
     await page.locator('.fb-next').click();
   }
   await page.locator('.quiz-quit').click().catch(() => {});
-  page.once('dialog', (d) => d.accept());
 }
-page.on('dialog', (d) => d.accept());
 
 // 3. Multitâche : lancement court
 await go('#/train/psy.multitache');
@@ -124,6 +123,72 @@ await page.waitForTimeout(200);
 await go('#/bibliotheque');
 if (!(await page.locator('a[href="#/fiche/psycho/suites"] .badge.ok').count())) errors.push('bibliothèque : la fiche lue n’est pas marquée');
 await shot('bibliotheque');
+
+// 5 quater. Nouvelles fonctions
+// Manche et palonniers (mode doigt, quelques secondes)
+await go('#/train/psy.manche');
+await page.locator('.seg[data-name="level"] button[data-v="2"]').click();
+await page.locator('[data-start]').click();
+await page.locator('[data-mode="touch"]').click();
+await page.waitForSelector('.pm-zone:not(.hidden)');
+const z = await page.locator('.pm-zone').boundingBox();
+await page.mouse.move(z.x + z.width / 2, z.y + z.height / 2);
+await page.locator('[data-p="1"]').dispatchEvent('pointerdown');
+await page.waitForTimeout(1200);
+await shot('manche');
+await page.locator('.quiz-quit').click();
+// Bande Luc Léger : démarrer puis arrêter
+await go('#/sport/leger');
+await page.locator('[data-go]').click();
+await page.waitForTimeout(1500);
+await page.locator('[data-stop]').click();
+await page.waitForSelector('.leger-result .fb-explain');
+await shot('leger');
+// Signaler une erreur
+await go('#/train/psy.calcul');
+await page.locator('[data-start]').click();
+await answerOne();
+await page.locator('.fb-report').click();
+await page.waitForTimeout(200);
+await go('#/plus');
+if (!(await page.locator('text=Mes signalements d’erreurs (1)').count())) errors.push('signalement non enregistré');
+// Recherche dans les cours
+await go('#/bibliotheque');
+await page.fill('.search', 'decrochage');
+await page.waitForTimeout(200);
+if (!(await page.locator('.search-res .row-link').count())) errors.push('recherche : aucun résultat pour « decrochage »');
+await shot('search');
+// Checklist : cocher une étape
+await go('#/checklist');
+await page.locator('input[data-id="cni"]').check();
+await page.waitForTimeout(100);
+if (!(await page.locator('text=1 / ').count())) errors.push('checklist : progression non mise à jour');
+await shot('checklist');
+// Écoute ATC
+await go('#/train/en.atc');
+await page.locator('[data-start]').click();
+await page.waitForSelector('[data-speak]');
+await page.locator('[data-speak]').click();
+await shot('atc');
+await page.locator('.quiz-quit').click();
+// Test de positionnement maths (20 réponses rapides)
+await go('#/maths/test');
+await page.locator('[data-go]').click();
+for (let i = 0; i < 20; i++) {
+  await page.waitForSelector('.qcard');
+  const c = page.locator('.qcard .choice:not([disabled])');
+  if (await c.count()) await c.first().click();
+  else { await page.locator('.kp-grid button[data-k="1"]').click(); await page.locator('.kp-ok').click(); }
+  await page.waitForTimeout(40);
+}
+await page.waitForSelector('text=Résultat :');
+await go('#/maths');
+if (!(await page.locator('text=Dernier résultat').count())) errors.push('positionnement non enregistré');
+await shot('maths-diag');
+// Planning : export .ics
+await go('#/planning');
+const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('[data-ics]').click()]);
+if (!dl.suggestedFilename().endsWith('.ics')) errors.push('export ics');
 
 // 5 bis. Nouveaux modules
 // Physique : chapitre + 3 exercices

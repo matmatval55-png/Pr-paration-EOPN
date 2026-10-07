@@ -5,7 +5,7 @@ import { CHAPTERS as PHYS } from './physique/index.js';
 import './anglais/index.js';
 import './culture/index.js';
 import { store } from './core/store.js';
-import { applyTheme } from './theme.js';
+import { applyTheme, applyFontSize } from './theme.js';
 import { renderHome } from './pages/home.js';
 import { renderPsycho } from './pages/psycho.js';
 import { renderTrain } from './pages/train.js';
@@ -24,6 +24,9 @@ import { DECKS } from './anglais/index.js';
 import { GROUPS as CULTURE_GROUPS } from './culture/index.js';
 import { renderEntretien, renderSimulation } from './pages/entretien.js';
 import { renderSport } from './pages/sport.js';
+import { renderLeger } from './pages/leger.js';
+import { renderDiagnostic } from './pages/diagnostic.js';
+import { renderChecklist } from './pages/checklist.js';
 import { renderPlanning } from './pages/planning.js';
 import { renderBibliotheque, renderFiche } from './pages/bibliotheque.js';
 
@@ -50,6 +53,7 @@ const routes = [
   [/^train\/(.+)$/, (m) => renderTrain(view, decodeURIComponent(m[1]), { back: backFor(decodeURIComponent(m[1])) }), 'psycho'],
   [/^exam\/(.+)$/, (m) => renderExam(view, m[1]), 'psycho'],
   [/^maths$/, () => renderCourseList(view, { module: 'maths', title: 'Maths', chapters: MATHS, intro: 'On repart des bases (seconde) jusqu’au niveau terminale. Chaque chapitre : un cours court, une méthode, puis des exercices corrigés pas à pas du plus facile au plus difficile. Conseil : fais les chapitres dans l’ordre, le calcul d’abord.' }), 'cours'],
+  [/^maths\/test$/, () => renderDiagnostic(view), 'cours'],
   [/^maths\/([^/]+)(?:\/([^/]+))?$/, (m) => renderChapter(view, { module: 'maths', chapters: MATHS, id: m[1], tab: m[2] }), 'cours'],
   [/^physique$/, () => renderCourseList(view, { module: 'physique', title: 'Physique', chapters: PHYS, intro: 'Mécanique, énergie, électricité, optique et mécanique du vol, au format cours + méthode + exercices corrigés pas à pas. Les chapitres « Unités » et « Vitesse » sont prioritaires : on les retrouve dans les problèmes des tests.' }), 'cours'],
   [/^physique\/([^/]+)(?:\/([^/]+))?$/, (m) => renderChapter(view, { module: 'physique', chapters: PHYS, id: m[1], tab: m[2] }), 'cours'],
@@ -60,7 +64,9 @@ const routes = [
   [/^entretien$/, () => renderEntretien(view), 'cours'],
   [/^entretien\/simulation$/, () => renderSimulation(view), 'cours'],
   [/^sport$/, () => renderSport(view), 'cours'],
+  [/^sport\/leger$/, () => renderLeger(view), 'cours'],
   [/^planning$/, () => renderPlanning(view), 'planning'],
+  [/^checklist$/, () => renderChecklist(view), 'planning'],
   [/^cours$/, () => renderCours(view), 'cours'],
   [/^bibliotheque$/, () => renderBibliotheque(view), 'biblio'],
   [/^fiche\/([^/]+)\/([^/]+)$/, (m) => renderFiche(view, m[1], m[2]), 'biblio'],
@@ -92,6 +98,19 @@ function route() {
 }
 
 addEventListener('hashchange', route);
+// Boutons « Écouter » : lecture par la synthèse vocale du téléphone (exercices d'écoute radio).
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-speak]');
+  if (!b) return;
+  if (!('speechSynthesis' in window)) return alert('La synthèse vocale n’est pas disponible : affiche le texte.');
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(b.dataset.speak);
+  u.lang = 'en-GB';
+  u.rate = Number(b.dataset.rate) || 1;
+  const v = speechSynthesis.getVoices().find((x) => /^en(-|_)(GB|US)/i.test(x.lang));
+  if (v) u.voice = v;
+  speechSynthesis.speak(u);
+});
 // Un lien vers la page courante doit quand même recharger la vue (ex. « Retour » après un entraînement).
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a[href^="#"]');
@@ -102,6 +121,9 @@ document.addEventListener('click', (e) => {
 });
 
 applyTheme();
+applyFontSize();
+// Demande au navigateur de ne pas effacer les données (évite le nettoyage automatique de Safari).
+navigator.storage?.persist?.().catch(() => {});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
 route();
 

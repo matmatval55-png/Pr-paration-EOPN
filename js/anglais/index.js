@@ -6,6 +6,7 @@ import { addExams } from '../exams.js';
 import { GRAMMAR } from './grammar.js';
 import { GENERAL, PHRASEO, AERO, AERO_ITEMS } from './vocab.js';
 import { READING } from './reading.js';
+import './atc.js';
 
 const M = 'anglais';
 

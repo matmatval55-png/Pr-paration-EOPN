@@ -39,24 +39,72 @@ export function renderEntretien(root) {
   );
 }
 
+// Enregistrement audio de la réponse (pour se réécouter) — rien n'est envoyé ni conservé après la page.
+function recorder() {
+  let rec = null, stream = null, chunks = [];
+  return {
+    get supported() {
+      return !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
+    },
+    async start() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        chunks = [];
+        rec = new MediaRecorder(stream);
+        rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+        rec.start();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    stop() {
+      return new Promise((resolve) => {
+        if (!rec || rec.state === 'inactive') return resolve(null);
+        rec.onstop = () => {
+          stream?.getTracks().forEach((t) => t.stop());
+          resolve(chunks.length ? new Blob(chunks, { type: rec.mimeType || 'audio/webm' }) : null);
+        };
+        rec.stop();
+      });
+    },
+    kill() {
+      try {
+        rec?.state !== 'inactive' && rec?.stop();
+      } catch {
+        /* déjà arrêté */
+      }
+      stream?.getTracks().forEach((t) => t.stop());
+    },
+  };
+}
+
 export function renderSimulation(root) {
   let theme = 'all';
   let timers = [];
+  let recordOn = true;
+  const mic = recorder();
+  let audioUrl = null;
   const clear = () => (timers.forEach(clearInterval), (timers = []));
   root.innerHTML = '';
   const page = el(`
     <div>
       <a href="#/entretien" class="small">← Entretien</a>
       <h1>Simulation d’entretien</h1>
+            <label class="check mic-opt"><input type="checkbox" id="rec" checked> 🎙️ Enregistrer ma réponse pour me réécouter (reste sur le téléphone)</label>
       <div class="field"><label for="theme">Thème</label><select id="theme"><option value="all">Tous les thèmes</option>${THEMES.map((t) => `<option>${esc(t)}</option>`).join('')}</select></div>
       <div class="sim"></div>
     </div>`);
   root.append(page);
   const sim = page.querySelector('.sim');
   page.querySelector('#theme').onchange = (e) => ((theme = e.target.value), intro());
+  if (!mic.supported) page.querySelector('.mic-opt').remove();
+  else page.querySelector('#rec').onchange = (e) => (recordOn = e.target.checked);
 
   function intro() {
     clear();
+    mic.kill();
+    evaluating = false;
     sim.innerHTML = `<div class="card center"><p>Mets-toi dans les conditions : assis, droit, à voix haute. Imagine le jury en face de toi.</p><button class="btn primary block" data-go>Tirer une question</button></div>`;
     sim.querySelector('[data-go]').onclick = ask;
   }
@@ -77,6 +125,7 @@ export function renderSimulation(root) {
 
   function ask() {
     clear();
+    evaluating = false;
     const pool = QUESTIONS.filter((q) => theme === 'all' || q.theme === theme);
     const q = pool[Math.floor(Math.random() * pool.length)];
     const t0 = Date.now();
@@ -90,8 +139,16 @@ export function renderSimulation(root) {
       </div>`;
     const clock = sim.querySelector('.sim-clock');
     const btn = sim.querySelector('[data-next]');
-    const speak = () => {
+    let speaking = false;
+    const speak = async () => {
+      if (speaking) return;
+      speaking = true;
       clear();
+      btn.onclick = null;
+      if (recordOn && mic.supported) {
+        const ok = await mic.start();
+        if (ok) sim.querySelector('.sim-clock').insertAdjacentHTML('afterend', '<p class="center small" style="color:var(--danger)">● Enregistrement en cours</p>');
+      }
       btn.textContent = 'J’ai terminé';
       btn.onclick = () => evaluate(q, t0);
       const bar = sim.querySelector('.sim-bar');
@@ -103,12 +160,19 @@ export function renderSimulation(root) {
     countdown(20, '🤔 Réflexion :', speak, clock);
   }
 
-  function evaluate(q, t0) {
+  let evaluating = false;
+  async function evaluate(q, t0) {
+    if (evaluating) return;
+    evaluating = true;
     clear();
+    const blob = await mic.stop();
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    audioUrl = blob ? URL.createObjectURL(blob) : null;
     sim.innerHTML = `
       <div class="card">
         <h3>« ${esc(q.q)} »</h3>
         <p class="small muted">Durée totale : ${fmtClock(Date.now() - t0)}</p>
+        ${audioUrl ? `<h4>🎧 Réécoute ta réponse</h4><audio controls src="${audioUrl}" style="width:100%"></audio><p class="small muted">Repère les « euh », les silences, les phrases trop longues, le ton monotone. <a href="${audioUrl}" download="entretien-${new Date().toISOString().slice(0, 10)}.webm">Télécharger</a></p>` : ''}
         <h4>Auto-évaluation</h4>
         ${CRITERES.map((c, i) => `<label class="check"><input type="checkbox" data-c="${i}"> ${esc(c)}</label>`).join('')}
         ${advice(q)}
@@ -123,10 +187,15 @@ export function renderSimulation(root) {
         if (s.interview.sessions.length > 300) s.interview.sessions.shift();
       });
       recordActivity(Date.now() - t0);
+      evaluating = false;
       ask();
     };
   }
 
   intro();
-  return clear;
+  return () => {
+    clear();
+    mic.kill();
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+  };
 }

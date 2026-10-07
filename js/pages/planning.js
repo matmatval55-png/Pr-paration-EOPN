@@ -6,12 +6,21 @@ import { dueItems } from '../core/srs.js';
 import { listGens } from '../core/registry.js';
 import { CHAPTERS as MATHS } from '../maths/index.js';
 import { CHAPTERS as PHYS } from '../physique/index.js';
-import { el, esc } from '../core/ui.js';
+import { el, esc, toast } from '../core/ui.js';
+import { buildICS } from '../planning/ics.js';
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const dayIndex = (d = new Date()) => (d.getDay() + 6) % 7; // 0 = lundi
 
 function nextChapter(chapters) {
+  // priorité aux chapitres classés « Prioritaire » puis « À consolider » par le test de positionnement
+  const diag = store.data.mathsDiag?.res;
+  if (diag && chapters[0]?.genId.startsWith('maths.')) {
+    for (const lvl of [0, 1]) {
+      const c = chapters.find((ch) => diag[ch.id] === lvl && (genSummary(ch.genId).rate ?? 0) < 0.8);
+      if (c) return c;
+    }
+  }
   return chapters.find((c) => !store.data.progress[c.genId]?.read) || chapters.find((c) => (genSummary(c.genId).rate ?? 0) < 0.7) || chapters[0];
 }
 
@@ -127,6 +136,12 @@ export function renderPlanning(root) {
         <p class="small muted">Jours où tu peux travailler (les heures par semaine et la date se règlent dans <a href="#/reglages">Réglages</a>).</p>
         <div class="daypick">${JOURS.map((j, d) => `<label><input type="checkbox" data-day="${d}" ${days.includes(d) ? 'checked' : ''}>${j.slice(0, 3)}</label>`).join('')}</div>
       </div>
+      <div class="card">
+        <h3>📅 Ajouter à mon agenda</h3>
+        <p class="small muted">Télécharge les 4 prochaines semaines (fichier .ics) et ouvre-le : ton téléphone propose d’ajouter les séances à ton agenda, avec un rappel 10 min avant. Refais l’export si tu changes tes disponibilités.</p>
+        <div class="field"><label for="ics-hour">Heure de début des séances</label><input type="time" id="ics-hour" value="${store.data.planning?.hour || '18:00'}"></div>
+        <button class="btn primary block" data-ics>Télécharger le planning (.ics)</button>
+      </div>
       <details class="card"><summary><b>Comment le planning est calculé</b></summary><div class="course small">
         <p>Le temps est découpé en créneaux de 30 min, répartis selon la phase :</p>
         <ul>${PHASES.map((p) => `<li><b>${p.title}</b> (${p.min ? `plus de ${p.min} semaines avant J` : 'les 8 dernières semaines'}) : ${Object.entries(p.w).map(([k, v]) => `${MODS[k].label} ${v} %`).join(', ')}.</li>`).join('')}</ul>
@@ -145,6 +160,18 @@ export function renderPlanning(root) {
       b.textContent = store.data.planning.done[today()][b.dataset.done] ? '✔' : '○';
     }),
   );
+  page.querySelector('[data-ics]').onclick = () => {
+    const hour = page.querySelector('#ics-hour').value || '18:00';
+    store.update((d) => ((d.planning ||= {}).hour = hour));
+    const ics = buildICS(plan, { hour, url: location.origin + location.pathname });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+    a.download = 'prepa-eopn-planning.ics';
+    document.body.append(a);
+    a.click();
+    setTimeout(() => (URL.revokeObjectURL(a.href), a.remove()), 1000);
+    toast('Planning exporté : ouvre le fichier pour l’ajouter à ton agenda');
+  };
   page.querySelectorAll('[data-day]').forEach((c) =>
     (c.onchange = () => {
       const sel = [...page.querySelectorAll('[data-day]:checked')].map((x) => +x.dataset.day);

@@ -4,6 +4,7 @@ import { store, today } from '../core/store.js';
 import { recordActivity } from '../core/stats.js';
 import { lineChart } from '../core/charts.js';
 import { el, esc, toast } from '../core/ui.js';
+import { consumePendingLeger } from './leger.js';
 
 const lastTest = () => store.data.sport.filter((t) => t.type === 'test').slice(-1)[0];
 
@@ -71,6 +72,7 @@ export function renderSport(root) {
             : '<p class="muted">Aucun test enregistré. Fais les 3 épreuves pour connaître ton niveau de départ.</p>'
         }
         <button class="btn primary block" data-add>➕ Ajouter un test</button>
+        <a class="btn block" href="#/sport/leger">🔊 Bande sonore Luc Léger intégrée</a>
       </div>
       <div class="add-form hidden card">
         <h3>Nouveau test</h3>
@@ -107,6 +109,13 @@ export function renderSport(root) {
 
   const form = page.querySelector('.add-form');
   page.querySelector('[data-add]').onclick = () => form.classList.toggle('hidden');
+  const pend = consumePendingLeger();
+  if (pend) {
+    form.classList.remove('hidden');
+    form.querySelector('[name="palier"]').value = pend.palier;
+    form.querySelector('[name="sec"]').value = pend.sec;
+    setTimeout(() => form.scrollIntoView({ behavior: 'smooth' }), 50);
+  }
   const read = () => Object.fromEntries([...form.querySelectorAll('input')].map((i) => [i.name, i.value]));
   const preview = () => {
     const v = read();

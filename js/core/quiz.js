@@ -4,6 +4,7 @@ import { record } from './stats.js';
 import { onAnswer } from './srs.js';
 import { el, esc, keypad, parseNum, vibrate } from './ui.js';
 import { n as fmtN } from './fmt.js';
+import { addReport } from './reports.js';
 
 /**
  * opts :
@@ -231,8 +232,16 @@ export function runQuiz(root, opts) {
         ${head}${ans}${extra}
         <div class="fb-explain"><h4>Explication</h4>${q.explain || ''}</div>
         <button class="btn primary fb-next">Suivant →</button>
+        <button class="linkbtn fb-report" type="button">⚑ Signaler une erreur dans cette question</button>
       </div>`);
     card.append(fb);
+    fb.querySelector('.fb-report').onclick = (e) => {
+      const c = prompt('Qu’est-ce qui ne va pas ? (réponse fausse, explication peu claire, faute…)');
+      if (c == null) return;
+      addReport(q, c);
+      e.target.textContent = '✓ Merci, signalement enregistré (voir Réglages)';
+      e.target.disabled = true;
+    };
     fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     const nextBtn = fb.querySelector('.fb-next');
     if (opts.total && history.length >= opts.total) nextBtn.textContent = 'Voir le bilan';

@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan (la nouvelle version s'affiche au lancement suivant).
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -16,6 +16,7 @@ const FILES = [
   './js/app.js',
   './js/exams.js',
   './js/theme.js',
+  './js/anglais/atc.js',
   './js/anglais/grammar.js',
   './js/anglais/index.js',
   './js/anglais/reading.js',
@@ -26,6 +27,7 @@ const FILES = [
   './js/core/fmt.js',
   './js/core/quiz.js',
   './js/core/registry.js',
+  './js/core/reports.js',
   './js/core/rng.js',
   './js/core/srs.js',
   './js/core/stats.js',
@@ -45,13 +47,16 @@ const FILES = [
   './js/maths/helpers.js',
   './js/maths/index.js',
   './js/pages/bibliotheque.js',
+  './js/pages/checklist.js',
   './js/pages/cours.js',
   './js/pages/course.js',
+  './js/pages/diagnostic.js',
   './js/pages/entretien.js',
   './js/pages/exam.js',
   './js/pages/flashcards.js',
   './js/pages/home.js',
   './js/pages/hub.js',
+  './js/pages/leger.js',
   './js/pages/modules.js',
   './js/pages/planning.js',
   './js/pages/psycho.js',
@@ -63,6 +68,7 @@ const FILES = [
   './js/pages/train.js',
   './js/physique/chapters.js',
   './js/physique/index.js',
+  './js/planning/ics.js',
   './js/planning/plan.js',
   './js/psycho/attention.js',
   './js/psycho/calcul.js',
@@ -71,6 +77,7 @@ const FILES = [
   './js/psycho/mecanique.js',
   './js/psycho/memoire.js',
   './js/psycho/multitache.js',
+  './js/psycho/psychomoteur.js',
   './js/psycho/spatial.js',
   './js/psycho/suites.js',
   './js/psycho/verbal.js',

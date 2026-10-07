@@ -3,7 +3,7 @@ import { GROUPS, EXAMS } from '../psycho/index.js';
 import { genSummary } from '../core/stats.js';
 import { esc, pct } from '../core/ui.js';
 
-const ICONS = { 'Suites logiques': '🔢', 'Raisonnement verbal': '🔤', 'Raisonnement spatial': '🧊', 'Compréhension mécanique': '⚙️', Attention: '🎯', Mémoire: '🧠', Calcul: '➗', Multitâche: '🕹️', Instruments: '🧭' };
+const ICONS = { 'Suites logiques': '🔢', 'Raisonnement verbal': '🔤', 'Raisonnement spatial': '🧊', 'Compréhension mécanique': '⚙️', Attention: '🎯', Mémoire: '🧠', Calcul: '➗', Multitâche: '🕹️', Psychomotricité: '✈️', Instruments: '🧭' };
 
 export function renderPsycho(root) {
   const gens = listGens('psycho');
@@ -25,6 +25,6 @@ export function renderPsycho(root) {
         .join('')}</div>`;
     }).join('')}
     <div class="card small muted">
-      <b>Ce que ce module ne peut pas reproduire :</b> le test palonnier (coordination des pieds) et l’épreuve psychomotrice au manche (« système d’évaluation candidat pilote »), qui demandent du matériel. Le multitâche s’en approche en travaillant la répartition de l’attention.
+      <b>Limites :</b> le test palonnier et l’épreuve psychomotrice officielle (« système d’évaluation candidat pilote ») se passent avec un vrai manche et de vrais palonniers. L’exercice « Manche et palonniers » (téléphone incliné + boutons) et le multitâche s’en approchent, sans les remplacer.
     </div>`;
 }

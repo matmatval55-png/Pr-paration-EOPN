@@ -9,5 +9,6 @@ export const MODULES = [
   { id: 'entretien', ico: '🎤', title: 'Entretien', sub: 'Simulation', href: '#/entretien' },
   { id: 'sport', ico: '🏃', title: 'Sport', sub: 'Barème + programme', href: '#/sport' },
   { id: 'planning', ico: '🗓️', title: 'Planning', sub: 'Ma semaine', href: '#/planning' },
+  { id: 'checklist', ico: '✅', title: 'Checklist', sub: 'Candidature', href: '#/checklist' },
   { id: 'stats', ico: '📊', title: 'Tableau de bord', sub: 'Progression', href: '#/stats' },
 ];
