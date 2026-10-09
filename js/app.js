@@ -34,8 +34,17 @@ import './entretien/groupe.js';
 import { renderGroupe } from './pages/groupe.js';
 import { renderJourJ } from './pages/jourj.js';
 import { renderSante } from './pages/sante.js';
+import { startDecor } from './core/decor.js';
 
 const view = document.getElementById('view');
+
+// Nouveau design (noir épuré) : le thème « auto » passe une fois en sombre ; modifiable dans les réglages.
+if (!store.data.settings.design2) {
+  store.update((s) => {
+    if (s.settings.theme === 'auto') s.settings.theme = 'dark';
+    s.settings.design2 = true;
+  });
+}
 
 // Valeur par défaut de la date de sélection (« vers fin 2027 », modifiable dans les réglages)
 if (!store.data.settings.selectionDate && !store.data.settings.dateAsked) {
@@ -131,6 +140,7 @@ document.addEventListener('click', (e) => {
 });
 
 applyTheme();
+startDecor();
 applyFontSize();
 // Demande au navigateur de ne pas effacer les données (évite le nettoyage automatique de Safari).
 navigator.storage?.persist?.().catch(() => {});

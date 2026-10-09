@@ -4,7 +4,7 @@ const KEY = 'eopn.v1';
 const DEFAULT = () => ({
   version: 1,
   createdAt: Date.now(),
-  settings: { theme: 'auto', selectionDate: '', hoursPerWeek: 6, sex: 'H' },
+  settings: { theme: 'dark', selectionDate: '', hoursPerWeek: 6, sex: 'H' },
   days: {}, // 'AAAA-MM-JJ' -> { n, ok, ms }
   stats: {}, // idExercice -> { 'AAAA-MM-JJ': [n, ok, ms] }
   srs: {}, // clé -> { spec, box, due, lapses }
