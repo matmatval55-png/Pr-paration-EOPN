@@ -459,3 +459,19 @@ details.card > summary, details.review-item > summary { cursor: pointer; }
 .form-grid input { font: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card2); color: var(--text); }
 .tbl.struct { font-size: .75rem; width: 100%; border-collapse: collapse; }
 .tbl.struct th, .tbl.struct td { padding: 4px 3px; border-bottom: 1px solid var(--line); text-align: left; }
+
+/* Tablette (iPad) : texte un peu plus grand, contenu plus large, et en paysage
+   l'énoncé et son schéma à gauche, les réponses et la correction à droite. */
+@media (min-width: 900px) {
+  html { font-size: 106.25%; }
+  main { max-width: 1040px; }
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 900px) and (orientation: landscape) {
+  .qcard:has(> .q-visual) { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); column-gap: 22px; align-items: start; }
+  .qcard:has(> .q-visual) > .q-prompt { grid-column: 1 / -1; }
+  .qcard:has(> .q-visual) > .q-visual { grid-column: 1; grid-row: 2 / span 2; margin: 0; position: sticky; top: 70px; }
+  .qcard:has(> .q-visual) > .q-answer { grid-column: 2; grid-row: 2; }
+  .qcard:has(> .q-visual) > .feedback { grid-column: 2; grid-row: 3; }
+  .qcard:has(> .q-visual) .choices.row { grid-template-columns: repeat(2, 1fr); }
+}

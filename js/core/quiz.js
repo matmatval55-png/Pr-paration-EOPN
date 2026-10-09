@@ -72,7 +72,28 @@ export function runQuiz(root, opts) {
     return { ms: performance.now() - startAll, quit };
   }
 
+  // Clavier (iPad avec clavier, ordinateur) : A-F ou 1-6 pour répondre, Entrée pour passer à la suite.
+  const onKey = (e) => {
+    if (ended || !wrap.isConnected) return removeEventListener('keydown', onKey);
+    if (e.metaKey || e.ctrlKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName)) return;
+    const next = body.querySelector('.fb-next');
+    if (next && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      return next.click();
+    }
+    const k = e.key.toLowerCase();
+    const i = 'abcdef'.indexOf(k) >= 0 ? 'abcdef'.indexOf(k) : '123456'.indexOf(k);
+    if (k.length !== 1 || i < 0 || body.querySelector('.keypad')) return;
+    const btn = body.querySelectorAll('.q-answer .choice')[i];
+    if (btn && !btn.disabled) {
+      e.preventDefault();
+      btn.click();
+    }
+  };
+  addEventListener('keydown', onKey);
+
   function stop() {
+    removeEventListener('keydown', onKey);
     ended = true;
     cancelAnimationFrame(raf);
     clearInterval(totalTimer);

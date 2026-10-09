@@ -9,7 +9,7 @@ export function renderPsycho(root) {
   const gens = listGens('psycho');
   root.innerHTML = `
     <h1>Tests psychotechniques</h1>
-    <p class="muted">Exercices générés à l’infini, chronométrés, avec correction expliquée. Les épreuves officielles se passent sur ordinateur ; ici tout est adapté au téléphone.</p>
+    <p class="muted">Exercices générés à l’infini, chronométrés, avec correction expliquée. Les épreuves officielles se passent sur ordinateur ; ici tout est adapté au téléphone et à la tablette.</p>
     <h2>📝 Examens blancs</h2>
     <div class="list">${EXAMS.map(
       (e) => `<a class="row-link" href="#/exam/${e.id}"><span style="font-size:1.4rem">⏱️</span><span class="grow"><span class="title">${esc(e.title)}</span><br><span class="sub">${esc(e.desc)}</span></span><span class="chev">›</span></a>`,
