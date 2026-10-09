@@ -8,6 +8,7 @@ import { FICHES_VISUEL } from './visuel.js';
 import { FICHES_ANIME } from './anime.js';
 import { METHODE, QUESTIONS, THEMES } from '../entretien/data.js';
 import { METHODE_GROUPE, ROLES } from '../entretien/groupe.js';
+import { METHODE_PSY } from '../entretien/personnalite.js';
 import { baremeTable } from '../pages/sport.js';
 
 const fromChapters = (module, chapters) =>
@@ -22,6 +23,7 @@ const fromChapters = (module, chapters) =>
 
 const ENTRETIEN = [
   { id: 'methode', title: 'Préparer et réussir l’entretien', train: '#/entretien/simulation', html: METHODE },
+  { id: 'psychologue', title: 'Questionnaires de personnalité et psychologue', train: '#/personnalite', html: METHODE_PSY },
   { id: 'groupe', title: 'Réussir l’épreuve de groupe', train: '#/train/ent.groupe', html: METHODE_GROUPE + '<h2>Les rôles utiles</h2>' + ROLES.map((r) => `<p><b>${r.ico} ${r.r}</b> : ${r.d}</p>`).join('') },
   ...THEMES.map((t, i) => ({
     id: 'theme-' + i,

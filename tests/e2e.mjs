@@ -57,7 +57,8 @@ for (const h of ['', '#/psycho', '#/cours', '#/maths', '#/physique', '#/anglais'
 const gens = await page.evaluate(async () => (await import('./js/core/registry.js')).listGens().map((g) => g.id));
 console.log('générateurs :', gens.length);
 for (const id of gens) {
-  if (id === 'psy.multitache' || id === 'psy.manche') continue;
+  // tests longs et chronométrés : vérifiés séparément (lancement court ci-dessous ou script de jeu)
+  if (['psy.multitache', 'psy.manche', 'psy.nback', 'psy.defilante', 'psy.compteurs', 'psy.reaction'].includes(id)) continue;
   await go('#/train/' + id);
   await page.locator('.seg[data-name="chrono"] button[data-v="0"]').click();
   await page.locator('[data-start]').click();

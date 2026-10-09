@@ -45,3 +45,23 @@ test('conseils santé', () => {
   assert.equal(good.tips.length, 1);
   assert.match(good.tips[0], /correct/);
 });
+
+test('questionnaire de personnalité : scores, cohérence, désirabilité', async () => {
+  const { ITEMS, score, DIMENSIONS, PAIRS } = await import('../js/entretien/personnalite.js');
+  assert.equal(ITEMS.length, 60);
+  assert.equal(new Set(ITEMS.map((i) => i.id)).size, 60);
+  // réponses « idéales » cohérentes : 5 aux items directs, 1 aux inversés, 1 à la désirabilité
+  const ans = {};
+  for (const i of ITEMS) ans[i.id] = i.dim === 'desir' ? 1 : i.dim === 'ctrl' ? 3 : i.dir > 0 ? 5 : 1;
+  for (const [a, b, same] of PAIRS) ans[a] = same ? ans[b] : 6 - ans[b];
+  const r = score(ans);
+  for (const k of Object.keys(DIMENSIONS)) assert.equal(r.dims[k], 100, k);
+  assert.equal(r.incoh.length, 0);
+  assert.equal(r.desir, 1);
+  // tout à 5 : incohérences détectées et désirabilité élevée
+  const all5 = Object.fromEntries(ITEMS.map((i) => [i.id, 5]));
+  const r2 = score(all5);
+  assert.equal(r2.desir, 5);
+  assert.ok(r2.incoh.length >= 3);
+  for (const k of Object.keys(DIMENSIONS)) assert.equal(r2.dims[k], 50, k);
+});

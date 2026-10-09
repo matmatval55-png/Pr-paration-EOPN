@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan (la nouvelle version s'affiche au lancement suivant).
-const VERSION = 'v13';
+const VERSION = 'v14';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -53,6 +53,7 @@ const FILES = [
   './js/culture/index.js',
   './js/entretien/data.js',
   './js/entretien/groupe.js',
+  './js/entretien/personnalite.js',
   './js/maths/ch-algebre.js',
   './js/maths/ch-analyse.js',
   './js/maths/ch-nombres.js',
@@ -73,6 +74,7 @@ const FILES = [
   './js/pages/jourj.js',
   './js/pages/leger.js',
   './js/pages/modules.js',
+  './js/pages/personnalite.js',
   './js/pages/planning.js',
   './js/pages/psycho.js',
   './js/pages/review.js',
@@ -93,6 +95,7 @@ const FILES = [
   './js/psycho/mecanique.js',
   './js/psycho/memoire.js',
   './js/psycho/multitache.js',
+  './js/psycho/pilotest.js',
   './js/psycho/psychomoteur.js',
   './js/psycho/situations.js',
   './js/psycho/situations2.js',

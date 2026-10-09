@@ -34,6 +34,7 @@ import './entretien/groupe.js';
 import { renderGroupe } from './pages/groupe.js';
 import { renderJourJ } from './pages/jourj.js';
 import { renderSante } from './pages/sante.js';
+import { renderPersonnalite } from './pages/personnalite.js';
 import { startDecor } from './core/decor.js';
 
 const view = document.getElementById('view');
@@ -90,6 +91,7 @@ const routes = [
   [/^groupe$/, () => renderGroupe(view), 'cours'],
   [/^jourj$/, () => renderJourJ(view), 'psycho'],
   [/^sante$/, () => renderSante(view), 'planning'],
+  [/^personnalite$/, () => renderPersonnalite(view), 'cours'],
   [/^stats$/, () => renderStats(view), 'stats'],
   [/^(reglages|plus)$/, () => renderSettings(view), 'plus'],
   [/^selection$/, () => renderSelection(view), 'plus'],

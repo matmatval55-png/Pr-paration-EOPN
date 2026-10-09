@@ -9,6 +9,8 @@ Pensée pour le téléphone, installable (PWA), utilisable **hors ligne**, sans 
 | Module | Contenu |
 |---|---|
 | 📖 Cours | Bibliothèque de fiches à lire (dont **fiches visuelles** : photos d’aéronefs, carte des bases, insignes, organigramme, schémas), recherche plein texte, suivi de lecture |
+| ✈️ Tests type sélection pilote | Inspirés des sélections DLR / Air France / ENAC : N-back, mémoire défilante, compteurs, angles, cadrans, réaction go/no-go · examen blanc dédié |
+| 🧠 Personnalité | Questionnaire d’entraînement (60 items), profil sur 6 dimensions, cohérence, désirabilité sociale, questions du psychologue |
 | 🎯 Jour J | Simulation complète (≈ 1 h 30, avec pauses) et courte, déroulé des 4 jours, dernière semaine, gestion du stress |
 | 👥 Épreuve de groupe | 24 sujets, séance chronométrée avec rappels, grille d’évaluation pour un proche, quiz de 30 situations |
 | 🩺 Médical & santé | Vérifications à faire tôt, aptitude (SIGYCOP), journal quotidien sommeil/sport/caféine/alcool avec conseils |

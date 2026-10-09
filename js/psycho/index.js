@@ -12,6 +12,7 @@ import './psychomoteur.js';
 import './situations.js';
 import './situations2.js';
 import './structuration.js';
+import './pilotest.js';
 
 // Ordre d'affichage des groupes
 export const GROUPS = ['Suites logiques', 'Raisonnement verbal', 'Raisonnement spatial', 'Compréhension mécanique', 'Attention', 'Mémoire', 'Calcul', 'Multitâche', 'Psychomotricité', 'Instruments', 'Conscience de la situation', 'Structuration d’informations'];
@@ -44,6 +45,19 @@ export const EXAMS = [
       { title: 'Mémoire', gens: ['psy.memoire-chiffres', 'psy.memoire-images'], count: 6, time: 4 * 60 },
       { title: 'Multitâche', gens: ['psy.multitache'], count: 1, time: 90 },
       { title: 'Manche et palonniers', gens: ['psy.manche'], count: 1, time: 150 },
+    ],
+  },
+  {
+    id: 'pilote',
+    title: 'Batterie type sélection pilote',
+    desc: 'Tests inspirés des sélections pilotes (DLR, Air France, ENAC) : angles, cadrans, N-back, mémoire défilante, compteurs, réaction. Format d’entraînement.',
+    sections: [
+      { title: 'Estimation d’angles', gens: ['psy.angles'], count: 12, time: 2 * 60 },
+      { title: 'Surveillance de cadrans', gens: ['psy.cadrans'], count: 10, time: 90 },
+      { title: 'N-back', gens: ['psy.nback'], count: 1, time: 2 * 60 },
+      { title: 'Mémoire défilante', gens: ['psy.defilante'], count: 3, time: 2 * 60 },
+      { title: 'Compteurs', gens: ['psy.compteurs'], count: 2, time: 2 * 60 },
+      { title: 'Réaction à des signaux', gens: ['psy.reaction'], count: 1, time: 90 },
     ],
   },
   {

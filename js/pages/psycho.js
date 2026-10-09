@@ -14,6 +14,7 @@ export function renderPsycho(root) {
     <div class="list">${EXAMS.map(
       (e) => `<a class="row-link" href="#/exam/${e.id}"><span style="font-size:1.4rem">⏱️</span><span class="grow"><span class="title">${esc(e.title)}</span><br><span class="sub">${esc(e.desc)}</span></span><span class="chev">›</span></a>`,
     ).join('')}</div>
+    <a class="row-link" href="#/personnalite" style="margin-top:8px"><span style="font-size:1.4rem">🧠</span><span class="grow"><span class="title">Personnalité et psychologue</span><br><span class="sub">Questionnaire d’entraînement et préparation de l’entretien avec l’officier psychologue</span></span><span class="chev">›</span></a>
     ${GROUPS.map((gr) => {
       const items = gens.filter((g) => g.group === gr);
       return `<h2>${ICONS[gr] || ''} ${esc(gr)}</h2><div class="list">${items
