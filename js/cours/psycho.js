@@ -185,6 +185,17 @@ export const FICHES_PSYCHO = [
       <ul><li><b>Respiration</b> : inspire 4 s par le nez, expire 6 s. Trois cycles suffisent à faire baisser le rythme cardiaque.</li><li><b>Dialogue intérieur</b> : remplace « je rate tout » par « prochaine action : … ».</li><li><b>Une erreur passée est passée</b> : concentre-toi sur la question suivante.</li><li>Entraîne-toi en conditions réelles (chrono, bruit) pour que le jour J ressemble à l’entraînement.</li></ul>`,
   },
   {
+    id: 'structuration',
+    title: 'Structuration d’informations',
+    train: '#/train/psy.structuration',
+    html: `
+      <p>Test cognitif des navigants (confirmé par la source officielle) : on te donne un <b>tableau</b> (vols, équipages, avions…) et des questions qui demandent de <b>trouver et croiser</b> des informations vite. C’est le quotidien d’un équipage : lire un plan de vol, une liste de terrains, des consignes.</p>
+      <h3>Méthode</h3>
+      <ol><li><b>Lis la question d’abord</b>, puis le tableau : tu sais ce que tu cherches.</li><li>Repère les <b>colonnes utiles</b> (souvent 2 ou 3 sur 6) et ignore le reste.</li><li>Avec plusieurs critères, <b>élimine</b> critère par critère, en commençant par le plus sélectif.</li><li>Pour une heure d’arrivée : heure de départ + durée, en séparant heures et minutes (10h45 + 1 h 30 = 11h45 + 30 min = 12h15).</li><li>Pour un comptage, parcours le tableau <b>une seule fois</b>, ligne par ligne, en comptant sur tes doigts.</li></ol>
+      <h3>Pièges</h3>
+      <ul><li>« Au plus tard à 14h00 » inclut 14h00 ; « après 14h00 » ne l’inclut pas.</li><li>Ne confonds pas heure de départ et heure d’arrivée.</li><li>Une règle « pour les vols de plus de 3 h » ne s’applique pas aux autres vols.</li></ul>`,
+  },
+  {
     id: 'verbal',
     title: 'Raisonnement verbal',
     train: '#/train/psy.verbal',

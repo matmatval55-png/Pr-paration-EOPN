@@ -10,5 +10,8 @@ export const MODULES = [
   { id: 'sport', ico: '🏃', title: 'Sport', sub: 'Barème + programme', href: '#/sport' },
   { id: 'planning', ico: '🗓️', title: 'Planning', sub: 'Ma semaine', href: '#/planning' },
   { id: 'checklist', ico: '✅', title: 'Checklist', sub: 'Candidature', href: '#/checklist' },
+  { id: 'jourj', ico: '🎯', title: 'Jour J', sub: 'Simulation complète', href: '#/jourj' },
+  { id: 'groupe', ico: '👥', title: 'Épreuve de groupe', sub: 'Sujets + grille', href: '#/groupe' },
+  { id: 'sante', ico: '🩺', title: 'Médical & santé', sub: 'Vérifs + journal', href: '#/sante' },
   { id: 'stats', ico: '📊', title: 'Tableau de bord', sub: 'Progression', href: '#/stats' },
 ];

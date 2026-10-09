@@ -7,6 +7,7 @@ import '../js/maths/index.js';
 import '../js/physique/index.js';
 import '../js/anglais/index.js';
 import '../js/culture/index.js';
+import '../js/entretien/groupe.js';
 import { parseNum } from '../js/core/ui.js';
 
 const RUNS = 400;

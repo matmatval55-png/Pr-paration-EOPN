@@ -1,17 +1,10 @@
 // Page d'entraînement générique pour un générateur (psycho, maths, physique…).
+import { makeDrawer, seenCount } from '../core/seen.js';
 import { levelFor } from '../core/mastery.js';
 import { getGen, newSpec } from '../core/registry.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
 import { genSummary } from '../core/stats.js';
 import { el, esc, pct, fmtMs } from '../core/ui.js';
-
-const shuffle = (a) => {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
 
 function seg(name, options, value) {
   return `<div class="seg" data-name="${name}">${options.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(v) === String(value) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
@@ -63,7 +56,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
         ${g.levels > 1 ? `<div class="field"><label>Niveau</label>${seg('level', [...(progressive ? [['prog', 'Progressif']] : [['auto', 'Auto']]), ...[[1, 'Facile'], [2, 'Moyen'], [3, 'Difficile']].slice(0, g.levels)], state.level)}</div>` : ''}
         <div class="field"><label>Nombre de questions</label>${seg('count', [[10, '10'], [20, '20'], ['inf', 'Illimité']], state.count)}</div>
         <div class="field"><label>Chronomètre par question</label>${seg('chrono', [[1, 'Oui'], [0, 'Non']], state.chrono)}</div>
-        <p class="small muted">${g.bank ? `Banque de ${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + g.bankSize(l), 0)} questions, tirées sans répétition jusqu’à épuisement.` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${['', 'facile', 'moyen', 'difficile'][levelFor(genId)]}) ; il monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
+        <p class="small muted">${g.bank ? `Banque de ${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + g.bankSize(l), 0)} questions : celles que tu n’as jamais vues passent en premier (${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + seenCount(genId, l), 0)} déjà vues dans le cycle en cours).` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${['', 'facile', 'moyen', 'difficile'][levelFor(genId)]}) ; il monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
         <button class="btn primary block" data-start>Commencer</button>
       </div>
     </div>`);
@@ -74,12 +67,8 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
   function start() {
     const total = state.count === 'inf' ? null : Number(state.count);
     const prog = [1, 1, 1, 2, 2, 2, 2, 3, 3, 3];
-    const decks = {};
-    // banques : on parcourt toutes les questions dans un ordre aléatoire avant de répéter
-    const draw = (lvl) => {
-      if (!decks[lvl]?.length) decks[lvl] = shuffle([...Array(g.bankSize(lvl)).keys()]);
-      return decks[lvl].pop();
-    };
+    // banques : questions jamais vues d'abord (mémorisé d'une séance à l'autre)
+    const draw = makeDrawer(genId);
     if (g.levels === 1) state.level = '1';
     document.body.classList.add('in-quiz');
     runQuiz(root, {

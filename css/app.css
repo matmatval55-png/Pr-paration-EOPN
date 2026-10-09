@@ -449,3 +449,13 @@ details.card > summary, details.review-item > summary { cursor: pointer; }
 .trend.up { color: var(--ok); }
 .trend.down { color: var(--danger); }
 .seg.wrap { flex-wrap: wrap; }
+
+/* Jour J, groupe, santé */
+.big-clock { font-size: 2.6rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; margin: 8px 0 12px; }
+.flash-in { animation: flash-in .8s ease; }
+@keyframes flash-in { 0% { background: color-mix(in srgb, var(--accent) 25%, transparent); } 100% { background: var(--card); } }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 8px; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; font-weight: 600; }
+.form-grid input { font: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card2); color: var(--text); }
+.tbl.struct { font-size: .75rem; width: 100%; border-collapse: collapse; }
+.tbl.struct th, .tbl.struct td { padding: 4px 3px; border-bottom: 1px solid var(--line); text-align: left; }

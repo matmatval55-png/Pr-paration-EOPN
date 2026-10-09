@@ -30,6 +30,10 @@ import { renderChecklist } from './pages/checklist.js';
 import { renderPlanning } from './pages/planning.js';
 import { renderBibliotheque, renderFiche } from './pages/bibliotheque.js';
 import { renderCoach, renderSuivi } from './pages/coach.js';
+import './entretien/groupe.js';
+import { renderGroupe } from './pages/groupe.js';
+import { renderJourJ } from './pages/jourj.js';
+import { renderSante } from './pages/sante.js';
 
 const view = document.getElementById('view');
 
@@ -74,6 +78,9 @@ const routes = [
   [/^revision$/, () => renderReview(view), 'home'],
   [/^coach(?:\/([a-z]+))?$/, (m) => renderCoach(view, m[1] || null), 'home'],
   [/^suivi$/, () => renderSuivi(view), 'stats'],
+  [/^groupe$/, () => renderGroupe(view), 'cours'],
+  [/^jourj$/, () => renderJourJ(view), 'psycho'],
+  [/^sante$/, () => renderSante(view), 'planning'],
   [/^stats$/, () => renderStats(view), 'stats'],
   [/^(reglages|plus)$/, () => renderSettings(view), 'plus'],
   [/^selection$/, () => renderSelection(view), 'plus'],

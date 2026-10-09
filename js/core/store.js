@@ -8,6 +8,7 @@ const DEFAULT = () => ({
   days: {}, // 'AAAA-MM-JJ' -> { n, ok, ms }
   stats: {}, // idExercice -> { 'AAAA-MM-JJ': [n, ok, ms] }
   srs: {}, // clé -> { spec, box, due, lapses }
+  seen: {}, // banques : 'id|niveau' -> numéros des questions déjà vues dans le cycle en cours
   mastery: {}, // idExercice -> { lvl, best, n, ok, last, h } (niveau mémorisé, voir mastery.js)
   exams: [], // historique des examens blancs
   progress: {}, // ex. 'maths.fractions' -> { read: true }
@@ -15,6 +16,7 @@ const DEFAULT = () => ({
   cards: {}, // flashcards : 'paquet|n' -> { box, due, seen }
   interview: { notes: {}, sessions: [] }, // entretien
   planning: { days: [0, 1, 2, 3, 4, 5, 6], done: {} },
+  sante: { checks: {}, log: {} }, // médical : vérifications faites, journal quotidien
 });
 
 let memory = null;

@@ -90,3 +90,22 @@ test('maîtrise : score et statut', () => {
   assert.equal(status(id).id, 'master');
   assert.equal(masteryScore(id), 100);
 });
+
+test('banques : les questions jamais vues passent en premier, d’une séance à l’autre', async () => {
+  const { makeDrawer, markSeen, seenCount } = await import('../js/core/seen.js');
+  store.reset();
+  const id = 'psy.urgences';
+  const size = getGen(id).bankSize(1);
+  const got = new Set();
+  // plusieurs « séances » de 5 questions : aucune répétition avant d'avoir tout vu
+  for (let s = 0; got.size < size; s++) {
+    const draw = makeDrawer(id);
+    for (let k = 0; k < 5 && got.size < size; k++) {
+      const i = draw(1);
+      assert.ok(!got.has(i), `question ${i} répétée avant la fin du cycle`);
+      got.add(i);
+      markSeen({ gen: id, level: 1, seed: i });
+    }
+  }
+  assert.equal(seenCount(id, 1), 0); // cycle terminé, on recommence
+});

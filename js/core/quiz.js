@@ -1,4 +1,5 @@
 // Moteur de séance : affiche les questions, chronomètre, corrige et enregistre.
+import { markSeen } from './seen.js';
 import { updateMastery } from './mastery.js';
 import { makeQuestion } from './registry.js';
 import { record } from './stats.js';
@@ -157,6 +158,7 @@ export function runQuiz(root, opts) {
       history.push(item);
       record(q.spec.gen, item.ok, ms);
       updateMastery(q.spec, item.ok);
+      markSeen(q.spec);
       onAnswer(q.spec, item.ok, opts.mode === 'review');
       vibrate(item.ok ? 15 : [40, 40, 40]);
       if (opts.mode === 'exam') {
