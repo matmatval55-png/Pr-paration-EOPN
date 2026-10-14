@@ -47,7 +47,7 @@ register({
     const step = level === 1 ? 45 : level === 2 ? 30 : 10;
     const radial = r.int(0, 360 / step - 1) * step;
     const bearingTo = n360(radial + 180); // QDM
-    const heading = level === 1 ? 0 : r.int(0, 35) * 10;
+    const heading = level === 1 ? r.int(0, 11) * 30 : r.int(0, 35) * 10;
     const ask = level === 1 ? 'pos' : r.pick(['radial', 'radial', 'pos', 'qdm']);
     const ex = `<p>L’aiguille du RMI pointe <b>vers la balise</b> : sa tête indique le relèvement à suivre pour y aller (QDM = ${cap3(bearingTo)}). La <b>queue</b> de l’aiguille indique la <b>radiale</b> sur laquelle tu te trouves (QDR = QDM ± 180 = <b>${cap3(radial)}</b>).</p><p>Radiale ${cap3(radial)} = tu es au <b>${dirName(radial)}</b> de la balise.</p>${radialMap(radial, heading)}<p class="tip">Ton cap ne change pas ta position : un avion peut être sur la radiale 090 avec n’importe quel cap. Regarde toujours l’aiguille, pas l’avion.</p>`;
     let prompt, correct, distract;
@@ -190,6 +190,30 @@ register({
   desc: 'Situer l’avion dans le circuit d’aérodrome (tour de piste main gauche).',
   make(level, r) {
     const b = r.pick(BRANCHES);
+    if (r.bool(level === 1 ? 0.35 : 0.5)) {
+      // Caps à suivre dans chaque branche selon la piste en service
+      const qfu = r.int(1, 36);
+      const H = qfu * 10;
+      const right = level === 3 && r.bool(0.5);
+      const s = right ? 1 : -1;
+      const caps = { travers: H + s * 90, arriere: H + 180, base: H - s * 90, finale: H };
+      const branch = r.pick(['travers', 'arriere', 'base', 'finale']);
+      const nm = { travers: 'vent traversier', arriere: 'vent arrière', base: 'étape de base', finale: 'finale' };
+      const c3 = (x) => String(n360(x) || 360).padStart(3, '0');
+      const correct = `Cap ${c3(caps[branch])}`;
+      const distract = [...new Set([H, H + 90, H - 90, H + 180, H + 45].map((x) => `Cap ${c3(x)}`))].filter((x) => x !== correct);
+      const { choices, answer } = buildChoices(r, correct, r.shuffle(distract), 4);
+      return {
+        kind: 'mcq',
+        layout: 'row',
+        prompt: `Piste <b>${String(qfu).padStart(2, '0')}</b> en service, tour de piste <b>main ${right ? 'droite' : 'gauche'}</b>. Quel cap suis-tu en <b>${nm[branch]}</b> (sans vent) ?`,
+        visual: circuitSVG(branch),
+        choices,
+        answer,
+        explain: `<p>Piste ${String(qfu).padStart(2, '0')} = orientée au ${c3(H)}. Tour de piste main ${right ? 'droite (virages à droite)' : 'gauche (virages à gauche)'} :</p><ul><li>Vent traversier : ${c3(caps.travers)}</li><li>Vent arrière : ${c3(caps.arriere)} (sens inverse de la piste)</li><li>Étape de base : ${c3(caps.base)}</li><li>Finale : ${c3(caps.finale)} (axe de piste)</li></ul><p class="tip">Méthode : finale = numéro de piste × 10 ; vent arrière = l’inverse (± 180) ; les deux branches perpendiculaires à ± 90, du côté où l’on tourne.</p>`,
+        timeLimit: 25,
+      };
+    }
     const variant = level >= 2 && r.bool(0.5) ? 'next' : 'where';
     const idx = BRANCHES.indexOf(b);
     const next = BRANCHES[(idx + 1) % BRANCHES.length];
@@ -236,6 +260,23 @@ register({
   desc: 'Lire les feux d’indication de pente : trop haut, sur le plan, trop bas ?',
   make(level, r) {
     const p = r.pick(PAPI);
+    const v = level === 1 ? r.pick(['ou', 'ou', 'action']) : r.pick(['ou', 'action', 'action', 'savoir']);
+    if (v !== 'ou') {
+      const ACT = { 4: 'Augmenter nettement le taux de descente pour rejoindre le plan', 3: 'Augmenter légèrement le taux de descente', 2: 'Garder la pente et la vitesse actuelles', 1: 'Réduire légèrement le taux de descente (un peu de puissance)', 0: 'Remettre de la puissance et remonter sur le plan, ou remettre les gaz' };
+      const SAV = [
+        ['Combien de degrés fait le plan d’approche standard indiqué par un PAPI ?', '3°', ['1°', '6°', '10°']],
+        ['Plus tu es haut sur le plan, plus tu vois de feux…', 'Blancs', ['Rouges', 'Verts', 'Clignotants']],
+        ['Où se trouvent en général les feux du PAPI ?', 'Sur le côté de la piste, près du seuil (souvent à gauche)', ['Au bout de la piste', 'Sur la tour de contrôle', 'Sur le taxiway']],
+        ['Combien de feux comporte un PAPI ?', '4', ['2', '3', '6']],
+      ];
+      if (v === 'savoir') {
+        const [q, a, d] = r.pick(SAV);
+        const { choices, answer } = buildChoices(r, a, d, 4);
+        return { kind: 'mcq', prompt: q, visual: papiSVG(r.int(0, 4)), choices, answer, explain: `<p>Réponse : <b>${a}</b>.</p><p>Le PAPI (Precision Approach Path Indicator) a 4 feux réglés à des angles différents autour d’un plan de 3° en général : 2 blancs + 2 rouges = sur le plan.</p>`, timeLimit: 15 };
+      }
+      const { choices, answer } = buildChoices(r, ACT[p.w], r.shuffle(Object.values(ACT)), 4);
+      return { kind: 'mcq', prompt: 'En finale, tu vois ces feux du PAPI. Que fais-tu ?', visual: papiSVG(p.w), choices, answer, explain: `<p>${p.ex} → <b>${ACT[p.w]}</b>.</p><p class="tip">Objectif : revenir à 2 blancs + 2 rouges. Trop bas est plus dangereux que trop haut (obstacles) : on corrige tout de suite.</p>`, timeLimit: 12 };
+    }
     const { choices, answer } = buildChoices(r, p.txt, r.shuffle(PAPI.map((x) => x.txt)), level === 1 ? 3 : 5);
     return {
       kind: 'mcq',

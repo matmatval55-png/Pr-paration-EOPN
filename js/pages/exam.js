@@ -1,5 +1,5 @@
 // Examen blanc : enchaînement de sections chronométrées, correction à la fin.
-import { makeDrawer } from '../core/seen.js';
+import { makeDrawer, makeFresh } from '../core/seen.js';
 import { EXAMS } from '../exams.js';
 import { newSpec, getGen } from '../core/registry.js';
 import { runQuiz, summaryHTML, fmtClock } from '../core/quiz.js';
@@ -46,7 +46,7 @@ export function renderExam(root, id) {
     // Banques de questions : jamais vues d'abord, sans doublon dans l'examen.
     const pick = (gid) => {
       const g = getGen(gid);
-      if (!g.bank) return newSpec(gid, Math.min(level, g.levels));
+      if (!g.bank) return (decks[gid] ||= makeFresh(gid, rng.next))(Math.min(level, g.levels));
       decks[gid] ||= makeDrawer(gid, rng.next);
       return newSpec(gid, 0, decks[gid](0));
     };

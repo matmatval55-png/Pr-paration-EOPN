@@ -8,6 +8,7 @@ const DEFAULT = () => ({
   days: {}, // 'AAAA-MM-JJ' -> { n, ok, ms }
   stats: {}, // idExercice -> { 'AAAA-MM-JJ': [n, ok, ms] }
   srs: {}, // clé -> { spec, box, due, lapses }
+  recent: {}, // exercices générés : empreintes des questions récentes (anti-répétition)
   seen: {}, // banques : 'id|niveau' -> numéros des questions déjà vues dans le cycle en cours
   mastery: {}, // idExercice -> { lvl, best, n, ok, last, h } (niveau mémorisé, voir mastery.js)
   exams: [], // historique des examens blancs

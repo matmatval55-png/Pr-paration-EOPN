@@ -109,3 +109,25 @@ test('banques : les questions jamais vues passent en premier, d’une séance à
   }
   assert.equal(seenCount(id, 1), 0); // cycle terminé, on recommence
 });
+
+test('exercices générés : pas de répétition tant qu’il reste des variantes, d’une séance à l’autre', async () => {
+  const { makeFresh, markRecent, fingerprint } = await import('../js/core/seen.js');
+  store.reset();
+  const id = 'psy.interception';
+  // nombre de variantes distinctes au niveau 1
+  const all = new Set();
+  for (let s = 1; s < 400; s++) all.add(fingerprint(makeQuestion({ gen: id, level: 1, seed: s })));
+  const seen = new Set();
+  // plusieurs séances de 3 questions : aucune répétition avant d'avoir tout vu
+  for (let k = 0; seen.size < all.size; k++) {
+    const fresh = makeFresh(id, null, 200);
+    for (let j = 0; j < 3 && seen.size < all.size; j++) {
+      const spec = fresh(1);
+      const q = makeQuestion(spec);
+      const fp = fingerprint(q);
+      assert.ok(!seen.has(fp), 'question répétée trop tôt');
+      seen.add(fp);
+      markRecent(spec, q);
+    }
+  }
+});

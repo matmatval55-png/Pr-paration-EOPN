@@ -98,7 +98,9 @@ const routes = [
 ];
 
 let pageCleanup = null;
+let pendingReload = false; // nouvelle version prête : rechargement au prochain changement de page
 function route() {
+  if (pendingReload) return location.reload();
   stopActiveQuiz();
   pageCleanup?.();
   pageCleanup = null;
@@ -149,6 +151,19 @@ navigator.storage?.persist?.().catch(() => {});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
 route();
 
+// Mises à jour : vérifiées à chaque retour sur l'appli ; la nouvelle version est chargée
+// automatiquement (après la séance en cours si un exercice est ouvert).
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  const hadController = !!navigator.serviceWorker.controller;
+  addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js');
+      document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && reg.update().catch(() => {}));
+    } catch {}
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || pendingReload) return;
+    pendingReload = true;
+    if (!document.body.classList.contains('in-quiz')) location.reload();
+  });
 }

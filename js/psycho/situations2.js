@@ -44,7 +44,7 @@ register({
   make(level, r) {
     const pitch = r.pick([-10, 0, 10]);
     const bank = r.pick([-30, 0, 30]);
-    const heading = level === 1 ? null : r.int(0, 7) * 45;
+    const heading = level === 1 ? r.pick([null, 0, 90, 180, 270]) : r.int(0, 7) * 45;
     const truth = { bank, pitch, heading };
     const key = (c) => `${c.bank}|${c.pitch}|${c.heading}`;
     const cands = [
@@ -104,8 +104,8 @@ register({
   title: 'Aiguilles de navigation (CDI, ILS)',
   desc: 'Lire l’écart de route et de pente, savoir vers où corriger.',
   make(level, r) {
-    if (level === 1 || r.bool(0.4)) {
-      const dev = r.pick([-4, -3, -2, 2, 3, 4]);
+    if ((level === 1 && r.bool(0.6)) || r.bool(0.4)) {
+      const dev = r.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]);
       const right = dev > 0;
       const { choices, answer } = buildChoices(r, `La route est à ${right ? 'droite' : 'gauche'} : je corrige vers la ${right ? 'droite' : 'gauche'}`, [`La route est à ${right ? 'gauche' : 'droite'} : je corrige vers la ${right ? 'gauche' : 'droite'}`, 'Je suis exactement sur la route', `Je suis à ${right ? 'droite' : 'gauche'} de la route : je ne corrige pas`], 4);
       return {
@@ -165,7 +165,40 @@ register({
   title: 'Circuit d’attente',
   desc: 'Comprendre l’hippodrome d’attente : branches, sens des virages, durées.',
   make(level, r) {
-    const variant = level === 1 ? r.pick(['ou', 'sens']) : r.pick(['ou', 'sens', 'duree', 'ou']);
+    const variant = level === 1 ? r.pick(['ou', 'sens', 'capout', 'ou']) : r.pick(['ou', 'sens', 'duree', 'capout', 'tour', 'haut', 'taux']);
+    if (['capout', 'tour', 'haut', 'taux'].includes(variant)) {
+      const c3 = (x) => String(n360(x) || 360).padStart(3, '0');
+      let q, ok, d, ex;
+      if (variant === 'capout') {
+        const inb = r.int(1, 36) * 10;
+        q = `La branche de rapprochement d’une attente se vole au cap <b>${c3(inb)}</b>. Quel est le cap de la branche d’éloignement (sans vent) ?`;
+        ok = `Cap ${c3(inb + 180)}`;
+        d = [inb, inb + 90, inb - 90, inb + 150].map((x) => `Cap ${c3(x)}`);
+        ex = `Les deux branches sont parallèles et de sens opposé : ${c3(inb)} + 180 = <b>${c3(inb + 180)}</b>.`;
+      } else if (variant === 'tour') {
+        const h = r.int(6, 21), m = r.int(0, 11) * 5;
+        const t = (min) => `${String(Math.floor((h * 60 + m + min) / 60) % 24).padStart(2, '0')}h${String((h * 60 + m + min) % 60).padStart(2, '0')}`;
+        const fl = r.bool() ? 'FL 80' : 'FL 180';
+        const leg = fl === 'FL 80' ? 1 : 1.5;
+        const total = 2 + 2 * leg; // 2 virages de 1 min + 2 branches
+        q = `Tu passes le point d’attente à <b>${t(0)}</b> au ${fl}, attente standard sans vent. À quelle heure repasses-tu le point ?`;
+        ok = t(total);
+        d = [t(total - 1), t(total + 1), t(total + 2), t(2 * leg)].filter((x) => x !== ok);
+        ex = `Un tour complet = 2 virages de 180° à 3°/s (1 min chacun) + 2 branches de ${leg === 1 ? '1 min' : '1 min 30'} (${fl}) = <b>${total} min</b> → ${ok}.`;
+      } else if (variant === 'haut') {
+        q = 'Au-dessus du FL 140, combien de temps dure la branche de rapprochement d’une attente standard ?';
+        ok = '1 minute 30';
+        d = ['1 minute', '2 minutes', '3 minutes'];
+        ex = 'Jusqu’au FL 140 : 1 minute ; au-dessus : <b>1 min 30</b> (la vitesse est plus élevée, on laisse plus de temps).';
+      } else {
+        q = 'Quel est le taux de virage « standard » utilisé dans une attente ?';
+        ok = '3° par seconde (180° en 1 minute)';
+        d = ['1° par seconde', '6° par seconde', '10° par seconde'];
+        ex = 'Le virage au taux standard est de <b>3°/s</b> : un demi-tour (180°) prend 1 minute.';
+      }
+      const { choices, answer } = buildChoices(r, ok, [...new Set(d)].filter((x) => x !== ok), 4);
+      return { kind: 'mcq', prompt: q, visual: holdingSVG(null), choices, answer, explain: `<p>${ex}</p>`, timeLimit: variant === 'tour' ? 30 : 20 };
+    }
     const phase = r.pick(['rapprochement', 'eloignement', 'virage']);
     const names = { rapprochement: 'Branche de rapprochement (vers le point)', eloignement: 'Branche d’éloignement', virage: 'Virage' };
     let prompt, correct, distract;
@@ -222,6 +255,20 @@ register({
   make(level, r) {
     const sig = r.pick(SIGNAUX);
     const where = level === 1 ? 'air' : r.pick(['air', 'sol']);
+    const name = (s) => `${s.c === '#2ecc71' ? 'Vert' : s.c === '#ff3b30' ? 'Rouge' : 'Blanc'} ${s.f ? 'clignotant' : 'fixe'}`;
+    if (r.bool(level === 1 ? 0.3 : 0.45)) {
+      // Question inverse : quel signal pour ce message ?
+      const { choices, answer } = buildChoices(r, name(sig), SIGNAUX.filter((s) => s !== sig).map(name).concat(['Blanc fixe', 'Vert et rouge alternés']), 4);
+      return {
+        kind: 'mcq',
+        prompt: `${where === 'air' ? 'En vol' : 'Au sol'}, quel signal lumineux la tour t’envoie-t-elle pour dire : « ${sig[where]} » ?`,
+        visual: signalSVG({ c: '#ffffff00', f: false }),
+        choices,
+        answer,
+        explain: `<p>« ${sig[where]} » = feu <b>${name(sig).toLowerCase()}</b>.</p><table class="tbl" style="text-align:left"><tr><th>Signal</th><th>En vol</th><th>Au sol</th></tr>${SIGNAUX.map((s) => `<tr><td>${name(s)}</td><td>${s.air}</td><td>${s.sol}</td></tr>`).join('')}</table>`,
+        timeLimit: 20,
+      };
+    }
     const correct = sig[where];
     const { choices, answer } = buildChoices(r, correct, r.shuffle(SIGNAUX.map((s) => s[where]).concat(SIGNAUX.map((s) => s[where === 'air' ? 'sol' : 'air']))), 4);
     const col = sig.c === '#2ecc71' ? 'vert' : sig.c === '#ff3b30' ? 'rouge' : 'blanc';
@@ -260,6 +307,13 @@ const INTER = {
   suivre: { q: 'Un chasseur se place devant toi, légèrement au-dessus et à gauche, et bat des ailes. Que signifie ce signal ?', a: 'Vous avez été intercepté, suivez-moi', d: ['Vous pouvez continuer votre route', 'Atterrissez immédiatement sur place', 'Montez et dégagez la zone'], e: 'Balancement des ailes devant l’avion intercepté (en général à sa gauche), puis virage lent vers la direction voulue = <b>« vous avez été intercepté, suivez-moi »</b>. Tu réponds en <b>balançant les ailes</b> à ton tour et tu suis.' },
   liberer: { q: 'Le chasseur qui t’escortait s’écarte brusquement par un virage en montée, sans couper ta route. Que signifie ce signal ?', a: 'Vous pouvez continuer votre route', d: ['Suivez-moi', 'Atterrissez sur l’aérodrome le plus proche', 'Vous allez être abattu'], e: 'Dégagement brusque en virage montant (90° ou plus) sans croiser ta trajectoire = <b>« vous pouvez continuer »</b>. Tu réponds en balançant les ailes.' },
   atterrir: { q: 'Le chasseur sort son train, allume ses phares et survole la piste d’un aérodrome. Que signifie ce signal ?', a: 'Atterrissez sur cet aérodrome', d: ['Suivez-moi vers un autre pays', 'Vous pouvez continuer', 'Faites demi-tour'], e: 'Train sorti, phares allumés, survol de la piste = <b>« atterrissez sur cet aérodrome »</b>. Tu sors ton train (s’il est rentrant), tu suis et tu te poses.' },
+  nuit: { q: 'De nuit, comment l’avion intercepté accuse-t-il réception du signal « suivez-moi » ?', a: 'En balançant les ailes et en faisant clignoter ses feux de navigation à intervalles irréguliers', d: ['En allumant tous ses phares en continu', 'En coupant tous ses feux', 'En effectuant un looping'], e: 'De nuit, on ajoute au balancement des ailes le <b>clignotement irrégulier des feux de navigation</b> (et des feux d’atterrissage pour l’intercepteur).' },
+  frequence: { q: 'Intercepté, sur quelle fréquence essaies-tu d’établir le contact radio ?', a: '121,5 MHz (fréquence d’urgence)', d: ['118,0 MHz', '123,45 MHz', 'La fréquence de ton aéroclub'], e: 'La fréquence aéronautique d’urgence est <b>121,5 MHz</b> (243 MHz en UHF militaire).' },
+  code: { q: 'Intercepté, quel code transpondeur affiches-tu (sauf instruction contraire) ?', a: '7700', d: ['7500', '7600', '2000'], e: '<b>7700</b> = situation d’urgence. 7600 = panne radio, 7500 = intervention illicite.' },
+  conflit: { q: 'Les instructions du contrôle aérien contredisent celles de l’avion intercepteur. Que fais-tu ?', a: 'Je suis les instructions de l’intercepteur et je demande des précisions', d: ['Je suis le contrôle aérien', 'Je ne suis ni l’un ni l’autre', 'Je fais demi-tour'], e: 'En cas de conflit, on <b>se conforme aux instructions de l’intercepteur</b> (visuelles ou radio) tout en demandant des éclaircissements.' },
+  position: { q: 'Où se place en général l’intercepteur pour transmettre ses signaux ?', a: 'Devant, légèrement au-dessus et à gauche de l’avion intercepté', d: ['Juste derrière, en dessous', 'Exactement au-dessus', 'Loin à droite, hors de vue'], e: 'Il se place <b>devant, légèrement au-dessus et à gauche</b> : le pilote intercepté, assis à gauche, le voit bien.' },
+  pourquoi: { q: 'Pourquoi un avion léger peut-il être intercepté par la police du ciel ?', a: 'Il est entré sans autorisation dans une zone interdite ou ne répond pas à la radio', d: ['Il vole trop lentement', 'Il vole un dimanche', 'Il n’a pas payé sa redevance'], e: 'Les causes classiques : <b>pénétration d’une zone interdite ou réglementée</b>, perte de contact radio, trajectoire anormale. Bien préparer sa navigation (cartes à jour, NOTAM) évite ces situations.' },
+  helico: { q: 'Un hélicoptère militaire se place devant toi et balance de gauche à droite. Que signifie ce signal ?', a: 'Vous avez été intercepté, suivez-moi', d: ['Vous pouvez continuer', 'Posez-vous immédiatement là où vous êtes', 'Montez'], e: 'Les signaux sont les mêmes pour un hélicoptère intercepteur : ici <b>« suivez-moi »</b>.' },
   conduite: { q: 'Tu es intercepté. Quelles sont les bonnes actions ?', a: 'Suivre les instructions de l’intercepteur, appeler sur 121,5 MHz et afficher 7700 au transpondeur (sauf autre instruction)', d: ['Accélérer pour s’éloigner de la zone', 'Couper la radio pour éviter les interférences', 'Ignorer l’intercepteur si l’on est en règle'], e: 'Règles de l’air : se conformer aux signaux de l’intercepteur, prévenir l’organisme de contrôle si possible, tenter le contact sur la fréquence d’urgence <b>121,5 MHz</b> et afficher <b>7700</b> au transpondeur, sauf instruction contraire.' },
 };
 
@@ -270,10 +324,10 @@ register({
   title: 'Interception (signaux)',
   desc: 'La police du ciel vue du pilote intercepté : comprendre les signaux.',
   make(level, r) {
-    const k = level === 1 ? r.pick(['suivre', 'liberer']) : r.pick(Object.keys(INTER));
+    const k = level === 1 ? r.pick(['suivre', 'liberer', 'code', 'frequence', 'position', 'pourquoi']) : r.pick(Object.keys(INTER));
     const it = INTER[k];
     const { choices, answer } = buildChoices(r, it.a, it.d, 4);
-    return { kind: 'mcq', prompt: it.q, visual: interceptionSVG(k === 'conduite' ? 'suivre' : k), choices, answer, explain: `<p>${it.e}</p><p class="tip">Ces signaux sont internationaux (règles de l’air). Ils servent aux avions de la posture permanente de sûreté aérienne quand un appareil ne répond pas à la radio.</p>`, timeLimit: 25 };
+    return { kind: 'mcq', prompt: it.q, visual: interceptionSVG(['liberer', 'atterrir'].includes(k) ? k : 'suivre'), choices, answer, explain: `<p>${it.e}</p><p class="tip">Ces signaux sont internationaux (règles de l’air). Ils servent aux avions de la posture permanente de sûreté aérienne quand un appareil ne répond pas à la radio.</p>`, timeLimit: 25 };
   },
 });
 

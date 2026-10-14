@@ -1,5 +1,5 @@
 // Page d'entraînement générique pour un générateur (psycho, maths, physique…).
-import { makeDrawer, seenCount } from '../core/seen.js';
+import { makeDrawer, makeFresh, seenCount } from '../core/seen.js';
 import { levelFor } from '../core/mastery.js';
 import { getGen, newSpec } from '../core/registry.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
@@ -69,6 +69,8 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
     const prog = [1, 1, 1, 2, 2, 2, 2, 3, 3, 3];
     // banques : questions jamais vues d'abord (mémorisé d'une séance à l'autre)
     const draw = makeDrawer(genId);
+    // exercices générés : on évite les questions vues récemment
+    const fresh = makeFresh(genId);
     if (g.levels === 1) state.level = '1';
     document.body.classList.add('in-quiz');
     runQuiz(root, {
@@ -83,7 +85,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
         else if (state.level === 'prog') lvl = prog[Math.min(prog.length - 1, Math.floor((i / (total || 10)) * prog.length))];
         else lvl = Number(state.level);
         lvl = Math.min(lvl, g.levels);
-        return g.bank ? newSpec(genId, lvl, draw(lvl)) : newSpec(genId, lvl);
+        return g.bank ? newSpec(genId, lvl, draw(lvl)) : fresh(lvl);
       },
       onFinish(history) {
         document.body.classList.remove('in-quiz');

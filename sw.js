@@ -1,7 +1,8 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
-// mise à jour en arrière-plan (la nouvelle version s'affiche au lancement suivant).
-const VERSION = 'v14';
+// mise à jour en arrière-plan. Une nouvelle version est installée en contournant le cache HTTP,
+// puis la page se recharge d'elle-même (voir app.js).
+const VERSION = 'v15';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -117,7 +118,7 @@ const FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES.map((f) => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

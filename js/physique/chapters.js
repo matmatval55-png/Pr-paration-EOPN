@@ -317,22 +317,22 @@ export const optique = {
   templates: {
     1: [
       (r) => {
-        const i = r.pick([20, 30, 35, 45, 60]);
+        const i = r.int(1, 17) * 5;
         return numQ(`Un rayon arrive sur un miroir plan avec un angle d’incidence de ${i}°. Angle de réflexion (°) ?`, i, [`Loi de la réflexion : angle réfléchi = angle incident.`, `= <b>${i}°</b>.`]);
       },
       (r) => {
-        const fcm = r.pick([10, 20, 25, 50]);
+        const fcm = r.pick([5, 10, 20, 25, 40, 50, 100, 200]);
         return numQ(`Une lentille convergente a une distance focale de ${fcm} cm. Vergence (δ) ?`, 100 / fcm, [`f′ = ${fcm} cm = ${n(fcm / 100)} m.`, `C = 1 / f′ = 1 / ${n(fcm / 100)} = <b>${n(100 / fcm)} δ</b>.`]);
       },
       (r) => mcqQ(r, 'La lumière blanche est :', 'un mélange de lumières de toutes les couleurs', ['une lumière d’une seule couleur', 'une onde sonore', 'une lumière sans longueur d’onde'], ['Un prisme décompose la lumière blanche en un spectre continu, du violet au rouge (expérience de Newton).']),
     ],
     2: [
       (r) => {
-        const nn = r.pick([1.33, 1.5, 2.42]);
+        const nn = r.pick([1.31, 1.33, 1.36, 1.46, 1.5, 1.52, 1.65, 2.42]);
         return numQ(`Indice d’un milieu n = ${n(nn)}. Vitesse de la lumière dans ce milieu (en 10⁸ m/s, arrondi au centième) ?`, Math.round((3 / nn) * 100) / 100, [`v = c / n = 3,00 × 10⁸ / ${n(nn)}.`, `v ≈ <b>${n(Math.round((3 / nn) * 100) / 100)} × 10⁸ m/s</b>.`], { tol: 0.011 });
       },
       (r) => {
-        const f = r.pick([118, 120, 121.5, 125, 300]);
+        const f = r.pick([108, 110, 112, 115, 118, 120, 121.5, 122.5, 125, 127.5, 130, 135, 150, 200, 243, 300]);
         const l = 300 / f;
         return numQ(`Une radio VHF émet à ${n(f)} MHz. Longueur d’onde (m, au centième) ?`, Math.round(l * 100) / 100, [`λ = c / f = 3 × 10⁸ / (${n(f)} × 10⁶).`, `= 300 / ${n(f)} ≈ <b>${n(Math.round(l * 100) / 100)} m</b>.`], { tol: 0.011, tip: '121,5 MHz est la fréquence de détresse aéronautique.' });
       },
@@ -344,13 +344,13 @@ export const optique = {
     ],
     3: [
       (r) => {
-        const [i, sin] = r.pick([[30, 0.5], [45, 0.707], [60, 0.866]]);
+        const [i, sin] = r.pick([[20, 0.342], [30, 0.5], [40, 0.643], [45, 0.707], [50, 0.766], [60, 0.866], [70, 0.94]]);
         const n2 = 1.5;
         const s2 = sin / n2;
         return mcqQ(r, `Un rayon passe de l’air (n = 1) au verre (n = 1,5) avec i₁ = ${i}° (sin ${i}° ≈ ${n(sin)}). Que vaut sin i₂ ?`, n(Math.round(s2 * 100) / 100), [n(Math.round(sin * 1.5 * 100) / 100), n(sin), n(Math.round((sin / 2) * 100) / 100)], [`Snell-Descartes : 1 × sin ${i}° = 1,5 × sin i₂.`, `sin i₂ = ${n(sin)} / 1,5 ≈ <b>${n(Math.round(s2 * 100) / 100)}</b> : le rayon se rapproche de la normale.`]);
       },
       (r) => {
-        const f = r.pick([10, 20]), oa = -r.pick([30, 40, 60]);
+        const f = r.pick([5, 8, 10, 12, 15, 20]), oa = -r.pick([20, 25, 30, 40, 50, 60, 80].filter((x) => x > f + 2));
         const oap = 1 / (1 / f + 1 / oa);
         return numQ(`Lentille convergente f′ = ${f} cm ; objet à ${-oa} cm devant (OA = ${oa} cm). Position de l’image OA′ (cm) ?`, oap, [`${frac(1, "OA′")} = ${frac(1, "f′")} + ${frac(1, 'OA')} = ${frac(1, f)} + ${frac(1, oa)}.`, `= ${n(1 / f + 1 / oa, 4)} cm⁻¹ → OA′ = <b>${n(oap, 1)} cm</b> (image réelle, derrière la lentille).`], { tol: 0.15 });
       },
@@ -375,11 +375,11 @@ export const vol = {
     1: [
       (r) => mcqQ(r, 'Quelle force s’oppose à l’avancement de l’avion ?', 'La traînée', ['La portance', 'La poussée', 'Le poids'], ['La <b>traînée</b> est la résistance de l’air, dirigée vers l’arrière (sens opposé au déplacement).', 'La poussée du moteur la compense.']),
       (r) => {
-        const f = r.pick([8, 10, 12, 20, 40]), h = r.pick([500, 1000, 1500, 2000]);
+        const f = r.int(6, 40), h = r.int(2, 40) * 100;
         return numQ(`Un planeur a une finesse de ${f}. Quelle distance (km) peut-il parcourir en perdant ${n(h)} m d’altitude (air calme) ?`, (f * h) / 1000, [`Distance = finesse × hauteur = ${f} × ${n(h)} m = ${n(f * h)} m.`, `= <b>${n((f * h) / 1000)} km</b>.`]);
       },
       (r) => {
-        const ft = r.pick([1000, 2000, 3000, 5000, 10000]);
+        const ft = r.int(1, 24) * 500;
         const t = 15 - 2 * (ft / 1000);
         return numQ(`En atmosphère standard, quelle température fait-il à ${n(ft)} ft ? (15 °C au sol, −2 °C par 1 000 ft)`, t, [`Baisse : ${ft / 1000} × 2 = ${2 * (ft / 1000)} °C.`, `15 − ${2 * (ft / 1000)} = <b>${n(t)} °C</b>.`]);
       },
@@ -391,23 +391,24 @@ export const vol = {
         return mcqQ(r, `Toutes choses égales par ailleurs, si la vitesse est ${k === 0.5 ? 'divisée par 2' : `multipliée par ${k}`}, la portance est :`, good, ['multipliée par 2', 'multipliée par 4', 'multipliée par 9', 'divisée par 2', 'divisée par 4'], ['La portance est proportionnelle à V² (F<sub>z</sub> = ½ρSV²C<sub>z</sub>).', `Facteur : ${n(k)}² = ${n(k * k)} → <b>${good}</b>.`]);
       },
       (r) => {
-        const [phi, nn] = r.pick([[60, 2], [0, 1], [45, 1.41], [30, 1.15], [70, 2.92]]);
+        const phi = r.pick([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]);
+        const nn = Math.round((1 / Math.cos((phi * Math.PI) / 180)) * 100) / 100;
         return numQ(`Facteur de charge en virage en palier à ${phi}° d’inclinaison ? (arrondi au centième)`, nn, [`n = 1 / cos φ = 1 / cos ${phi}°.`, `cos ${phi}° ≈ ${n(Math.cos((phi * Math.PI) / 180), 3)} → n ≈ <b>${n(nn)}</b>.`], { tol: 0.011 });
       },
       (r) => mcqQ(r, 'Qu’est-ce que le décrochage ?', 'La perte brutale de portance quand l’incidence dépasse une valeur critique', ['Un arrêt du moteur', 'Une vitesse trop élevée', 'Le passage du mur du son'], ['Au-delà de l’<b>incidence de décrochage</b>, les filets d’air décollent de l’extrados : la portance chute.', 'Il peut se produire à <b>n’importe quelle vitesse</b> si l’incidence est trop forte (ex. : ressource brutale).']),
     ],
     3: [
       (r) => {
-        const vs = r.pick([50, 60, 80, 100]);
+        const vs = r.int(8, 24) * 5;
         const v = vs * Math.SQRT2;
         return numQ(`Un avion décroche à ${vs} kt en ligne droite. Vitesse de décrochage en virage à 60° (kt, arrondi) ?`, Math.round(v), [`À 60° : n = 1 / cos 60° = 2.`, `V<sub>s</sub> × √n = ${vs} × √2 ≈ ${vs} × 1,41 = <b>${Math.round(v)} kt</b>.`], { tol: 1.01 });
       },
       (r) => {
-        const m = r.pick([1000, 1200]), phi = 60;
+        const m = r.int(6, 30) * 100, phi = 60;
         return numQ(`Un avion de ${n(m)} kg vire en palier à ${phi}°. Quelle portance (N) doit produire l’aile ? (g = 10)`, 2 * m * 10, [`Poids = ${n(m * 10)} N ; n = 1 / cos 60° = 2.`, `Portance = n × P = <b>${n(2 * m * 10)} N</b>.`]);
       },
       (r) => {
-        const alt = r.pick([300, 500, 1000, 1500]);
+        const alt = r.int(1, 30) * 100;
         const p = 1013 - alt / 8.5;
         return numQ(`Au niveau de la mer, la pression vaut 1 013 hPa. Estime la pression à ${alt} m (1 hPa ≈ 8,5 m), arrondie à l’unité.`, Math.round(p), [`Baisse : ${alt} / 8,5 ≈ ${n(alt / 8.5, 0)} hPa.`, `1 013 − ${n(alt / 8.5, 0)} ≈ <b>${Math.round(p)} hPa</b>.`], { tol: 2.01 });
       },

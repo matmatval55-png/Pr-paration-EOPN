@@ -1,7 +1,7 @@
 // Coach : compose une séance personnalisée à partir des résultats précédents.
 // Mélange : révisions dues (questions ratées) + points faibles + exercices non travaillés depuis longtemps
 // + consolidation et découverte, chacun au niveau mémorisé (mastery.js).
-import { makeDrawer } from './seen.js';
+import { makeDrawer, makeFresh } from './seen.js';
 import { store } from './store.js';
 import { listGens, getGen, newSpec } from './registry.js';
 import { dueItems } from './srs.js';
@@ -92,8 +92,9 @@ export function buildSession({ minutes = 15, module = null, seed = newSeed(), no
     if (n <= 0) return;
     const level = levelFor(c.g.id);
     const draw = c.g.bank ? makeDrawer(c.g.id, r.next) : null;
+    const fresh = c.g.bank ? null : makeFresh(c.g.id, r.next);
     const specs = [];
-    for (let k = 0; k < n; k++) specs.push(newSpec(c.g.id, level, draw ? draw(level) : newSeed()));
+    for (let k = 0; k < n; k++) specs.push(draw ? newSpec(c.g.id, level, draw(level)) : fresh(level));
     c.specs = specs;
     blocks.push({ gen: c.g.id, title: c.g.title, module: c.g.module, n, level, levels: c.g.levels, reason: c.reason });
   });
