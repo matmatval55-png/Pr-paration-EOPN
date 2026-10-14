@@ -1,5 +1,5 @@
 // Page d'entraînement générique pour un générateur (psycho, maths, physique…).
-import { makeDrawer, makeFresh, seenCount } from '../core/seen.js';
+import { makePicker, remaining, resetHistory, seenTotal } from '../core/seen.js';
 import { levelFor } from '../core/mastery.js';
 import { getGen, newSpec } from '../core/registry.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
@@ -56,7 +56,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
         ${g.levels > 1 ? `<div class="field"><label>Niveau</label>${seg('level', [...(progressive ? [['prog', 'Progressif']] : [['auto', 'Auto']]), ...[[1, 'Facile'], [2, 'Moyen'], [3, 'Difficile']].slice(0, g.levels)], state.level)}</div>` : ''}
         <div class="field"><label>Nombre de questions</label>${seg('count', [[10, '10'], [20, '20'], ['inf', 'Illimité']], state.count)}</div>
         <div class="field"><label>Chronomètre par question</label>${seg('chrono', [[1, 'Oui'], [0, 'Non']], state.chrono)}</div>
-        <p class="small muted">${g.bank ? `Banque de ${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + g.bankSize(l), 0)} questions : celles que tu n’as jamais vues passent en premier (${[1, 2, 3].slice(0, g.levels).reduce((a, l) => a + seenCount(genId, l), 0)} déjà vues dans le cycle en cours).` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${['', 'facile', 'moyen', 'difficile'][levelFor(genId)]}) ; il monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
+        <p class="small muted">${g.bank ? `Banque de ${g.bankSize(0)} questions, dont <b>${remaining(genId, 0)} jamais vues</b>. Tu ne retombes jamais deux fois sur la même question.` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${['', 'facile', 'moyen', 'difficile'][levelFor(genId)]}) ; il monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
         <button class="btn primary block" data-start>Commencer</button>
       </div>
     </div>`);
@@ -67,11 +67,28 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
   function start() {
     const total = state.count === 'inf' ? null : Number(state.count);
     const prog = [1, 1, 1, 2, 2, 2, 2, 3, 3, 3];
-    // banques : questions jamais vues d'abord (mémorisé d'une séance à l'autre)
-    const draw = makeDrawer(genId);
-    // exercices générés : on évite les questions vues récemment
-    const fresh = makeFresh(genId);
+    // jamais une question déjà vue : historique complet (voir core/seen.js)
+    const pick = makePicker();
+    let exhausted = false;
+    const levelAt = (i, history) => {
+      let lvl;
+      if (state.level === 'auto') lvl = adaptiveLevel(history, levelFor(genId), g.levels);
+      else if (state.level === 'prog') lvl = prog[Math.min(prog.length - 1, Math.floor((i / (total || 10)) * prog.length))];
+      else lvl = Number(state.level);
+      return Math.min(lvl, g.levels);
+    };
+    // si le niveau demandé est épuisé, on essaie les autres niveaux avant d'abandonner
+    const draw = (lvl) => {
+      for (const l of [lvl, ...[1, 2, 3].filter((x) => x !== lvl && x <= g.levels)]) {
+        const sp = pick(genId, l);
+        if (sp) return sp;
+      }
+      exhausted = true;
+      return null;
+    };
     if (g.levels === 1) state.level = '1';
+    const first = draw(levelAt(0, []));
+    if (!first) return showExhausted();
     document.body.classList.add('in-quiz');
     runQuiz(root, {
       title: g.title,
@@ -80,16 +97,11 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
       noTimer: state.chrono !== '1',
       next(i, history) {
         if (total && i >= total) return null;
-        let lvl;
-        if (state.level === 'auto') lvl = adaptiveLevel(history, levelFor(genId), g.levels);
-        else if (state.level === 'prog') lvl = prog[Math.min(prog.length - 1, Math.floor((i / (total || 10)) * prog.length))];
-        else lvl = Number(state.level);
-        lvl = Math.min(lvl, g.levels);
-        return g.bank ? newSpec(genId, lvl, draw(lvl)) : fresh(lvl);
+        return i === 0 ? first : draw(levelAt(i, history));
       },
       onFinish(history) {
         document.body.classList.remove('in-quiz');
-        showSummary(history);
+        showSummary(history, exhausted);
       },
       onQuit() {
         document.body.classList.remove('in-quiz');
@@ -98,9 +110,28 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
     });
   }
 
-  function showSummary(history) {
+  // Plus aucune question nouvelle pour cet exercice.
+  function showExhausted() {
     root.innerHTML = '';
-    const sum = el(`<div>${summaryHTML(history, { title: g.title })}<div class="btn-row"><button class="btn primary" data-again>Recommencer</button><a class="btn" href="${back}">Retour</a></div></div>`);
+    const box = el(`<div><a href="${back}" class="small">← Retour</a><h1>${esc(g.title)}</h1>
+      <div class="card"><h3>Tu as fait toutes les questions de cet exercice</h3>
+        <p>${seenTotal(genId)} questions différentes vues. Pour que tu ne retombes jamais sur une question identique, le site n’en repropose aucune.</p>
+        <p class="small muted">Tu peux revoir tes erreurs dans les Révisions, passer à un autre exercice, ou remettre cet exercice à zéro (tu reverras alors des questions déjà vues).</p>
+        <a class="btn primary block" href="#/revision">Revoir mes erreurs</a>
+        <a class="btn block" href="${back}">Choisir un autre exercice</a>
+        <button class="btn block danger" data-reset>Remettre cet exercice à zéro</button>
+      </div></div>`);
+    box.querySelector('[data-reset]').onclick = () => {
+      if (!confirm('Remettre cet exercice à zéro ? Tu pourras retomber sur des questions déjà vues.')) return;
+      resetHistory(genId);
+      renderTrain(root, genId, { back, progressive, defaults: state });
+    };
+    root.append(box);
+  }
+
+  function showSummary(history, exhausted = false) {
+    root.innerHTML = '';
+    const sum = el(`<div>${summaryHTML(history, { title: g.title })}${exhausted ? '<div class="card small">Tu as vu <b>toutes</b> les questions de cet exercice : la séance s’arrête ici pour ne jamais te reposer une question identique.</div>' : ''}<div class="btn-row"><button class="btn primary" data-again>Recommencer</button><a class="btn" href="${back}">Retour</a></div></div>`);
     sum.querySelector('[data-again]').onclick = () => start();
     root.append(sum);
     scrollTo(0, 0);

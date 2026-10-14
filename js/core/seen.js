@@ -1,104 +1,121 @@
-// Questions déjà vues des banques à contenu fixe, mémorisées d'une séance à l'autre :
-// on propose d'abord les questions jamais vues, et on recommence un cycle quand toute la banque y est passée.
+// Historique complet des questions posées : une question déjà vue n'est JAMAIS reproposée à
+// l'identique (entraînement, coach, examens). Seule la page « Révisions » repose volontairement
+// les questions ratées. Quand un exercice n'a plus de question nouvelle (banques à contenu fixe,
+// exercices de connaissance), le tirage renvoie null et l'interface le signale.
 import { store } from './store.js';
 import { getGen, makeQuestion, newSpec } from './registry.js';
 import { newSeed } from './rng.js';
 
-const keyOf = (gen, level) => `${gen}|${level || 0}`;
+const MAX_PER_GEN = 6000;
 
-export function markSeen(spec) {
+// Empreinte d'une question : énoncé + support + bonne réponse (l'ordre des choix ne compte pas).
+export function fingerprint(q) {
+  if (!q || q.kind === 'custom') return null; // exercices interactifs : séquence différente à chaque fois
+  const s = `${q.prompt}|${q.visual || ''}|${q.pre?.html || ''}|${q.kind === 'mcq' ? q.choices?.[q.answer] : q.answerText ?? q.answer}`;
+  let h = 5381, h2 = 52711;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h = ((h * 33) ^ c) >>> 0;
+    h2 = ((h2 * 31) ^ c) >>> 0;
+  }
+  return h.toString(36) + h2.toString(36);
+}
+
+const histOf = (gen) => store.data.hist?.[gen] || [];
+const setOf = (gen) => new Set(histOf(gen));
+
+function safeMake(spec) {
+  try {
+    return makeQuestion(spec);
+  } catch {
+    return null;
+  }
+}
+
+export function markSeen(spec, q) {
   const g = getGen(spec?.gen);
-  if (!g?.bank) return;
-  const size = g.bankSize(spec.level);
-  const idx = (spec.seed ?? 0) % size;
+  if (!g) return;
+  const fp = fingerprint(q || safeMake(spec));
+  if (!fp) return;
   store.update((s) => {
-    const m = (s.seen ||= {});
-    const k = keyOf(spec.gen, spec.level);
-    const a = (m[k] ||= []);
-    if (!a.includes(idx)) a.push(idx);
-    if (a.length >= size) m[k] = []; // banque terminée : nouveau cycle
+    const m = (s.hist ||= {});
+    const a = (m[spec.gen] ||= []);
+    if (!a.includes(fp)) a.push(fp);
+    if (a.length > MAX_PER_GEN) a.splice(0, a.length - MAX_PER_GEN);
   });
 }
 
-export function seenCount(gen, level) {
-  return (store.data.seen?.[keyOf(gen, level)] || []).length;
+export function resetHistory(gen) {
+  store.update((s) => {
+    if (s.hist) delete s.hist[gen];
+  });
 }
 
-// Tirage pour une séance : jamais vues d'abord, sans doublon dans la séance.
+export function seenTotal(gen) {
+  return histOf(gen).length;
+}
+
+// Banques : nombre de questions jamais vues pour un niveau (0 = toute la banque).
+export function remaining(gen, level) {
+  const g = getGen(gen);
+  if (!g?.bank) return null;
+  const seen = setOf(gen);
+  let n = 0;
+  for (let i = 0; i < g.bankSize(level); i++) if (!seen.has(fingerprint(safeMake(newSpec(gen, level, i))))) n++;
+  return n;
+}
+
+// Tirage d'une séance pour une banque : uniquement des questions jamais vues ; null si épuisée.
 export function makeDrawer(gen, rand = Math.random) {
-  const used = {};
+  const used = new Set();
+  const decks = {};
   return (level) => {
     const g = getGen(gen);
-    const all = [...Array(g.bankSize(level)).keys()];
-    const seen = new Set(store.data.seen?.[keyOf(gen, level)] || []);
-    const u = (used[level] ||= new Set());
-    let pool = all.filter((i) => !seen.has(i) && !u.has(i));
-    if (!pool.length) pool = all.filter((i) => !u.has(i));
-    if (!pool.length) {
-      u.clear();
-      pool = all;
+    const seen = setOf(gen);
+    if (!decks[level]) {
+      const idx = [...Array(g.bankSize(level)).keys()];
+      for (let i = idx.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [idx[i], idx[j]] = [idx[j], idx[i]];
+      }
+      decks[level] = idx;
     }
-    const i = pool[Math.floor(rand() * pool.length)];
-    u.add(i);
-    return i;
+    while (decks[level].length) {
+      const i = decks[level].pop();
+      const fp = fingerprint(safeMake(newSpec(gen, level, i)));
+      if (seen.has(fp) || used.has(fp)) continue;
+      used.add(fp);
+      return newSpec(gen, level, i);
+    }
+    return null;
   };
 }
 
-/* ---------- Exercices générés : éviter de reproposer une question récente ---------- */
-// Certains générateurs n'ont que quelques dizaines de variantes : on garde l'empreinte des
-// questions récentes et on cherche d'abord une question jamais vue récemment.
-const RECENT_MAX = 150;
-
-export function fingerprint(q) {
-  if (!q || q.kind === 'custom') return null;
-  const s = `${q.prompt}|${q.visual || ''}|${q.kind === 'mcq' ? q.choices?.[q.answer] : q.answerText ?? q.answer}`;
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
-  return h.toString(36);
-}
-
-export function markRecent(spec, q) {
-  const g = getGen(spec?.gen);
-  if (!g || g.bank) return;
-  const fp = fingerprint(q);
-  if (!fp) return;
-  store.update((s) => {
-    const m = (s.recent ||= {});
-    const a = (m[spec.gen] ||= []).filter((x) => x !== fp);
-    a.push(fp);
-    if (a.length > RECENT_MAX) a.splice(0, a.length - RECENT_MAX);
-    m[spec.gen] = a;
-  });
-}
-
-// Fabrique de spécifications « fraîches » pour un générateur (une par séance).
-export function makeFresh(gen, rand = null, tries = 30) {
+// Tirage pour un exercice généré : une question jamais vue (ni avant, ni dans la séance) ; null si
+// aucune n'est trouvée après de nombreux essais (toutes les variantes ont déjà été faites).
+export function makeFresh(gen, rand = null, tries = 150) {
   const used = new Set();
   const seed = () => (rand ? Math.floor(rand() * 4294967296) >>> 0 : newSeed());
   return (level) => {
     const g = getGen(gen);
-    if (!g || g.bank) return newSpec(gen, level);
-    const recent = store.data.recent?.[gen] || [];
-    const rank = new Map(recent.map((fp, i) => [fp, i]));
-    let best = null;
+    if (!g) return null;
+    const seen = setOf(gen);
     for (let k = 0; k < tries; k++) {
       const spec = newSpec(gen, level, seed());
-      let fp;
-      try {
-        fp = fingerprint(makeQuestion(spec));
-      } catch {
-        continue;
-      }
-      if (!fp) return spec; // exercice interactif : toujours différent
-      if (!used.has(fp) && !rank.has(fp)) {
-        used.add(fp);
-        return spec;
-      }
-      // sinon on garde la moins récente des questions pas encore vues dans la séance
-      const score = used.has(fp) ? -1 : RECENT_MAX - rank.get(fp);
-      if (!best || score > best.score) best = { spec, fp, score };
+      const q = safeMake(spec);
+      if (!q) continue;
+      const fp = fingerprint(q);
+      if (!fp) return spec;
+      if (seen.has(fp) || used.has(fp)) continue;
+      used.add(fp);
+      return spec;
     }
-    if (best) used.add(best.fp);
-    return best ? best.spec : newSpec(gen, level);
+    return null;
   };
+}
+
+// Tirage unifié (banque ou générateur) : une fabrique par exercice, pour toute la séance.
+export function makePicker(rand = null) {
+  const f = {};
+  return (gen, level) => (f[gen] ||= getGen(gen)?.bank ? makeDrawer(gen, rand || Math.random) : makeFresh(gen, rand))(level);
 }

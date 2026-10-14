@@ -91,43 +91,61 @@ test('maîtrise : score et statut', () => {
   assert.equal(masteryScore(id), 100);
 });
 
-test('banques : les questions jamais vues passent en premier, d’une séance à l’autre', async () => {
-  const { makeDrawer, markSeen, seenCount } = await import('../js/core/seen.js');
+test('banques : jamais deux fois la même question, puis tirage vide quand tout est vu', async () => {
+  const { makeDrawer, markSeen, remaining, resetHistory } = await import('../js/core/seen.js');
   store.reset();
   const id = 'psy.urgences';
   const size = getGen(id).bankSize(1);
   const got = new Set();
-  // plusieurs « séances » de 5 questions : aucune répétition avant d'avoir tout vu
-  for (let s = 0; got.size < size; s++) {
+  for (let s = 0; s < 20; s++) {
     const draw = makeDrawer(id);
-    for (let k = 0; k < 5 && got.size < size; k++) {
-      const i = draw(1);
-      assert.ok(!got.has(i), `question ${i} répétée avant la fin du cycle`);
-      got.add(i);
-      markSeen({ gen: id, level: 1, seed: i });
+    for (let k = 0; k < 5; k++) {
+      const spec = draw(1);
+      if (!spec) break;
+      const q = makeQuestion(spec);
+      assert.ok(!got.has(q.prompt), 'question répétée');
+      got.add(q.prompt);
+      markSeen(spec, q);
     }
   }
-  assert.equal(seenCount(id, 1), 0); // cycle terminé, on recommence
+  assert.equal(got.size, size);
+  assert.equal(makeDrawer(id)(1), null);
+  assert.equal(remaining(id, 1), 0);
+  // vue en examen (niveau 0 = toute la banque) : aussi exclue
+  assert.equal(remaining(id, 0), 0);
+  resetHistory(id);
+  assert.equal(remaining(id, 1), size);
 });
 
-test('exercices générés : pas de répétition tant qu’il reste des variantes, d’une séance à l’autre', async () => {
-  const { makeFresh, markRecent, fingerprint } = await import('../js/core/seen.js');
+test('exercices générés : jamais deux fois la même question, même sur des milliers de questions', async () => {
+  const { makeFresh, markSeen, fingerprint } = await import('../js/core/seen.js');
   store.reset();
-  const id = 'psy.interception';
-  // nombre de variantes distinctes au niveau 1
-  const all = new Set();
-  for (let s = 1; s < 400; s++) all.add(fingerprint(makeQuestion({ gen: id, level: 1, seed: s })));
-  const seen = new Set();
-  // plusieurs séances de 3 questions : aucune répétition avant d'avoir tout vu
-  for (let k = 0; seen.size < all.size; k++) {
-    const fresh = makeFresh(id, null, 200);
-    for (let j = 0; j < 3 && seen.size < all.size; j++) {
-      const spec = fresh(1);
-      const q = makeQuestion(spec);
-      const fp = fingerprint(q);
-      assert.ok(!seen.has(fp), 'question répétée trop tôt');
-      seen.add(fp);
-      markRecent(spec, q);
+  for (const id of ['psy.calcul', 'psy.attente', 'maths.fractions']) {
+    if (!getGen(id)) continue;
+    const seen = new Set();
+    for (let s = 0; s < 40; s++) {
+      const fresh = makeFresh(id);
+      for (let k = 0; k < 10; k++) {
+        const spec = fresh(2);
+        if (!spec) break;
+        const q = makeQuestion(spec);
+        const fp = fingerprint(q);
+        assert.ok(!seen.has(fp), `${id} : question répétée`);
+        seen.add(fp);
+        markSeen(spec, q);
+      }
     }
   }
+  // exercice à variantes limitées : une fois tout vu, plus rien (pas de doublon)
+  const id = 'psy.interception';
+  const fresh = makeFresh(id, null, 400);
+  let n = 0;
+  for (let k = 0; k < 40; k++) {
+    const spec = fresh(1);
+    if (!spec) break;
+    markSeen(spec, makeQuestion(spec));
+    n++;
+  }
+  assert.ok(n > 0 && n < 40);
+  assert.equal(makeFresh(id, null, 400)(1), null);
 });

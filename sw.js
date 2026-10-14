@@ -2,7 +2,7 @@
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan. Une nouvelle version est installée en contournant le cache HTTP,
 // puis la page se recharge d'elle-même (voir app.js).
-const VERSION = 'v15';
+const VERSION = 'v16';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',

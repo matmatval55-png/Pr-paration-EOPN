@@ -47,6 +47,24 @@ if (!store.data.settings.design2) {
   });
 }
 
+// Historique « jamais deux fois la même question » : on y reprend les questions déjà connues
+// (anciennes banques vues, questions ratées en révision).
+if (!store.data.settings.histV1) {
+  import('./core/seen.js').then(({ markSeen }) => {
+    const d = store.data;
+    for (const [k, idxs] of Object.entries(d.seen || {})) {
+      const [gen, lvl] = k.split('|');
+      if (getGen(gen)) for (const i of idxs) markSeen({ gen, level: Number(lvl) || 0, seed: i });
+    }
+    for (const it of Object.values(d.srs || {})) if (getGen(it.spec?.gen)) markSeen(it.spec);
+    store.update((s) => {
+      delete s.seen;
+      delete s.recent;
+      s.settings.histV1 = true;
+    });
+  });
+}
+
 // Valeur par défaut de la date de sélection (« vers fin 2027 », modifiable dans les réglages)
 if (!store.data.settings.selectionDate && !store.data.settings.dateAsked) {
   store.update((s) => {

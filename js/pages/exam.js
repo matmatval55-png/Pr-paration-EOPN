@@ -1,5 +1,5 @@
 // Examen blanc : enchaînement de sections chronométrées, correction à la fin.
-import { makeDrawer, makeFresh } from '../core/seen.js';
+import { makePicker } from '../core/seen.js';
 import { EXAMS } from '../exams.js';
 import { newSpec, getGen } from '../core/registry.js';
 import { runQuiz, summaryHTML, fmtClock } from '../core/quiz.js';
@@ -42,13 +42,26 @@ export function renderExam(root, id) {
   function runSections() {
     const results = [];
     const rng = makeRng(newSeed());
-    const decks = {};
-    // Banques de questions : jamais vues d'abord, sans doublon dans l'examen.
+    // Jamais une question déjà vue (historique complet) ; banques tirées sur toute la banque (niveau 0).
+    const picker = makePicker(rng.next);
     const pick = (gid) => {
       const g = getGen(gid);
-      if (!g.bank) return (decks[gid] ||= makeFresh(gid, rng.next))(Math.min(level, g.levels));
-      decks[gid] ||= makeDrawer(gid, rng.next);
-      return newSpec(gid, 0, decks[gid](0));
+      return picker(gid, g.bank ? 0 : Math.min(level, g.levels));
+    };
+    // Questions d'une section, préparées d'avance : si un exercice n'a plus de question nouvelle,
+    // on prend dans un autre exercice de la section ; sinon la section est plus courte.
+    const prepare = (s) => {
+      const order = rng.shuffle(Array.from({ length: s.count }, (_, i) => s.gens[i % s.gens.length]));
+      const out = [];
+      for (const gid of order) {
+        let sp = pick(gid);
+        for (const alt of rng.shuffle(s.gens)) {
+          if (sp) break;
+          sp = pick(alt);
+        }
+        if (sp) out.push(sp);
+      }
+      return out;
     };
     document.body.classList.add('in-quiz');
     const step = (k) => {
@@ -70,16 +83,19 @@ export function renderExam(root, id) {
         renderExam(root, id);
       };
       inter.querySelector('[data-go]').onclick = () => {
-        const order = Array.from({ length: s.count }, (_, i) => s.gens[i % s.gens.length]);
-        const gens = rng.shuffle(order);
+        const specs = prepare(s);
+        if (!specs.length) {
+          results.push({ title: s.title + ' (aucune question nouvelle)', total: 0, history: [] });
+          return step(k + 1);
+        }
         runQuiz(root, {
           title: s.title,
-          total: s.count,
+          total: specs.length,
           mode: 'exam',
-          totalTime: s.time,
-          next: (i) => (i < s.count ? pick(gens[i]) : null),
+          totalTime: Math.round((s.time * specs.length) / s.count),
+          next: (i) => specs[i] || null,
           onFinish(history) {
-            results.push({ title: s.title, total: s.count, history });
+            results.push({ title: s.title, total: specs.length, history });
             step(k + 1);
           },
           onQuit() {
@@ -127,14 +143,14 @@ export function renderExam(root, id) {
     const all = results.flatMap((r) => r.history);
     const ok = all.filter((h) => h.ok).length;
     const n = results.reduce((a, r) => a + r.total, 0);
-    store.update((s) => {
+    if (n) store.update((s) => {
       s.exams.push({ id, title: ex.title, level, ts: Date.now(), ok, n, sections: results.map((r) => ({ title: r.title, ok: r.history.filter((h) => h.ok).length, n: r.total, answered: r.history.length })) });
       if (s.exams.length > 200) s.exams.splice(0, s.exams.length - 200);
     });
     root.innerHTML = '';
     const page = el(`
       <div>
-        <h1>Résultat : ${Math.round((ok / n) * 100)} %</h1>
+        <h1>Résultat : ${n ? Math.round((ok / n) * 100) : 0} %</h1>
         <p class="muted">${ok} bonnes réponses sur ${n} questions (les questions non traitées dans le temps comptent comme fausses).</p>
         <div class="card">${results
           .map((r) => {

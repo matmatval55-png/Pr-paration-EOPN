@@ -28,17 +28,18 @@ const lvlBadge = (genId) => {
 };
 
 export function renderCoach(root, module = null) {
-  const state = { minutes: store.data.settings.coachMinutes || 15, module: module || 'all' };
+  const state = { minutes: store.data.settings.coachMinutes || 15, module: module || 'all', reviews: store.data.settings.coachReviews ? '1' : '0' };
   let plan = null;
   const draw = () => {
-    plan = buildSession({ minutes: Number(state.minutes), module: state.module === 'all' ? null : state.module });
+    plan = buildSession({ minutes: Number(state.minutes), module: state.module === 'all' ? null : state.module, reviews: state.reviews === '1' });
     root.innerHTML = '';
     const page = el(`<div>
       <h1>🧭 Séance coach</h1>
-      <p class="muted">Une séance construite à partir de <b>tes résultats</b> : les questions ratées à revoir, tes points faibles, ce que tu n’as pas travaillé depuis longtemps, chacun à <b>ton niveau</b> actuel. Le niveau monte après 4 bonnes réponses sur 5 et baisse après 2 erreurs d’affilée, et il est mémorisé d’une séance à l’autre.</p>
+      <p class="muted">Une séance construite à partir de <b>tes résultats</b>, uniquement avec des <b>questions que tu n’as jamais eues</b> : tes points faibles, ce que tu n’as pas travaillé depuis longtemps, chacun à <b>ton niveau</b> actuel. Le niveau monte après 4 bonnes réponses sur 5 et baisse après 2 erreurs d’affilée, et il est mémorisé d’une séance à l’autre.</p>
       <div class="card">
         <div class="field"><label>Durée</label>${seg('minutes', [[10, '10 min'], [15, '15 min'], [25, '25 min'], [40, '40 min']], state.minutes)}</div>
         <div class="field"><label>Matière</label>${seg('module', [['all', 'Tout'], ...Object.keys(COACH_MODULES).map((k) => [k, { psycho: 'Psycho', maths: 'Maths', physique: 'Physique', anglais: 'Anglais', culture: 'Culture' }[k]])], state.module)}</div>
+        <div class="field"><label>Mes erreurs à revoir</label>${seg('reviews', [['0', 'Non (que du neuf)'], ['1', 'Les inclure']], state.reviews)}<p class="small muted">Les erreurs à revoir sont volontairement les mêmes questions que celles que tu as ratées.</p></div>
       </div>
       <div class="card"><h3>Programme (${plan.total} questions)</h3>
         <div class="list">${plan.blocks
@@ -59,6 +60,7 @@ export function renderCoach(root, module = null) {
         if (!b) return;
         state[s.dataset.name] = b.dataset.v;
         if (s.dataset.name === 'minutes') store.update((d) => (d.settings.coachMinutes = Number(b.dataset.v)));
+        if (s.dataset.name === 'reviews') store.update((d) => (d.settings.coachReviews = b.dataset.v === '1'));
         draw();
       }),
     );

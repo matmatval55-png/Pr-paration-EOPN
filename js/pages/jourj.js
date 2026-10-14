@@ -48,7 +48,7 @@ export const JOURS = [
 export function renderJourJ(root) {
   const past = (store.data.exams || []).filter((e) => e.id === 'jourj' || e.id === 'jourj-court').slice(-5).reverse();
   const last = past[0];
-  const weakest = last ? [...last.sections].sort((a, b) => a.ok / a.n - b.ok / b.n).slice(0, 3) : [];
+  const weakest = last ? [...last.sections].filter((s) => s.n).sort((a, b) => a.ok / a.n - b.ok / b.n).slice(0, 3) : [];
   root.innerHTML = `
     <h1>🎯 Simulation du jour J</h1>
     <p class="muted">À la sélection, tu passes <b>4 jours à Tours</b> et les épreuves s’enchaînent. La fatigue fait chuter les scores en fin de série : il faut s’entraîner à rester concentré longtemps, pas seulement à réussir des exercices isolés.</p>

@@ -1,7 +1,7 @@
 // Coach : compose une séance personnalisée à partir des résultats précédents.
 // Mélange : révisions dues (questions ratées) + points faibles + exercices non travaillés depuis longtemps
 // + consolidation et découverte, chacun au niveau mémorisé (mastery.js).
-import { makeDrawer, makeFresh } from './seen.js';
+import { makePicker } from './seen.js';
 import { store } from './store.js';
 import { listGens, getGen, newSpec } from './registry.js';
 import { dueItems } from './srs.js';
@@ -50,14 +50,16 @@ export function candidates(module) {
 
 // Retourne { items: [{spec, gen, reason}], blocks: [{gen, title, n, level, reason}] }.
 // minutes : durée visée (≈ 1,4 question par minute).
-export function buildSession({ minutes = 15, module = null, seed = newSeed(), now = Date.now() } = {}) {
+export function buildSession({ minutes = 15, module = null, seed = newSeed(), now = Date.now(), reviews = false } = {}) {
   const r = makeRng(seed);
+  const pick = makePicker(r.next); // jamais une question déjà vue
+
   const total = Math.max(6, Math.round(minutes * 1.4));
   const items = [];
   const blocks = [];
 
-  // 1) Révisions dues : au plus 30 % de la séance.
-  const due = dueItems(now).filter((d) => !module || getGen(d.spec.gen)?.module === module);
+  // 1) Révisions dues (seulement si demandé : ce sont volontairement des questions déjà vues).
+  const due = (reviews ? dueItems(now) : []).filter((d) => !module || getGen(d.spec.gen)?.module === module);
   const nDue = Math.min(due.length, Math.round(total * 0.3));
   if (nDue) {
     for (const d of due.slice(0, nDue)) items.push({ spec: d.spec, gen: d.spec.gen, reason: { ico: '🔁', txt: 'question ratée à revoir' } });
@@ -87,17 +89,30 @@ export function buildSession({ minutes = 15, module = null, seed = newSeed(), no
     }
   }
   // répartition équitable des questions entre les exercices retenus
+  // Un exercice qui n'a plus de question nouvelle cède sa place au suivant de la liste.
+  let deficit = 0;
+  const fill = (c, n) => {
+    const level = levelFor(c.g.id);
+    const specs = [];
+    for (let k = 0; k < n; k++) {
+      const sp = pick(c.g.id, level);
+      if (!sp) break;
+      specs.push(sp);
+    }
+    c.specs = specs;
+    if (specs.length) blocks.push({ gen: c.g.id, title: c.g.title, module: c.g.module, n: specs.length, level, levels: c.g.levels, reason: c.reason });
+    return n - specs.length;
+  };
   chosen.forEach((c, i) => {
     const n = Math.floor(left / chosen.length) + (i < left % chosen.length ? 1 : 0);
-    if (n <= 0) return;
-    const level = levelFor(c.g.id);
-    const draw = c.g.bank ? makeDrawer(c.g.id, r.next) : null;
-    const fresh = c.g.bank ? null : makeFresh(c.g.id, r.next);
-    const specs = [];
-    for (let k = 0; k < n; k++) specs.push(draw ? newSpec(c.g.id, level, draw(level)) : fresh(level));
-    c.specs = specs;
-    blocks.push({ gen: c.g.id, title: c.g.title, module: c.g.module, n, level, levels: c.g.levels, reason: c.reason });
+    if (n > 0) deficit += fill(c, n);
   });
+  for (const c of weighted) {
+    if (deficit <= 0) break;
+    if (chosen.includes(c)) continue;
+    chosen.push(c);
+    deficit = fill(c, Math.min(per, deficit)) + Math.max(0, deficit - per);
+  }
 
   // 3) Entrelacement des exercices (meilleur pour la mémorisation qu'une série du même type).
   const queues = chosen.filter((c) => c.specs?.length).map((c) => c.specs.map((spec) => ({ spec, gen: c.g.id, reason: c.reason })));

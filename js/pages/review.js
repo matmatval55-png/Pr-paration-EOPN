@@ -10,7 +10,7 @@ export function renderReview(root) {
   }
   const specs = due.slice(0, 30).map((d) => d.spec);
   root.innerHTML = '';
-  const intro = el(`<div><h1>Révisions</h1><div class="card"><p><b>${due.length}</b> question(s) à revoir${due.length > 30 ? ' (30 par séance)' : ''}.</p><p class="small muted">Ce sont exactement les questions que tu as ratées. Une bonne réponse les espace, une erreur les fait revenir vite.</p><button class="btn primary block" data-go>Commencer</button></div></div>`);
+  const intro = el(`<div><h1>Révisions</h1><div class="card"><p><b>${due.length}</b> question(s) à revoir${due.length > 30 ? ' (30 par séance)' : ''}.</p><p class="small muted">C’est le seul endroit où le site te repose des questions déjà vues : exactement celles que tu as ratées, pour les retenir. Partout ailleurs (entraînement, coach, examens), tu n’as que des questions nouvelles.</p><button class="btn primary block" data-go>Commencer</button></div></div>`);
   root.append(intro);
   intro.querySelector('[data-go]').onclick = () => {
     document.body.classList.add('in-quiz');

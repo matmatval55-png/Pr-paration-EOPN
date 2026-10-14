@@ -1,4 +1,5 @@
 // Test de positionnement en maths : 2 questions par chapitre (niveaux 1 et 2), sans correction pendant le test.
+import { makePicker } from '../core/seen.js';
 import { CHAPTERS as MATHS } from '../maths/index.js';
 import { newSpec } from '../core/registry.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
@@ -25,7 +26,8 @@ export function renderDiagnostic(root) {
     </div>`);
   root.append(page);
   page.querySelector('[data-go]').onclick = () => {
-    const specs = MATHS.flatMap((c) => [newSpec(c.genId, 1), newSpec(c.genId, 2)]);
+    const pick = makePicker();
+    const specs = MATHS.flatMap((c) => [pick(c.genId, 1), pick(c.genId, 2)]).filter(Boolean);
     document.body.classList.add('in-quiz');
     runQuiz(root, {
       title: 'Positionnement maths',
