@@ -568,3 +568,8 @@ details.card[open] > summary::after { content: '–'; }
 .likert button { min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); font-weight: 650; cursor: pointer; }
 .likert button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .likert-legend { display: flex; justify-content: space-between; margin-top: 4px; }
+
+/* Repère de version (barre du haut) */
+.ver-badge { display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; padding: 3px 7px; border: 1px solid var(--line); border-radius: 99px; font-size: 0.68rem; font-weight: 600; color: var(--muted); text-decoration: none; font-variant-numeric: tabular-nums; }
+.ver-badge svg { display: block; }
+.topbar .brand { white-space: nowrap; min-width: 0; }

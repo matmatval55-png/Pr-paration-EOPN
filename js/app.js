@@ -36,6 +36,7 @@ import { renderJourJ } from './pages/jourj.js';
 import { renderSante } from './pages/sante.js';
 import { renderPersonnalite } from './pages/personnalite.js';
 import { startDecor } from './core/decor.js';
+import { mountVersionBadge } from './version-badge.js';
 
 const view = document.getElementById('view');
 
@@ -163,6 +164,7 @@ document.addEventListener('click', (e) => {
 
 applyTheme();
 startDecor();
+mountVersionBadge();
 applyFontSize();
 // Demande au navigateur de ne pas effacer les données (évite le nettoyage automatique de Safari).
 navigator.storage?.persist?.().catch(() => {});

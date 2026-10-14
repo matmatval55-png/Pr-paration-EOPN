@@ -12,3 +12,13 @@ test('le service worker précharge tous les fichiers JS, CSS et icônes', () => 
   const missing = files.filter((f) => !sw.includes(`'./${f.replace(/\\/g, '/')}'`));
   assert.deepEqual(missing, [], 'fichiers absents de sw.js : ' + missing.join(', '));
 });
+
+test('le repère de version affiché correspond à la version du service worker', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { VERSION } = await import('../js/version.js');
+  const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  assert.equal(`v${VERSION}`, sw.match(/const VERSION = '(v\d+)';/)[1]);
+  const { versionMark } = await import('../js/version-badge.js');
+  const a = versionMark(VERSION), b = versionMark(VERSION + 1);
+  assert.ok(a.shape !== b.shape && a.color !== b.color, 'la forme et la couleur changent à chaque version');
+});

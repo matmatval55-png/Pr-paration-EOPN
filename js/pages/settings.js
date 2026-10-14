@@ -1,3 +1,4 @@
+import { versionMark } from '../version-badge.js';
 import { store } from '../core/store.js';
 import { toast, el } from '../core/ui.js';
 import { applyTheme, applyFontSize } from '../theme.js';
@@ -17,6 +18,7 @@ export function renderSettings(root) {
   const page = el(`
     <div>
       <h1>Réglages</h1>
+      <div class="card small" style="display:flex;align-items:center;gap:10px"><span style="flex:none;display:grid">${versionMark(undefined, 24).svg}</span><span><b>Version ${versionMark().v}</b> · repère : ${versionMark().shape} ${versionMark().color}<br><span class="muted">Le symbole en haut de l’écran change à chaque mise à jour. S’il ne correspond pas à celui annoncé, ferme et rouvre l’appli.</span></span></div>
       ${store.storageOk ? '' : '<div class="card" style="border-color:var(--danger)">⚠️ Le stockage local est indisponible (navigation privée ?). Tes progrès ne seront pas conservés : pense à exporter tes données.</div>'}
       <div class="card">
         <h3>Ma sélection</h3>
