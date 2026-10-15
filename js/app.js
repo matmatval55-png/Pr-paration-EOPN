@@ -35,6 +35,7 @@ import { renderGroupe } from './pages/groupe.js';
 import { renderJourJ } from './pages/jourj.js';
 import { renderSante } from './pages/sante.js';
 import { renderPersonnalite } from './pages/personnalite.js';
+import { renderSession } from './pages/session.js';
 import { startDecor } from './core/decor.js';
 import { mountVersionBadge } from './version-badge.js';
 
@@ -111,6 +112,7 @@ const routes = [
   [/^jourj$/, () => renderJourJ(view), 'psycho'],
   [/^sante$/, () => renderSante(view), 'planning'],
   [/^personnalite$/, () => renderPersonnalite(view), 'cours'],
+  [/^session$/, () => renderSession(view), 'home'],
   [/^stats$/, () => renderStats(view), 'stats'],
   [/^(reglages|plus)$/, () => renderSettings(view), 'plus'],
   [/^selection$/, () => renderSelection(view), 'plus'],

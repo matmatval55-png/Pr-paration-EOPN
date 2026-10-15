@@ -65,3 +65,21 @@ test('questionnaire de personnalité : scores, cohérence, désirabilité', asyn
   assert.ok(r2.incoh.length >= 3);
   for (const k of Object.keys(DIMENSIONS)) assert.equal(r2.dims[k], 50, k);
 });
+
+test('session chrono : la fiche proposée suit les erreurs, sans doublon', async () => {
+  await import('../js/maths/index.js');
+  await import('../js/physique/index.js');
+  await import('../js/culture/index.js');
+  const { pickFiche } = await import('../js/pages/session.js');
+  const h = (gen, ok) => ({ spec: { gen, level: 1, seed: 1 }, ok });
+  const shown = new Set();
+  const a = pickFiche([h('psy.calcul', true), h('psy.vor', false)], shown, null);
+  assert.ok(a, 'une fiche est proposée');
+  assert.match(a.why, /tromper/);
+  assert.match(a.f.train || '', /psy\.vor/);
+  shown.add(a.f.key);
+  const b = pickFiche([h('psy.vor', false)], shown, null);
+  assert.ok(!b || b.f.key !== a.f.key, 'pas deux fois la même fiche');
+  const c = pickFiche([], new Set(), 'anglais');
+  assert.ok(c && c.sec.id === 'anglais');
+});

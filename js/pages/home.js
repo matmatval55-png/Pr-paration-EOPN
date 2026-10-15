@@ -50,6 +50,7 @@ export function renderHome(root) {
     ${dleft == null ? `<div class="card small">📅 Saisis la date (même approximative) de ta sélection dans <a href="#/reglages">Réglages</a> pour le compte à rebours et le planning.</div>` : ''}
     ${backupDue() ? `<div class="card" style="border-color:var(--warn)"><b>💾 Pense à sauvegarder ta progression</b><p class="small">Aucun export depuis plus de 7 jours. Sur iPhone, les données d’un site peuvent être effacées s’il n’est pas installé sur l’écran d’accueil.</p><button class="btn primary block" data-backup>Exporter maintenant</button></div>` : ''}
     ${todayHTML()}
+    <a class="row-link" href="#/session" style="margin-top:12px;border-color:var(--accent)"><span style="font-size:1.4rem">⏱️</span><span class="grow"><span class="title">Session chrono</span><br><span class="sub">Choisis ta durée : questions en continu et fiches de cours intercalées</span></span><span class="chev">›</span></a>
     ${totalAnswers() ? coachTeaser() : ''}
     ${
       due

@@ -10,6 +10,7 @@ export const MODULES = [
   { id: 'sport', ico: '🏃', title: 'Sport', sub: 'Barème + programme', href: '#/sport' },
   { id: 'planning', ico: '🗓️', title: 'Planning', sub: 'Ma semaine', href: '#/planning' },
   { id: 'checklist', ico: '✅', title: 'Checklist', sub: 'Candidature', href: '#/checklist' },
+  { id: 'session', ico: '⏱️', title: 'Session chrono', sub: 'Durée au choix', href: '#/session' },
   { id: 'jourj', ico: '🎯', title: 'Jour J', sub: 'Simulation complète', href: '#/jourj' },
   { id: 'personnalite', ico: '🧠', title: 'Personnalité', sub: 'Pour le psychologue', href: '#/personnalite' },
   { id: 'groupe', ico: '👥', title: 'Épreuve de groupe', sub: 'Sujets + grille', href: '#/groupe' },

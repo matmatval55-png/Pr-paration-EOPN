@@ -109,7 +109,7 @@ export function runQuiz(root, opts) {
 
   function updateCount() {
     const i = history.length + 1;
-    count.textContent = opts.total ? `${Math.min(i, opts.total)} / ${opts.total}` : `n° ${i}`;
+    count.textContent = opts.total ? `${Math.min(i, opts.total)} / ${opts.total}` : `n° ${i + (opts.countOffset || 0)}`;
   }
 
   function runTimer(seconds, onExpire) {
