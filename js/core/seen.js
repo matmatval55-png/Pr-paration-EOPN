@@ -66,12 +66,12 @@ export function remaining(gen, level) {
 }
 
 // Tirage d'une séance pour une banque : uniquement des questions jamais vues ; null si épuisée.
-export function makeDrawer(gen, rand = Math.random) {
+export function makeDrawer(gen, rand = Math.random, excludeSeen = true) {
   const used = new Set();
   const decks = {};
   return (level) => {
     const g = getGen(gen);
-    const seen = setOf(gen);
+    const seen = excludeSeen ? setOf(gen) : new Set();
     if (!decks[level]) {
       const idx = [...Array(g.bankSize(level)).keys()];
       for (let i = idx.length - 1; i > 0; i--) {
@@ -93,13 +93,13 @@ export function makeDrawer(gen, rand = Math.random) {
 
 // Tirage pour un exercice généré : une question jamais vue (ni avant, ni dans la séance) ; null si
 // aucune n'est trouvée après de nombreux essais (toutes les variantes ont déjà été faites).
-export function makeFresh(gen, rand = null, tries = 150) {
+export function makeFresh(gen, rand = null, tries = 150, excludeSeen = true) {
   const used = new Set();
   const seed = () => (rand ? Math.floor(rand() * 4294967296) >>> 0 : newSeed());
   return (level) => {
     const g = getGen(gen);
     if (!g) return null;
-    const seen = setOf(gen);
+    const seen = excludeSeen ? setOf(gen) : new Set();
     for (let k = 0; k < tries; k++) {
       const spec = newSpec(gen, level, seed());
       const q = safeMake(spec);
@@ -115,7 +115,14 @@ export function makeFresh(gen, rand = null, tries = 150) {
 }
 
 // Tirage unifié (banque ou générateur) : une fabrique par exercice, pour toute la séance.
-export function makePicker(rand = null) {
-  const f = {};
-  return (gen, level) => (f[gen] ||= getGen(gen)?.bank ? makeDrawer(gen, rand || Math.random) : makeFresh(gen, rand))(level);
+export function makePicker(rand = null, { excludeSeen = true } = {}) {
+  const pickers = new Map();
+  return (gen, level) => {
+    if (!pickers.has(gen)) {
+      pickers.set(gen, getGen(gen)?.bank
+        ? makeDrawer(gen, rand || Math.random, excludeSeen)
+        : makeFresh(gen, rand, 150, excludeSeen));
+    }
+    return pickers.get(gen)(level);
+  };
 }

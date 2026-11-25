@@ -1,7 +1,7 @@
 // Examen blanc : enchaînement de sections chronométrées, correction à la fin.
 import { makePicker } from '../core/seen.js';
 import { EXAMS } from '../exams.js';
-import { newSpec, getGen } from '../core/registry.js';
+import { getGen } from '../core/registry.js';
 import { runQuiz, summaryHTML, fmtClock } from '../core/quiz.js';
 import { store } from '../core/store.js';
 import { el, esc } from '../core/ui.js';
@@ -13,7 +13,8 @@ export function renderExam(root, id) {
     root.innerHTML = '<p>Examen introuvable.</p>';
     return;
   }
-  let level = 3;
+  let level = ex.fixedLevel || 3;
+  const interrupted = store.data.examInProgress?.id === id;
   const past = store.data.exams.filter((e) => e.id === id).slice(-5).reverse();
   root.innerHTML = '';
   const page = el(`
@@ -21,11 +22,12 @@ export function renderExam(root, id) {
       <a href="${ex.back || '#/psycho'}" class="small">← Retour</a>
       <h1>${esc(ex.title)}</h1>
       <p class="muted">${esc(ex.desc)}</p>
+      ${interrupted ? '<p class="card warn" role="status">Passage précédent incomplet. Aucun score global enregistré.</p>' : ''}
       <div class="card">
         <h3>Déroulé</h3>
         ${ex.sections.map((s, i) => (s.pause ? `<div class="section-res muted"><span>☕ ${esc(s.title)}</span><span>${fmtClock(s.pause * 1000)}</span></div>` : `<div class="section-res"><span>${ex.sections.slice(0, i + 1).filter((x) => !x.pause).length}. ${esc(s.title)}</span><span class="muted">${s.count} q · ${fmtClock(s.time * 1000)}</span></div>`)).join('')}
         <p class="small muted">⚠️ Format simulé : la durée et le nombre exacts de questions des épreuves officielles ne sont pas publiés. Aucune correction pendant l’examen ; bilan détaillé à la fin.</p>
-        <div class="field"><label>Difficulté</label><div class="seg"><button data-l="1">Facile</button><button data-l="2">Moyen</button><button data-l="3" class="on">Difficile</button></div></div>
+        ${ex.fixedLevel ? '<p class="small">Niveau difficile</p>' : '<div class="field"><label>Difficulté</label><div class="seg"><button data-l="1">Facile</button><button data-l="2">Moyen</button><button data-l="3" class="on">Difficile</button></div></div>'}
         <button class="btn primary block" data-start>Démarrer l’examen</button>
       </div>
       ${past.length ? `<div class="card"><h3>Derniers résultats</h3>${past.map((p) => `<div class="section-res"><span>${new Date(p.ts).toLocaleDateString('fr-FR')} · niv. ${p.level}</span><b>${Math.round((p.ok / p.n) * 100)} %</b></div>`).join('')}</div>` : ''}
@@ -42,8 +44,8 @@ export function renderExam(root, id) {
   function runSections() {
     const results = [];
     const rng = makeRng(newSeed());
-    // Jamais une question déjà vue (historique complet) ; banques tirées sur toute la banque (niveau 0).
-    const picker = makePicker(rng.next);
+    // Les formats à composition fixe conservent leurs quotas entre deux passages.
+    const picker = makePicker(rng.next, { excludeSeen: !ex.fixedComposition });
     const pick = (gid) => {
       const g = getGen(gid);
       return picker(gid, g.bank ? 0 : Math.min(level, g.levels));
@@ -55,14 +57,18 @@ export function renderExam(root, id) {
       const out = [];
       for (const gid of order) {
         let sp = pick(gid);
-        for (const alt of rng.shuffle(s.gens)) {
-          if (sp) break;
-          sp = pick(alt);
+        if (!sp && !ex.fixedComposition) {
+          for (const alt of rng.shuffle(s.gens)) {
+            sp = pick(alt);
+            if (sp) break;
+          }
         }
         if (sp) out.push(sp);
       }
       return out;
     };
+    store.update((s) => { s.examInProgress = { id, level, startedAt: Date.now() }; });
+    store.flush();
     document.body.classList.add('in-quiz');
     const step = (k) => {
       if (k >= ex.sections.length) return finish(results);
@@ -87,14 +93,14 @@ export function renderExam(root, id) {
         if (specs.length !== s.count) {
           document.body.classList.remove('in-quiz');
           renderExam(root, id);
-          alert('Examen non validé : banque de questions inédites insuffisante pour une section complète. Aucun score global enregistré.');
+          alert('Examen non validé : nombre de questions disponibles insuffisant pour une section complète. Aucun score global enregistré.');
           return;
         }
         runQuiz(root, {
           title: s.title,
           total: specs.length,
           mode: 'exam',
-          totalTime: Math.round((s.time * specs.length) / s.count),
+          totalTime: s.time,
           next: (i) => specs[i] || null,
           onFinish(history, meta) {
             if (meta?.generationFailed) return;
@@ -147,9 +153,11 @@ export function renderExam(root, id) {
     const ok = all.filter((h) => h.ok).length;
     const n = results.reduce((a, r) => a + r.total, 0);
     if (n) store.update((s) => {
-      s.exams.push({ id, title: ex.title, level, ts: Date.now(), ok, n, sections: results.map((r) => ({ title: r.title, ok: r.history.filter((h) => h.ok).length, n: r.total, answered: r.history.length })) });
+      delete s.examInProgress;
+      s.exams.push({ id, title: ex.title, level, ts: Date.now(), ok, n, sections: results.map((r) => ({ title: r.title, ok: r.history.filter((h) => h.ok).length, n: r.total, answered: r.history.filter((h) => !h.timeout).length })) });
       if (s.exams.length > 200) s.exams.splice(0, s.exams.length - 200);
     });
+    store.flush();
     root.innerHTML = '';
     const page = el(`
       <div>
@@ -158,10 +166,10 @@ export function renderExam(root, id) {
         <div class="card">${results
           .map((r) => {
             const o = r.history.filter((h) => h.ok).length;
-            return `<div class="section-res"><span>${esc(r.title)}<br><span class="small muted">${r.history.length}/${r.total} traitées</span></span><b>${o}/${r.total}</b></div>`;
+            return `<div class="section-res"><span>${esc(r.title)}<br><span class="small muted">${r.history.filter((h) => !h.timeout).length}/${r.total} traitées</span></span><b>${o}/${r.total}</b></div>`;
           })
           .join('')}</div>
-        ${summaryHTML(all, { title: 'Correction détaillée (questions traitées uniquement)' })}
+        ${summaryHTML(all.filter((h) => !h.timeout), { title: 'Correction détaillée (questions traitées uniquement)' })}
         <div class="btn-row"><button class="btn primary" data-again>Refaire</button><a class="btn" href="${ex.back || '#/psycho'}">Retour</a></div>
       </div>`);
     page.querySelector('[data-again]').onclick = () => renderExam(root, id);
