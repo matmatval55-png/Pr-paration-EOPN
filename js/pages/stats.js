@@ -14,7 +14,7 @@ export function renderStats(root) {
   const draw = () => {
     const weak = weakPoints(6);
     const exams = store.data.exams.slice(-8).reverse();
-    const timeTotal = Object.values(store.data.days).reduce((a, d) => a + d.ms, 0);
+    const timeTotal = Object.values(store.data.stats).reduce((a, g) => a + Object.values(g).reduce((ms, row) => ms + row[2], 0), 0);
     root.innerHTML = `
       <h1>Tableau de bord</h1>
       <a class="row-link" href="#/suivi" style="border-color:var(--accent);margin-bottom:12px"><span style="font-size:1.4rem">📈</span><span class="grow"><span class="title">Suivi détaillé et conseils du coach</span><br><span class="sub">Niveau et maîtrise par exercice, tendances, examens blancs</span></span><span class="chev">›</span></a>
