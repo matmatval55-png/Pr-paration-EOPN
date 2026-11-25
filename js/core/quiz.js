@@ -302,11 +302,15 @@ export function summaryHTML(history, { title = 'Bilan' } = {}) {
   const ms = history.reduce((a, h) => a + h.ms, 0);
   const rate = history.length ? ok / history.length : 0;
   const wrong = history.filter((h) => !h.ok);
+  const timeouts = wrong.filter((h) => h.timeout).length;
+  const correctTimes = history.filter((h) => h.ok).map((h) => h.ms).sort((a,b) => a-b);
+  const median = correctTimes.length ? (correctTimes[Math.floor((correctTimes.length-1)/2)] + correctTimes[Math.floor(correctTimes.length/2)])/2 : null;
   return `
     <div class="summary">
       <h2>${esc(title)}</h2>
       <div class="score-ring" style="--p:${Math.round(rate * 100)}"><span>${ok}/${history.length}</span></div>
       <p class="muted center">Réussite ${Math.round(rate * 100)} % · temps moyen ${history.length ? (ms / history.length / 1000).toFixed(1).replace('.', ',') : 0} s</p>
+      <div class="card small"><b>Diagnostic de performance</b><p>Erreurs hors délai : ${timeouts} · réponses incorrectes dans le délai : ${wrong.length-timeouts} · temps médian des bonnes réponses : ${median == null ? '—' : (median/1000).toFixed(1)+' s'}.</p><p class="muted">Une erreur dans le délai ne permet pas à elle seule de distinguer inattention et manque de connaissances.</p></div>
       ${
         wrong.length
           ? `<h3>À revoir (${wrong.length})</h3><p class="muted small">Ces questions sont ajoutées à ta révision espacée.</p>
