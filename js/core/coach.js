@@ -27,7 +27,7 @@ export function priority(g, now = Date.now()) {
   if (!m.n && !s30.n) {
     p = 1.2;
     reason = { ico: '🆕', txt: 'jamais travaillé : découverte' };
-  } else if (st.id === 'weak' || (rate != null && rate < 0.65)) {
+  } else if (st.id === 'weak' || (Math.max(m.n, s30.n) >= 5 && rate != null && rate < 0.65)) {
     p = 4 + (0.65 - (rate ?? 0.5)) * 6;
     reason = { ico: '🎯', txt: `point faible (${fmtPct(rate ?? 0)} de réussite récente)` };
   } else if (st.id === 'master' || st.id === 'rusty') {
@@ -139,7 +139,7 @@ export function advice(now = Date.now()) {
   const weak = candidates().filter((c) => c.reason.ico === '🎯').slice(0, 3);
   for (const c of weak) out.push({ ico: '🎯', txt: `${c.g.title} : ${c.reason.txt}. Relis la fiche de cours puis refais 10 questions au niveau ${levelFor(c.g.id)}.`, href: `#/train/${c.g.id}` });
   const exams = data.exams || [];
-  if (!exams.length) out.push({ ico: '📝', txt: 'Fais un premier examen blanc pour mesurer ton niveau en conditions réelles.', href: '#/exam/express' });
+  if (!exams.length) out.push({ ico: '📝', txt: 'Fais un premier examen blanc pour mesurer ton niveau en conditions chronométrées simulées.', href: '#/exam/express' });
   else {
     const d = daysSince(exams[exams.length - 1].ts, now);
     if (d >= 14) out.push({ ico: '📝', txt: `Dernier examen blanc il y a ${d} jours : refais-en un pour mesurer tes progrès.`, href: '#/psycho' });
