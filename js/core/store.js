@@ -79,6 +79,12 @@ function parseBackup(text) {
         Number.isInteger(skill[key]) && skill[key] >= 0) ||
       skill.n === 0 || skill.ok + skill.omitted + skill.timeouts > skill.n)) throw invalidBackup();
   }
+  const snapshots = data.planning?.snapshots;
+  if (snapshots != null && (!isRecord(snapshots) || Object.entries(snapshots).some(([date, blocks]) =>
+    !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Array.isArray(blocks) || blocks.some((block) =>
+      !isRecord(block) || !['psycho', 'maths', 'anglais', 'physique', 'culture', 'entretien', 'revision'].includes(block.mod) ||
+      typeof block.key !== 'string' || !Number.isInteger(block.min) || block.min < 30 || block.min > 1800 || block.min % 30 !== 0 ||
+      (block.source != null && !/^\d{4}-\d{2}-\d{2}$/.test(block.source)))))) throw invalidBackup();
   const restored = { ...defaults, ...data };
   for (const key of ['settings', 'profile', 'interview', 'planning', 'sante']) {
     restored[key] = { ...defaults[key], ...data[key] };

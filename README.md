@@ -77,8 +77,7 @@ les entrées tactiles dans Chromium.
 
 Les examens de 30, 60, 90 et 120 minutes présentent des quotas fixes par
 exercice. Les questions peuvent revenir d’un passage à l’autre. Chaque bloc
-a son propre chronomètre. Un rechargement interrompt le passage en cours et
-aucun score global n’est enregistré. Une fin de bloc sur échéance conserve
+a son propre chronomètre. Un rechargement permet de reprendre dans le même onglet. Le délai absolu du bloc est conservé et la question affichée avant le rechargement est omise. Une fin de bloc sur échéance conserve
 toutes les questions prévues au dénominateur.
 
 Quand tu ajoutes un fichier JS/CSS, ajoute-le à la liste `FILES` de `sw.js` et incrémente `VERSION` (le test `tests/sw.test.js` le vérifie).
@@ -102,7 +101,7 @@ tests/                                    tests automatiques
 - Ouvre le **Diagnostic général** dans les examens psychotechniques pour mesurer quatre domaines. Consulte le détail par bloc et entraîne le bloc prioritaire.
 - Dans **Réglages**, modifie ton profil, le temps par jour et la date de sélection. Le **Coach** propose des séances de 15, 30, 45, 60 ou 90 minutes. Il explique la raison de chaque exercice et peut intégrer les révisions dues.
 - Depuis **Statistiques** ou **Révisions**, ouvre le **Carnet d’erreurs** pour classer tes erreurs, relire les corrections, revoir les plus fréquentes ou les convertir en cartes. La recherche de flashcards porte sur le titre du paquet et les deux faces de la carte.
-- Dans **Composer un examen**, choisis les matières et la durée par bloc. Les examens n’affichent leurs corrections qu’à la fin. Un passage interrompu reste signalé sans score global.
+- Dans **Composer un examen**, choisis les matières et la durée par bloc. Les examens n’affichent leurs corrections qu’à la fin. Le bouton de reprise conserve les réponses déjà données et le délai initial du bloc. Le score global est enregistré à l’issue du dernier bloc.
 - Dans **Réglages → Sauvegarde**, exporte un JSON avant un changement d’appareil. Sur le nouvel appareil, importe ce fichier afin de restaurer l’historique et les réglages. Garde le fichier sur un support de confiance. La PWA affiche une commande de rechargement lorsqu’une nouvelle version est détectée.
 - Le chronomètre d’entretien fonctionne sans micro. Active l’enregistrement si tu souhaites te réécouter. Télécharge l’audio avant de quitter la question pour le conserver.
 
@@ -110,6 +109,7 @@ tests/                                    tests automatiques
 
 - Diagnostic général, simulation longue de 180 minutes et examen spécialisé de coordination.
 - Carnet d’erreurs, cartes personnelles, profil local et relevés de temps par niveau.
+- Laboratoire VOR interactif, report des séances manquées et reprise des blocs d’examen dans le même onglet.
 - Calcul mental jusqu’au niveau 5, trois chapitres de physique et un texte long d’anglais.
 - Relance d’entretien, correction du comptage des omissions N-back et indicateur de mise à jour PWA.
 

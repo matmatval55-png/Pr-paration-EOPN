@@ -58,3 +58,33 @@ Le carnet d’erreurs contient du texte échappé à l’affichage, une référe
 - Les téléchargements Playwright WebKit et les requêtes vers le ministère des Armées et l’API GitHub ont reçu un HTTP 403 du proxy. Git HTTPS a permis de vérifier le commit de la PR. Les tests sur appareils physiques, le site public et les sources non joignables restent non vérifiés.
 
 Le commit `442c621ec623489b4c6fd68255997b7bf33766ac` est la référence de `main` relevée avant la revue. La branche de production est conservée à ce point tant que les critères de livraison restent ouverts.
+
+## Suivi de finalisation · version 29
+
+| Priorité | État | Résultat |
+|---|---|---|
+| Audit question par question | Partiel | Les 700 entrées de banque passent le contrôle individuel de contenu et d’unicité des choix visibles, et 87 200 couples graine–niveau sont testés. Deux questions verbales ont été reformulées, dont celle qui utilisait « ULM » comme synonyme de voilure fixe. La question de position VOR précise le découpage en huit secteurs. La vérification pédagogique et factuelle de chaque réponse reste à terminer. |
+| Laboratoire aéronautique | Partiel | Trois scénarios dynamiques en palier avec vent, inclinaison commandée, OBS réglable, conservateur de cap, horizon, CDI et RMI. Les conditions de réussite portent sur le temps tenu, l’écart à l’axe et la route sol. Les scénarios dynamiques ILS et la coordination en plusieurs axes restent hors de ce laboratoire. |
+| Planning | Terminé pour les séances datées | Report par blocs de 30 minutes, par matière faible puis ancienneté. Une place au maximum par jour disponible, selon le plafond du profil et avant la sélection. Les reports terminés sont conservés, et les reports non faits retournent à leur séance d’origine sans se multiplier. La fenêtre de recherche est de 14 jours. Les dates jamais affichées dans le planning ne créent pas d’arriéré. |
+| Reprise d’examen | Terminé pour les interruptions dans le même onglet | Le tirage, les réponses et l’échéance absolue sont conservés dans l’onglet. La question déjà affichée est omise lors de la reprise. Les questions restantes expirent à l’échéance initiale. Le point de reprise n’est pas exporté et une autre version de l’application ne le réutilise pas. La reprise après fermeture dépend de la restauration de l’onglet par le navigateur. Une PWA locale ne peut pas protéger ses scores contre la modification du stockage ou de l’horloge du système. |
+| Tests | Partiel | Couverture automatisée des deux sens VOR, du vent, du report et de la reprise. WebKit et appareils physiques restent à vérifier. |
+| Publication | Bloquée par le périmètre restant | Le 403 GitHub Pages empêche de vérifier le site public depuis le cloud. L’accès Git HTTPS permet d’actualiser la PR. Aucune fusion n’a été faite. |
+
+### Validation manuelle sur iPad
+
+Tester la version 29 servie en HTTPS ou depuis un serveur statique de confiance, dans Safari. Sur une installation existante, exporter d’abord la sauvegarde.
+
+1. Ouvrir le laboratoire, sélectionner le scénario vent du sud et faire varier OBS et inclinaison. Vérifier le CDI, le drapeau TO/FROM, le RMI et la pause. Passer de portrait à paysage.
+2. Ouvrir un examen, donner une réponse et attendre la question suivante. Recharger et reprendre. Vérifier que le décompte avance au-delà de la question affichée et que le chronomètre a retranché le temps passé hors de la page.
+3. Ouvrir le planning, vérifier qu’un éventuel report ne s’ajoute pas un jour de repos, cocher le report puis recharger pour confirmer la persistance.
+4. Ajouter la PWA à l’écran d’accueil, l’ouvrir connecté une première fois puis activer le mode avion. Recharger les pages Laboratoire et Planning et vérifier que les données locales restent visibles.
+
+### Sources officielles non revérifiées
+
+Le 25 novembre 2026, le proxy a refusé les connexions à Devenir Aviateur, au PDF du Carnet évalué AAE de septembre 2025, à la note 2026 de l’École de l’air et de l’espace et au ministère des Armées. Restent à confirmer dans ces sources les conditions exactes de candidature (âge, diplôme et calendrier), le déroulement et les lieux de sélection, les épreuves et leur format (TAMI-C, anglais, psychomotricité, groupe), le barème sportif applicable et les seuils d’élimination. Les valeurs officielles citées historiquement restent datées dans le dossier de sélection. [Sources et dates](selection-eopn.md)
+
+### Résultats sur la version 29
+
+- 128 tests Node réussis sous Node 20 et Node 24.
+- Parcours Playwright complets réussis sur Chromium avec iPhone 13, iPad 7 et profil ordinateur.
+- Les trois suites navigateur ciblées ont réussi. La reprise conserve une réponse correcte et compte les quinze autres questions comme omises à l’échéance. Les scénarios de laboratoire et les reports de planning ont été vérifiés sur iPhone et iPad émulés.

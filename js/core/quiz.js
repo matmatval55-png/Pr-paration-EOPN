@@ -30,16 +30,16 @@ export function stopActiveQuiz() {
 
 export function runQuiz(root, opts) {
   stopActiveQuiz();
-  const history = [];
+  const history = [...(opts.initialHistory || [])];
   const startAll = performance.now();
   let raf = 0;
   let cleanup = null;
   let ended = false;
   let totalTimer = null;
   let generationFailed = false;
-  const timeBudget = opts.totalTime ? opts.totalTime * 1000 : Infinity;
+  const timeBudget = opts.wallDeadline == null ? (opts.totalTime ? opts.totalTime * 1000 : Infinity) : Math.max(0, opts.wallDeadline - Date.now());
   const deadline = startAll + timeBudget;
-  const wallDeadline = Date.now() + timeBudget;
+  const wallDeadline = opts.wallDeadline ?? Date.now() + timeBudget;
   const timeLeft = () => Math.min(deadline - performance.now(), wallDeadline - Date.now());
 
   root.innerHTML = '';
@@ -65,10 +65,11 @@ export function runQuiz(root, opts) {
     else opts.onQuit?.();
   };
 
-  if (opts.totalTime) {
+  if (opts.totalTime || opts.wallDeadline != null) {
     totalTimer = setInterval(() => {
       const left = Math.max(0, timeLeft());
       count.dataset.time = fmtClock(left);
+      opts.onClock?.();
       if (left <= 0) finish(true);
     }, 250);
   }
@@ -152,6 +153,7 @@ export function runQuiz(root, opts) {
       return;
     }
     updateCount();
+    opts.onQuestion?.(history.length);
     if (q.pre) showPre(q);
     else showQuestion(q);
   }
@@ -189,6 +191,7 @@ export function runQuiz(root, opts) {
       const ms = performance.now() - t0;
       const item = { spec: q.spec, q, ms, ...result };
       history.push(item);
+      opts.onProgress?.(history);
       const review = opts.mode === 'review' || opts.isReview?.(history.length - 1);
       if (review) {
         recordActivity(ms);

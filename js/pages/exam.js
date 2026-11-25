@@ -2,11 +2,38 @@
 import { customExam } from '../core/custom-exam.js';
 import { makePicker } from '../core/seen.js';
 import { EXAMS } from '../exams.js';
-import { getGen } from '../core/registry.js';
+import { VERSION } from '../version.js';
+import { getGen, makeQuestion } from '../core/registry.js';
 import { runQuiz, summaryHTML, fmtClock } from '../core/quiz.js';
 import { store } from '../core/store.js';
 import { el, esc, fmtMs } from '../core/ui.js';
 import { makeRng, newSeed } from '../core/rng.js';
+
+const CHECKPOINT = 'eopn.exam.checkpoint';
+
+function checkpoint() {
+  try {
+    const attempt = JSON.parse(sessionStorage.getItem(CHECKPOINT));
+    return attempt?.version === VERSION ? attempt : null;
+  } catch {
+    return null;
+  }
+}
+
+function persist(attempt) {
+  try {
+    if (attempt) sessionStorage.setItem(CHECKPOINT, JSON.stringify(attempt));
+    else sessionStorage.removeItem(CHECKPOINT);
+  } catch {
+    // Le bloc reste jouable si le navigateur interdit le stockage de session.
+  }
+}
+
+const serialize = (history) => history.map(({ ok, ms, given, timeout, omitted, explainExtra }) =>
+  ({ ok, ms, given, timeout, omitted, explainExtra }));
+
+const restore = (specs, answers) => answers.map((answer, i) =>
+  ({ ...answer, spec: specs[i], q: makeQuestion(specs[i]) }));
 
 export function renderExam(root, id) {
   const ex = EXAMS.find((e) => e.id === id) || customExam(id);
@@ -15,6 +42,8 @@ export function renderExam(root, id) {
     return;
   }
   let level = ex.fixedLevel || 3;
+  const saved = checkpoint();
+  const resumable = saved?.id === id;
   const interrupted = store.data.examInProgress?.id === id;
   const past = store.data.exams.filter((e) => e.id === id).slice(-5).reverse();
   root.innerHTML = '';
@@ -24,6 +53,7 @@ export function renderExam(root, id) {
       <h1>${esc(ex.title)}</h1>
       <p class="muted">${esc(ex.desc)}</p>
       ${interrupted ? '<p class="card warn" role="status">Passage précédent incomplet. Aucun score global enregistré.</p>' : ''}
+      ${resumable ? '<button class="btn primary block" data-resume>Reprendre le passage</button><p class="small">Le délai du bloc continue. La question affichée lors de l’interruption est comptée comme omise.</p>' : ''}
       <div class="card">
         <h3>Déroulé</h3>
         ${ex.sections.map((s, i) => (s.pause ? `<div class="section-res muted"><span>☕ ${esc(s.title)}</span><span>${fmtClock(s.pause * 1000)}</span></div>` : `<div class="section-res"><span>${ex.sections.slice(0, i + 1).filter((x) => !x.pause).length}. ${esc(s.title)}</span><span class="muted">${s.count} q · ${fmtClock(s.time * 1000)}</span></div>`)).join('')}
@@ -42,9 +72,11 @@ export function renderExam(root, id) {
   );
   page.querySelector('[data-start]').onclick = () => runSections();
 
-  function runSections() {
-    const results = [];
-    const seed = newSeed();
+  page.querySelector('[data-resume]')?.addEventListener('click', () => runSections(saved));
+
+  function runSections(existing) {
+    if (existing) level = existing.level;
+    const seed = existing?.seed ?? newSeed();
     const rng = makeRng(seed);
     // Les formats à composition fixe conservent leurs quotas entre deux passages.
     const picker = makePicker(rng.next, { excludeSeen: !ex.fixedComposition });
@@ -69,11 +101,32 @@ export function renderExam(root, id) {
       }
       return out;
     };
+    const attempt = existing || {
+      id, level, seed, version: VERSION, index: 0,
+      plans: ex.sections.map((section) => section.pause ? null : prepare(section)),
+      answers: [], active: null,
+    };
+    if (attempt.plans.some((specs, i) => specs && specs.length !== ex.sections[i].count)) {
+      alert('Nombre de questions disponibles insuffisant pour un examen complet.');
+      return;
+    }
+    persist(attempt);
     store.update((s) => { s.examInProgress = { id, level, startedAt: Date.now() }; });
     store.flush();
     document.body.classList.add('in-quiz');
-    const step = (k) => {
-      if (k >= ex.sections.length) return finish(results, seed);
+
+    function step(k) {
+      attempt.index = k;
+      attempt.active = null;
+      persist(attempt);
+      if (k >= ex.sections.length) {
+        const results = ex.sections.flatMap((s, i) => s.pause ? [] : [{
+          title: s.title, total: s.count, specs: attempt.plans[i],
+          history: restore(attempt.plans[i], attempt.answers[i]),
+        }]);
+        persist(null);
+        return finish(results, seed);
+      }
       const s = ex.sections[k];
       root.innerHTML = '';
       if (s.pause) return pause(s, () => step(k + 1));
@@ -91,32 +144,56 @@ export function renderExam(root, id) {
         renderExam(root, id);
       };
       inter.querySelector('[data-go]').onclick = () => {
-        const specs = prepare(s);
-        if (specs.length !== s.count) {
+        const now = Date.now();
+        startBlock(k, { deadline: now + s.time * 1000, lastWall: now, exposed: false, answers: [] });
+      };
+    }
+
+    function startBlock(k, block) {
+      const s = ex.sections[k];
+      const specs = attempt.plans[k];
+      attempt.active = block;
+      persist(attempt);
+      runQuiz(root, {
+        title: s.title, total: specs.length, mode: 'exam',
+        wallDeadline: block.deadline,
+        initialHistory: restore(specs, block.answers),
+        next: (i) => specs[i] || null,
+        onQuestion() { block.exposed = true; persist(attempt); },
+        onClock() {
+          const now = Date.now();
+          if (now - block.lastWall >= 1000) {
+            block.lastWall = now;
+            persist(attempt);
+          }
+        },
+        onProgress(history) {
+          block.exposed = false;
+          block.answers = serialize(history);
+          block.lastWall = Math.max(block.lastWall, Date.now());
+          persist(attempt);
+        },
+        onFinish(history, meta) {
+          if (meta?.generationFailed) return;
+          attempt.answers[k] = serialize(history);
+          step(k + 1);
+        },
+        onQuit() {
           document.body.classList.remove('in-quiz');
           renderExam(root, id);
-          alert('Examen non validé : nombre de questions disponibles insuffisant pour une section complète. Aucun score global enregistré.');
-          return;
-        }
-        runQuiz(root, {
-          title: s.title,
-          total: specs.length,
-          mode: 'exam',
-          totalTime: s.time,
-          next: (i) => specs[i] || null,
-          onFinish(history, meta) {
-            if (meta?.generationFailed) return;
-            results.push({ title: s.title, total: specs.length, history, specs });
-            step(k + 1);
-          },
-          onQuit() {
-            document.body.classList.remove('in-quiz');
-            renderExam(root, id);
-          },
-        });
-      };
-    };
-    step(0);
+        },
+      });
+    }
+
+    if (attempt.active) {
+      const block = attempt.active;
+      if (block.exposed) block.answers.push({ ok: false, omitted: true, ms: 0 });
+      block.exposed = false;
+      if (Date.now() < block.lastWall) block.deadline = Date.now();
+      startBlock(attempt.index, block);
+    } else {
+      step(attempt.index);
+    }
   }
 
   // Pause entre deux blocs : compte à rebours, reprise possible à tout moment.
@@ -157,9 +234,9 @@ export function renderExam(root, id) {
     const sections = results.map(({ title, total, history }) => {
       const timeouts = history.filter((item) => item.timeout).length;
       return { title, n: total, ok: history.filter((item) => item.ok).length,
-        answered: history.length - timeouts, timeouts, omitted: total - history.length };
+        answered: history.filter((item) => !item.timeout && !item.omitted).length, timeouts, omitted: total - history.length + history.filter((item) => item.omitted).length };
     });
-    const answered = all.filter((item) => !item.timeout);
+    const answered = all.filter((item) => !item.timeout && !item.omitted);
     const times = answered.map((item) => item.ms).sort((a, b) => a - b);
     const median = times.length ? (times[Math.floor((times.length - 1) / 2)] + times[Math.floor(times.length / 2)]) / 2 : null;
     const version = ex.fixedComposition ? 1 : 0;
@@ -175,7 +252,7 @@ export function renderExam(root, id) {
         const entry = skills.get(key);
         const response = result.history[i];
         entry.n++;
-        if (!response) entry.omitted++;
+        if (!response || response.omitted) entry.omitted++;
         else if (response.timeout) entry.timeouts++;
         else if (response.ok) entry.ok++;
       });

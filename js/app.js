@@ -1,3 +1,4 @@
+import { renderNavLab } from './pages/navlab.js';
 // Point d'entrée : navigation par « hash » (#/page), thème, service worker.
 import './psycho/index.js';
 import { CHAPTERS as MATHS } from './maths/index.js';
@@ -86,6 +87,7 @@ const backFor = (genId) => {
 
 const routes = [
   [/^$/, () => renderHome(view), 'home'],
+  [/^laboratoire$/, () => renderNavLab(view), 'psycho'],
   [/^psycho$/, () => renderPsycho(view), 'psycho'],
   [/^train\/(.+)$/, (m) => renderTrain(view, decodeURIComponent(m[1]), { back: backFor(decodeURIComponent(m[1])) }), 'psycho'],
   [/^exam\/personnaliser$/, () => renderCustomExam(view), 'psycho'],

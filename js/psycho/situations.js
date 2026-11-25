@@ -15,13 +15,13 @@ const dirName = (deg) => DIRS[Math.round(n360(deg) / 45) % 8];
 const PLANE = (fill = 'var(--warn)') => `<path d="M0,-14 L3,-4 L13,2 L13,5 L3,2 L2,9 L6,12 L6,14 L0,12 L-6,14 L-6,12 L-2,9 L-3,2 L-13,5 L-13,2 L-3,-4 Z" fill="${fill}" stroke="#000" stroke-width="0.6"/>`;
 
 /* ---------- 1. RMI / radiales VOR ---------- */
-export function rmiSVG(heading, bearingTo) {
+export function rmiSVG(heading, bearingTo, animate = true) {
   // carte tournante (cap) + aiguille vers la station (relèvement magnétique absolu)
   const needle = `<g transform="rotate(${bearingTo - heading} 100 100)">
       <line x1="100" y1="165" x2="100" y2="40" stroke="var(--ok)" stroke-width="5" stroke-linecap="round"/>
       <polygon points="100,26 91,46 109,46" fill="var(--ok)"/>
       <line x1="94" y1="170" x2="106" y2="170" stroke="var(--ok)" stroke-width="5"/>
-      <animateTransform attributeName="transform" type="rotate" from="${bearingTo - heading - 40} 100 100" to="${bearingTo - heading} 100 100" dur="1.6s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/>
+      ${animate ? `<animateTransform attributeName="transform" type="rotate" from="${bearingTo - heading - 40} 100 100" to="${bearingTo - heading} 100 100" dur="1.6s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/>` : ''}
     </g>`;
   return headingSVG(heading).replace('</svg>', `${needle}<circle cx="100" cy="100" r="5" fill="var(--ok)"/></svg>`);
 }
@@ -50,10 +50,10 @@ register({
     const bearingTo = n360(radial + 180); // QDM
     const heading = level === 1 ? r.int(0, 11) * 30 : r.int(0, 35) * 10;
     const ask = level === 1 ? 'pos' : r.pick(['radial', 'radial', 'pos', 'qdm']);
-    const ex = `<p>L’aiguille du RMI pointe <b>vers la balise</b> : sa tête indique le relèvement à suivre pour y aller (QDM = ${cap3(bearingTo)}). La <b>queue</b> de l’aiguille indique la <b>radiale</b> sur laquelle tu te trouves (QDR = QDM ± 180 = <b>${cap3(radial)}</b>).</p><p>Radiale ${cap3(radial)} = tu es au <b>${dirName(radial)}</b> de la balise.</p>${radialMap(radial, heading)}<p class="tip">Ton cap ne change pas ta position : un avion peut être sur la radiale 090 avec n’importe quel cap. Regarde toujours l’aiguille, pas l’avion.</p>`;
+    const ex = `<p>L’aiguille du RMI pointe <b>vers la balise</b> : sa tête indique le relèvement de la balise, qui donne le cap direct en l’absence de vent (QDM = ${cap3(bearingTo)}). La <b>queue</b> de l’aiguille indique la <b>radiale</b> sur laquelle tu te trouves (QDR = QDM ± 180 = <b>${cap3(radial)}</b>).</p><p>Radiale ${cap3(radial)} = tu es au <b>${dirName(radial)}</b> de la balise.</p>${radialMap(radial, heading)}<p class="tip">Ton cap ne change pas ta position : un avion peut être sur la radiale 090 avec n’importe quel cap. Regarde toujours l’aiguille, pas l’avion.</p>`;
     let prompt, correct, distract;
     if (ask === 'pos') {
-      prompt = 'Où te trouves-tu par rapport à la balise ?';
+      prompt = 'Dans quel secteur de la rose à huit directions te trouves-tu par rapport à la balise ?';
       correct = `Au ${dirName(radial)}`;
       distract = [`Au ${dirName(radial + 180)}`, `Au ${dirName(radial + 90)}`, `Au ${dirName(radial - 90)}`, `Au ${dirName(radial + 45)}`];
     } else if (ask === 'radial') {

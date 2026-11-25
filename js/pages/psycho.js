@@ -11,6 +11,7 @@ export function renderPsycho(root) {
   root.innerHTML = `
     <h1>Tests psychotechniques</h1>
     <p class="muted">Exercices générés à l’infini, chronométrés, avec correction expliquée. Les épreuves officielles se passent sur ordinateur ; ici tout est adapté au téléphone et à la tablette.</p>
+    <p><a class="btn" href="#/laboratoire">Laboratoire VOR interactif</a></p>
     <h2>📝 Examens blancs</h2>
     <p><a class="btn" href="#/exam/personnaliser">Composer un examen</a></p>
     <div class="list">${EXAMS.filter((exam) => !exam.back || exam.back === '#/psycho').map(
