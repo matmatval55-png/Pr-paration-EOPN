@@ -22,8 +22,8 @@ export function renderSettings(root) {
       ${store.storageOk ? '' : '<div class="card" style="border-color:var(--danger)">⚠️ Le stockage local est indisponible (navigation privée ?). Tes progrès ne seront pas conservés : pense à exporter tes données.</div>'}
       <div class="card">
         <h3>Ma sélection</h3>
-        <div class="field"><label for="date">Date de la sélection (approximative)</label><input type="date" id="date" value="${s.selectionDate || ''}"></div>
-        <div class="field"><label for="hours">Heures disponibles par semaine</label><input type="number" id="hours" min="1" max="30" step="0.5" value="${s.hoursPerWeek}"></div>
+        <div class="field"><label for="date">Date de la sélection (approximative)</label><input type="date" id="date" value="${esc(s.selectionDate || '')}"></div>
+        <div class="field"><label for="hours">Heures disponibles par semaine</label><input type="number" id="hours" min="1" max="30" step="0.5" value="${esc(s.hoursPerWeek)}"></div>
         <div class="field"><label>Barème sportif</label><div class="seg" data-k="sex"><button data-v="H" class="${s.sex === 'H' ? 'on' : ''}">Hommes</button><button data-v="F" class="${s.sex === 'F' ? 'on' : ''}">Femmes</button></div></div>
       </div>
       <div class="card">
