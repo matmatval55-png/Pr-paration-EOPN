@@ -175,6 +175,7 @@ export function runQuiz(root, opts) {
     body.append(card);
     const area = card.querySelector('.q-answer');
 
+    const tl = opts.noTimer ? 0 : (q.timeLimit ?? opts.timePerQ);
     const answer = (result) => {
       if (answered || ended) return;
       if (performance.now() >= deadline) return finish(true);
@@ -196,7 +197,6 @@ export function runQuiz(root, opts) {
       } else showFeedback(card, item);
     };
 
-    const tl = opts.noTimer ? 0 : (q.timeLimit ?? opts.timePerQ);
     if (q.kind === 'custom') {
       cleanup = q.mount(area, (r) => answer(r), { mode: opts.mode }) || null;
       if (tl) runTimer(tl, () => answer({ ok: false, timeout: true }));
