@@ -2,7 +2,9 @@
 import { store, today } from './store.js';
 import { getGen } from './registry.js';
 
-export function record(genId, ok, ms) {
+const SAMPLE_LIMIT = 120;
+
+export function record(genId, ok, ms, { timeout = false } = {}) {
   const d = today();
   store.update((s) => {
     const g = (s.stats[genId] ||= {});
@@ -10,6 +12,9 @@ export function record(genId, ok, ms) {
     row[0] += 1;
     row[1] += ok ? 1 : 0;
     row[2] += Math.round(ms || 0);
+    const samples = ((s.responseSamples ||= {})[genId] ||= []);
+    samples.push([d, Math.max(0, Math.round(ms || 0)), timeout ? 'timeout' : ok ? 'correct' : 'wrong']);
+    if (samples.length > SAMPLE_LIMIT) samples.splice(0, samples.length - SAMPLE_LIMIT);
     const day = (s.days[d] ||= { n: 0, ok: 0, ms: 0 });
     day.n += 1;
     day.ok += ok ? 1 : 0;
@@ -67,6 +72,19 @@ export function genSummary(genId, days = 3650) {
     }
   }
   return { n, ok, rate: n ? ok / n : null, avgMs: n ? ms / n : null };
+}
+
+export function responseDiagnostics(genId, days = 30) {
+  const from = dayOffset(days - 1);
+  const samples = (store.data.responseSamples?.[genId] || []).filter(([date]) => date >= from);
+  const times = samples.filter(([, , kind]) => kind !== 'timeout').map(([, ms]) => ms).sort((a, b) => a - b);
+  const length = times.length;
+  return {
+    n: samples.length,
+    medianMs: length ? (times[Math.floor((length - 1) / 2)] + times[Math.floor(length / 2)]) / 2 : null,
+    timeouts: samples.filter(([, , kind]) => kind === 'timeout').length,
+    wrong: samples.filter(([, , kind]) => kind === 'wrong').length,
+  };
 }
 
 export function moduleSummary(module, days = 3650) {

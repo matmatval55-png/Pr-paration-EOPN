@@ -36,7 +36,10 @@ export function runQuiz(root, opts) {
   let ended = false;
   let totalTimer = null;
   let generationFailed = false;
-  const deadline = opts.totalTime ? startAll + opts.totalTime * 1000 : Infinity;
+  const timeBudget = opts.totalTime ? opts.totalTime * 1000 : Infinity;
+  const deadline = startAll + timeBudget;
+  const wallDeadline = Date.now() + timeBudget;
+  const timeLeft = () => Math.min(deadline - performance.now(), wallDeadline - Date.now());
 
   root.innerHTML = '';
   const wrap = el(`
@@ -62,9 +65,8 @@ export function runQuiz(root, opts) {
   };
 
   if (opts.totalTime) {
-    const end = deadline;
     totalTimer = setInterval(() => {
-      const left = Math.max(0, end - performance.now());
+      const left = Math.max(0, timeLeft());
       count.dataset.time = fmtClock(left);
       if (left <= 0) finish(true);
     }, 250);
@@ -133,6 +135,7 @@ export function runQuiz(root, opts) {
 
   function nextQuestion() {
     if (ended) return;
+    if (timeLeft() <= 0) return finish(true);
     cleanup?.();
     cleanup = null;
     const spec = opts.next(history.length, history);
@@ -178,14 +181,14 @@ export function runQuiz(root, opts) {
     const tl = opts.noTimer ? 0 : (q.timeLimit ?? opts.timePerQ);
     const answer = (result) => {
       if (answered || ended) return;
-      if (performance.now() >= deadline) return finish(true);
+      if (timeLeft() <= 0) return finish(true);
       if (tl && performance.now() - t0 >= tl * 1000) result = { ok: false, timeout: true };
       answered = true;
       cancelAnimationFrame(raf);
       const ms = performance.now() - t0;
       const item = { spec: q.spec, q, ms, ...result };
       history.push(item);
-      record(q.spec.gen, item.ok, ms);
+      record(q.spec.gen, item.ok, ms, { timeout: item.timeout });
       updateMastery(q.spec, item.ok);
       markSeen(q.spec, q);
       onAnswer(q.spec, item.ok, opts.mode === 'review');

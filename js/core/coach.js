@@ -148,9 +148,9 @@ export function advice(now = Date.now()) {
 }
 
 // Tendance : réussite des 7 derniers jours comparée aux 7 jours précédents.
-export function trend(genId) {
-  const a = genSummary(genId, 7);
-  const b = genSummary(genId, 14);
+export function trend(genId, days = 7) {
+  const a = genSummary(genId, days);
+  const b = genSummary(genId, days * 2);
   const prevN = b.n - a.n;
   if (a.n < 3 || prevN < 3) return null;
   const prev = (b.ok - a.ok) / prevN;

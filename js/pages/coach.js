@@ -3,7 +3,7 @@ import { buildSession, advice, trend, COACH_MODULES, candidates } from '../core/
 import { masteryOf, masteryScore, status, recentRate, daysSince, levelFor } from '../core/mastery.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
 import { listGens, getGen } from '../core/registry.js';
-import { genSummary } from '../core/stats.js';
+import { genSummary, responseDiagnostics } from '../core/stats.js';
 import { store } from '../core/store.js';
 import { lineChart } from '../core/charts.js';
 import { el, esc, pct, fmtMs } from '../core/ui.js';
@@ -129,7 +129,7 @@ export function renderSuivi(root) {
   };
   root.innerHTML = `
     <h1>📈 Mon suivi</h1>
-    <p class="muted">Ta maîtrise exercice par exercice : niveau atteint, réussite récente, évolution sur 7 jours. Tout est calculé à partir de tes réponses, sur ton téléphone.</p>
+    <p class="muted">Ta maîtrise exercice par exercice : niveau atteint, réussite récente, évolution sur 7, 30 et 90 jours. Tout est calculé à partir de tes réponses, sur ton téléphone.</p>
     <a class="row-link" href="#/coach" style="border-color:var(--accent)"><span style="font-size:1.4rem">🧭</span><span class="grow"><span class="title">Lancer une séance coach</span><br><span class="sub">Exercices choisis selon ces résultats</span></span><span class="chev">›</span></a>
     ${adv.length ? `<div class="card"><h3>💡 Conseils du coach</h3><div class="list">${adv.map((a) => `<a class="row-link" href="${a.href}"><span>${a.ico}</span><span class="grow small">${esc(a.txt)}</span><span class="chev">›</span></a>`).join('')}</div></div>` : ''}
     <div class="card"><h3>Maîtrise par matière</h3>${mods
@@ -151,12 +151,15 @@ export function renderSuivi(root) {
             const st = status(g.id);
             const s = genSummary(g.id, 30);
             const d = daysSince(mm.last);
-            return `<a class="row-link mitem" href="#/train/${g.id}"><span class="grow"><span class="title">${esc(g.title)}</span> ${lvlBadge(g.id)} <span class="badge ${st.cls}">${st.label}</span>${bar(masteryScore(g.id))}<span class="sub">${mm.n ? `récent ${pct(recentRate(mm))} · ${s.n} rép./30 j · ${fmtMs(s.avgMs)}/q · ${d === 0 ? 'aujourd’hui' : `il y a ${d} j`}` : 'jamais fait'} ${trendTxt(trend(g.id))}</span></span><span class="chev">›</span></a>`;
+            const sample = responseDiagnostics(g.id);
+            const trends = [7, 30, 90].map((days) => `${days} j ${trendTxt(trend(g.id, days)) || '—'}`).join(' · ');
+            const timing = sample.n ? `Médiane ${fmtMs(sample.medianMs)} · ${sample.wrong} erreurs · ${sample.timeouts} hors délai sur ${sample.n} mesures` : 'Chronométrage détaillé à partir des prochaines réponses';
+            return `<a class="row-link mitem" href="#/train/${g.id}"><span class="grow"><span class="title">${esc(g.title)}</span> ${lvlBadge(g.id)} <span class="badge ${st.cls}">${st.label}</span>${bar(masteryScore(g.id))}<span class="sub">${mm.n ? `récent ${pct(recentRate(mm))} · ${s.n} rép./30 j · ${fmtMs(s.avgMs)}/q · ${d === 0 ? 'aujourd’hui' : `il y a ${d} j`}` : 'jamais fait'}</span>${mm.n ? `<br><span class="sub">${timing}</span><br><span class="sub">${trends}${s.n < 20 ? ' · échantillon insuffisant (moins de 20 réponses sur 30 j)' : ''}</span>` : ''}</span><span class="chev">›</span></a>`;
           })
           .join('')}</div></details>`,
       )
       .join('')}
-    <div class="card small muted"><b>Comment c’est calculé ?</b> Le score de maîtrise combine le niveau atteint (facile → difficile) et la réussite sur les 30 dernières réponses. « Fragile » = moins de 60 % de réussite récente. « Maîtrisé » = au moins 20 réponses récentes au niveau maximal avec 90 % de réussite (objectif interne, non officiel) ; au-delà de 14 jours sans pratique, il passe « à entretenir ». La tendance compare les 7 derniers jours aux 7 précédents.</div>`;
+    <div class="card small muted"><b>Comment c’est calculé ?</b> Le score de maîtrise combine le niveau atteint (facile → difficile) et la réussite sur les 30 dernières réponses. « Fragile » = moins de 60 % de réussite récente. « Maîtrisé » = au moins 20 réponses récentes au niveau maximal avec 90 % de réussite (objectif interne, non officiel) ; au-delà de 14 jours sans pratique, il passe « à entretenir ». Chaque tendance compare deux périodes consécutives de même durée. La médiane exclut les dépassements de temps et utilise au plus les 120 dernières réponses mesurées.</div>`;
 }
 
 // Bloc d'accueil : aperçu de la prochaine séance coach.
