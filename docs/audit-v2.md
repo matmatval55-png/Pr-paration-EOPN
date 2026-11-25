@@ -19,9 +19,9 @@
 | 12. Physique | Partiel | Pression et fluides, ondes et échos, gaz parfaits et transferts thermiques. Comparaison numérique indépendante sur les problèmes de niveau 3 des trois nouveaux chapitres. |
 | 13. Anglais | Partiel | Texte long avec questions d’inférence et diction synthétique identifiée. Anciens indices de banque conservés. La progression B2–C1 complète reste à qualifier. |
 | 14. Bibliothèque | Partiel | 80 fiches accessibles dans la PWA. Revue exhaustive des références et enrichissement des sujets non achevés. |
-| 15. Coach | Partiel | Durées de 15 à 90 minutes. Priorité explicable selon le niveau courant, les dépassements, la régression et l’espacement. Couplage complet avec le planning, les omissions et l’historique d’examen restant. |
-| 16. Diagnostic | Partiel | 48 questions, quatre domaines, 40 minutes, résultats par bloc et bloc prioritaire. Pas de comparaison entre candidats. La traduction des résultats en programme complet reste ouverte. |
-| 17. Examens | Partiel | Simulation 180 minutes, coordination, précision, omissions, délais, comparaison à format stable et signalement d’interruption. Éditeur personnalisé et reprise d’un bloc absents. |
+| 15. Coach | Partiel | Durées de 15 à 90 minutes. Priorité explicable selon le niveau courant, les dépassements, la régression et l’espacement. Les examens terminés alimentent une priorité à niveau identique, omissions comprises. Couplage complet avec le planning restant. |
+| 16. Diagnostic | Partiel | 48 questions, quatre domaines, 40 minutes, résultats par bloc et bloc prioritaire. Pas de comparaison entre candidats. Plan de travail initial et liens directs vers les exercices prioritaires. La planification sur plusieurs semaines reste ouverte. |
+| 17. Examens | Partiel | Simulation 180 minutes, coordination, précision, omissions, délais, comparaison à format stable et signalement d’interruption. Composition par matières et durée. La reprise d’un bloc reste ouverte. |
 | 18. Tableau de bord | Partiel | Objectif quotidien, échéance, compte des examens, résultats, temps et tendances. Les nouveaux échantillons du coach portent le niveau. Objectifs hebdomadaires détaillés et distinctions historiques par activité incomplets. |
 | 19. Carnet d’erreurs | Terminé pour les nouvelles réponses | Enregistrement local, classement manuel, répétitions, filtres et séance ciblée. Pour les exercices interactifs, l’énoncé et l’explication sont conservés lorsque la réponse brute est indisponible. |
 | 20. Flashcards | Partiel | Cartes manuelles et créées depuis les erreurs, classement par matière, recherche par contenu. Échéances Leitner existantes conservées. |
@@ -45,4 +45,4 @@ Le score d’examen divise les réponses correctes par les questions prévues. L
 
 Le coach calcule la précision au niveau courant sur les observations disponibles. Il affiche un manque de données avant cinq observations et exige vingt observations récentes au niveau maximal avec 90 % de réussite pour la maîtrise interne. Les révisions actualisent les échéances et le carnet mais sont comptées comme activité de révision. Les anciennes données agrégées conservent leur définition historique.
 
-Le record des erreurs contient du texte échappé à l’affichage, une référence de générateur et un compteur. Le bouton de création de carte copie la question et la réponse attendue vers le paquet de sa matière. Les catégories d’erreur sont renseignées par l’utilisateur.
+Le carnet d’erreurs contient du texte échappé à l’affichage, une référence de générateur et un compteur. Le bouton de création de carte copie la question et la réponse attendue vers le paquet de sa matière. Les catégories d’erreur sont renseignées par l’utilisateur.

@@ -72,6 +72,13 @@ function parseBackup(text) {
       !Number.isFinite(exam.ok) || !Number.isFinite(exam.n) || exam.n <= 0)) {
     throw invalidBackup();
   }
+  for (const exam of data.exams || []) {
+    if (exam.skills == null) continue;
+    if (!Array.isArray(exam.skills) || exam.skills.some((skill) => !isRecord(skill) ||
+      typeof skill.gen !== 'string' || !['level', 'n', 'ok', 'omitted', 'timeouts'].every((key) =>
+        Number.isInteger(skill[key]) && skill[key] >= 0) ||
+      skill.n === 0 || skill.ok + skill.omitted + skill.timeouts > skill.n)) throw invalidBackup();
+  }
   const restored = { ...defaults, ...data };
   for (const key of ['settings', 'profile', 'interview', 'planning', 'sante']) {
     restored[key] = { ...defaults[key], ...data[key] };

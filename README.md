@@ -102,7 +102,7 @@ tests/                                    tests automatiques
 - Ouvre le **Diagnostic général** dans les examens psychotechniques pour mesurer quatre domaines. Consulte le détail par bloc et entraîne le bloc prioritaire.
 - Dans **Réglages**, modifie ton profil, le temps par jour et la date de sélection. Le **Coach** propose des séances de 15, 30, 45, 60 ou 90 minutes. Il explique la raison de chaque exercice et peut intégrer les révisions dues.
 - Depuis **Statistiques** ou **Révisions**, ouvre le **Carnet d’erreurs** pour classer tes erreurs, relire les corrections, revoir les plus fréquentes ou les convertir en cartes. La recherche de flashcards porte sur le titre du paquet et les deux faces de la carte.
-- Les examens n’affichent leurs corrections qu’à la fin. Un passage interrompu reste signalé sans score global.
+- Dans **Composer un examen**, choisis les matières et la durée par bloc. Les examens n’affichent leurs corrections qu’à la fin. Un passage interrompu reste signalé sans score global.
 - Dans **Réglages → Sauvegarde**, exporte un JSON avant un changement d’appareil. Sur le nouvel appareil, importe ce fichier afin de restaurer l’historique et les réglages. Garde le fichier sur un support de confiance. La PWA affiche une commande de rechargement lorsqu’une nouvelle version est détectée.
 - Le chronomètre d’entretien fonctionne sans micro. Active l’enregistrement si tu souhaites te réécouter. Télécharge l’audio avant de quitter la question pour le conserver.
 

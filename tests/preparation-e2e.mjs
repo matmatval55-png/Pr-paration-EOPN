@@ -44,6 +44,13 @@ try {
     await page.getByRole('heading', { name: /Programme/ }).waitFor();
     await page.goto(base + '#/exam/diagnostic-general');
     await page.getByText('Anglais général et aéronautique', { exact: false }).waitFor();
+    await page.goto(base + '#/exam/personnaliser');
+    await page.locator('input[name=subject][value=maths]').check();
+    await page.locator('#custom-minutes').selectOption('20');
+    await page.getByText('2 bloc(s) · 40 minutes').waitFor();
+    await page.getByRole('button', { name: 'Voir le programme' }).click();
+    await page.getByRole('heading', { name: 'Examen personnalisé (40 min)' }).waitFor();
+    await page.getByText('Mathématiques', { exact: false }).waitFor();
     await page.goto(base + '#/reglages');
     await page.locator('#profile-dailyMinutes').fill('60');
     await page.getByRole('button', { name: 'Enregistrer le profil' }).click();

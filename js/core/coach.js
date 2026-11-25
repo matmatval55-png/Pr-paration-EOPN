@@ -25,9 +25,14 @@ export function priority(g, now = Date.now()) {
   const rate = atLevel.length ? atLevel.filter(([, ok]) => ok).length / atLevel.length : null;
   const d = daysSince(m.last, now);
   const timing = responseDiagnostics(g.id, 30, level);
+  const examSample = store.data.exams.filter(({ ts }) => daysSince(ts, now) <= 30)
+    .slice(-8).flatMap(({ skills }) => Array.isArray(skills) ? skills : [])
+    .filter((skill) => skill?.gen === g.id && skill.level === level);
+  const examN = examSample.reduce((total, skill) => total + skill.n, 0);
+  const examOk = examSample.reduce((total, skill) => total + skill.ok, 0);
   let p;
   let reason;
-  if (!m.n && !s30.n) {
+  if (!m.n && !s30.n && !examN) {
     p = 1.2;
     reason = { ico: '🆕', txt: 'jamais évalué' };
   } else if (atLevel.length >= 5 && rate < 0.65) {
@@ -36,6 +41,9 @@ export function priority(g, now = Date.now()) {
   } else if (timing.n >= 5 && timing.timeouts / timing.n >= 0.25) {
     p = 4;
     reason = { ico: '🎯', txt: `${timing.timeouts} dépassements sur ${timing.n} mesures au niveau ${level}` };
+  } else if (examN >= 5 && examOk / examN < 0.65) {
+    p = 3.9;
+    reason = { ico: '🎯', txt: `en examen au niveau ${level} : ${examOk}/${examN}, omissions comprises` };
   } else if (st.id === 'master' || st.id === 'rusty') {
     p = st.id === 'rusty' ? 1.5 + Math.min(2, d / 14) : 0.3;
     reason = { ico: '🔧', txt: st.id === 'rusty' ? `maîtrisé mais pas revu depuis ${d} j` : 'maîtrisé : simple entretien' };

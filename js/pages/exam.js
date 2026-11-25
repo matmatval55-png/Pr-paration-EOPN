@@ -1,4 +1,5 @@
 // Examen blanc : enchaînement de sections chronométrées, correction à la fin.
+import { customExam } from '../core/custom-exam.js';
 import { makePicker } from '../core/seen.js';
 import { EXAMS } from '../exams.js';
 import { getGen } from '../core/registry.js';
@@ -8,7 +9,7 @@ import { el, esc, fmtMs } from '../core/ui.js';
 import { makeRng, newSeed } from '../core/rng.js';
 
 export function renderExam(root, id) {
-  const ex = EXAMS.find((e) => e.id === id);
+  const ex = EXAMS.find((e) => e.id === id) || customExam(id);
   if (!ex) {
     root.innerHTML = '<p>Examen introuvable.</p>';
     return;
@@ -105,7 +106,7 @@ export function renderExam(root, id) {
           next: (i) => specs[i] || null,
           onFinish(history, meta) {
             if (meta?.generationFailed) return;
-            results.push({ title: s.title, total: specs.length, history });
+            results.push({ title: s.title, total: specs.length, history, specs });
             step(k + 1);
           },
           onQuit() {
@@ -165,9 +166,25 @@ export function renderExam(root, id) {
     const previous = past.find((item) => item.level === level && item.n === n && (item.formatVersion || 0) === version);
     const change = previous ? Math.round(100 * (ok / n - previous.ok / previous.n)) : null;
     const weakest = sections.reduce((worst, section) => !worst || section.ok / section.n < worst.ok / worst.n ? section : worst, null);
+    // Les quotas des générateurs incluent les omissions. Les niveaux sont toujours séparés.
+    const skills = new Map();
+    for (const result of results) {
+      result.specs.forEach((spec, i) => {
+        const key = spec.gen + '|' + spec.level;
+        if (!skills.has(key)) skills.set(key, { gen: spec.gen, level: spec.level, n: 0, ok: 0, omitted: 0, timeouts: 0 });
+        const entry = skills.get(key);
+        const response = result.history[i];
+        entry.n++;
+        if (!response) entry.omitted++;
+        else if (response.timeout) entry.timeouts++;
+        else if (response.ok) entry.ok++;
+      });
+    }
+    const priorities = [...skills.values()].sort((a, b) => a.ok / a.n - b.ok / b.n)
+      .filter((skill) => skill.ok < skill.n).slice(0, 3);
     if (n) store.update((s) => {
       delete s.examInProgress;
-      s.exams.push({ id, title: ex.title, seed, formatVersion: version, level, ts: Date.now(), ok, n, median, sections });
+      s.exams.push({ id, title: ex.title, seed, formatVersion: version, level, ts: Date.now(), ok, n, median, sections, skills: [...skills.values()] });
       if (s.exams.length > 200) s.exams.splice(0, s.exams.length - 200);
     });
 
@@ -183,6 +200,10 @@ export function renderExam(root, id) {
           `<div class="section-res"><span>${esc(r.title)}<br><span class="small muted">${r.answered}/${r.n} traitées · ${r.omitted} omissions · ${r.timeouts} hors délai</span></span><b>${r.ok}/${r.n}</b></div>`
         ).join('')}</div>
         ${weakest ? `<p>Bloc à retravailler en priorité : <strong>${esc(weakest.title)}</strong> (${weakest.ok}/${weakest.n}).</p>` : ''}
+        ${id === 'diagnostic-general' ? `<div class="card"><h2>Programme après diagnostic</h2>
+          <p>Chaque exercice est évalué sur quelques questions. Utilise ce relevé pour choisir quoi approfondir et viser au moins 8 réponses justes sur 10 en entraînement.</p>
+          ${priorities.length ? `<ul>${priorities.map((skill) => `<li><a href="#/train/${esc(skill.gen)}">${esc(getGen(skill.gen)?.title || skill.gen)}</a> · ${skill.ok}/${skill.n} · ${skill.omitted + skill.timeouts} non traitées dans le temps</li>`).join('')}</ul>` : ''}
+          <a class="btn" href="#/coach">Construire une séance avec le coach</a></div>` : ''}
         ${summaryHTML(answered, { title: 'Correction détaillée (questions traitées uniquement)' })}
         <div class="btn-row"><button class="btn primary" data-again>Refaire</button><a class="btn" href="${ex.back || '#/psycho'}">Retour</a></div>
       </div>`);

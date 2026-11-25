@@ -9,6 +9,7 @@ import { applyTheme, applyFontSize } from './theme.js';
 import { renderHome } from './pages/home.js';
 import { renderPsycho } from './pages/psycho.js';
 import { renderTrain } from './pages/train.js';
+import { renderCustomExam } from './pages/custom-exam.js';
 import { renderExam } from './pages/exam.js';
 import { renderCourseList, renderChapter } from './pages/course.js';
 import { renderMistakes } from './pages/mistakes.js';
@@ -87,6 +88,7 @@ const routes = [
   [/^$/, () => renderHome(view), 'home'],
   [/^psycho$/, () => renderPsycho(view), 'psycho'],
   [/^train\/(.+)$/, (m) => renderTrain(view, decodeURIComponent(m[1]), { back: backFor(decodeURIComponent(m[1])) }), 'psycho'],
+  [/^exam\/personnaliser$/, () => renderCustomExam(view), 'psycho'],
   [/^exam\/(.+)$/, (m) => renderExam(view, m[1]), 'psycho'],
   [/^maths$/, () => renderCourseList(view, { module: 'maths', title: 'Maths', chapters: MATHS, intro: 'On repart des bases (seconde) jusqu’au niveau terminale. Chaque chapitre : un cours court, une méthode, puis des exercices corrigés pas à pas du plus facile au plus difficile. Conseil : fais les chapitres dans l’ordre, le calcul d’abord.' }), 'cours'],
   [/^maths\/test$/, () => renderDiagnostic(view), 'cours'],

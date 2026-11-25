@@ -12,6 +12,7 @@ export function renderPsycho(root) {
     <h1>Tests psychotechniques</h1>
     <p class="muted">Exercices générés à l’infini, chronométrés, avec correction expliquée. Les épreuves officielles se passent sur ordinateur ; ici tout est adapté au téléphone et à la tablette.</p>
     <h2>📝 Examens blancs</h2>
+    <p><a class="btn" href="#/exam/personnaliser">Composer un examen</a></p>
     <div class="list">${EXAMS.filter((exam) => !exam.back || exam.back === '#/psycho').map(
       (e) => `<a class="row-link" href="#/exam/${e.id}"><span style="font-size:1.4rem">⏱️</span><span class="grow"><span class="title">${esc(e.title)}</span><br><span class="sub">${esc(e.desc)}</span></span><span class="chev">›</span></a>`,
     ).join('')}</div>
