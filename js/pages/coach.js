@@ -117,7 +117,7 @@ export function renderSuivi(root) {
   const adv = advice();
   const exams = store.data.exams || [];
   const byExam = {};
-  for (const e of exams) (byExam[e.id || e.title] ||= []).push(e);
+  for (const e of exams) (byExam[`${e.id || e.title}|${e.level}`] ||= []).push(e);
   const modScore = (m) => {
     const gs = listGens(m).filter((g) => !g.noSrs);
     return gs.length ? Math.round(gs.reduce((a, g) => a + masteryScore(g.id), 0) / gs.length) : 0;
@@ -140,7 +140,7 @@ export function renderSuivi(root) {
       })
       .join('')}</div>
     ${Object.keys(byExam).length ? `<div class="card"><h3>Examens blancs : évolution</h3>${Object.values(byExam)
-      .map((list) => lineChart(list.slice(-10).map((e) => ({ d: new Date(e.ts).toISOString().slice(0, 10), v: Math.round((e.ok / e.n) * 100) })), 100, `${list[0].title} (%)`))
+      .map((list) => lineChart(list.slice(-10).map((e) => ({ d: new Date(e.ts).toISOString().slice(0, 10), v: Math.round((e.ok / e.n) * 100) })), 100, `${list[0].title} · niveau ${list[0].level} (%)`))
       .join('')}</div>` : ''}
     ${mods
       .map(
@@ -156,7 +156,7 @@ export function renderSuivi(root) {
           .join('')}</div></details>`,
       )
       .join('')}
-    <div class="card small muted"><b>Comment c’est calculé ?</b> Le score de maîtrise combine le niveau atteint (facile → difficile) et la réussite sur les 12 dernières réponses. « Fragile » = moins de 60 % de réussite récente. « Maîtrisé » = niveau maximal avec au moins 80 % de réussite ; au-delà de 14 jours sans pratique, il passe « à entretenir ». La tendance compare les 7 derniers jours aux 7 précédents.</div>`;
+    <div class="card small muted"><b>Comment c’est calculé ?</b> Le score de maîtrise combine le niveau atteint (facile → difficile) et la réussite sur les 30 dernières réponses. « Fragile » = moins de 60 % de réussite récente. « Maîtrisé » = au moins 20 réponses récentes au niveau maximal avec 90 % de réussite (objectif interne, non officiel) ; au-delà de 14 jours sans pratique, il passe « à entretenir ». La tendance compare les 7 derniers jours aux 7 précédents.</div>`;
 }
 
 // Bloc d'accueil : aperçu de la prochaine séance coach.
