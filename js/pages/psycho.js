@@ -1,5 +1,6 @@
 import { listGens } from '../core/registry.js';
-import { GROUPS, EXAMS } from '../psycho/index.js';
+import { GROUPS } from '../psycho/index.js';
+import { EXAMS } from '../exams.js';
 import { genSummary } from '../core/stats.js';
 import { esc, pct } from '../core/ui.js';
 
@@ -11,7 +12,7 @@ export function renderPsycho(root) {
     <h1>Tests psychotechniques</h1>
     <p class="muted">Exercices générés à l’infini, chronométrés, avec correction expliquée. Les épreuves officielles se passent sur ordinateur ; ici tout est adapté au téléphone et à la tablette.</p>
     <h2>📝 Examens blancs</h2>
-    <div class="list">${EXAMS.map(
+    <div class="list">${EXAMS.filter((exam) => !exam.back || exam.back === '#/psycho').map(
       (e) => `<a class="row-link" href="#/exam/${e.id}"><span style="font-size:1.4rem">⏱️</span><span class="grow"><span class="title">${esc(e.title)}</span><br><span class="sub">${esc(e.desc)}</span></span><span class="chev">›</span></a>`,
     ).join('')}</div>
     <a class="row-link" href="#/personnalite" style="margin-top:8px"><span style="font-size:1.4rem">🧠</span><span class="grow"><span class="title">Personnalité et psychologue</span><br><span class="sub">Questionnaire d’entraînement et préparation de l’entretien avec l’officier psychologue</span></span><span class="chev">›</span></a>

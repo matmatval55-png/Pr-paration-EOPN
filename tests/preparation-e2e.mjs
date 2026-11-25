@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { chromium, devices } = require('playwright');
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+const base = process.argv[2] || 'http://localhost:8080/';
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
+try {
+  for (const device of ['iPad (gen 7)', 'iPhone 13 landscape', 'Desktop Chrome']) {
+    const context = await browser.newContext(devices[device]);
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(base + '#/train/psy.calcul');
+    await page.locator('[data-name=level] [data-v="5"]').click();
+    await page.locator('[data-name=chrono] [data-v="0"]').click();
+    await page.locator('[data-start]').click();
+    await page.locator('.keypad [data-k="0"]').click();
+    await page.locator('.kp-ok').click();
+    await page.getByText('Réponse incorrecte').waitFor();
+    await page.goto(base + '#/erreurs');
+    await page.locator('details summary').first().click();
+    await page.locator('[data-entry]').first().selectOption('Erreur de calcul');
+    await page.getByRole('button', { name: 'Créer une carte de révision' }).click();
+    await page.getByText('Carte enregistrée', { exact: true }).waitFor();
+    await page.reload();
+    await page.locator('#mistake-cause').selectOption('Erreur de calcul');
+    assert.equal(await page.locator('details').count(), 1);
+    await page.locator('[data-retry]').click();
+    await page.locator('.keypad [data-k="0"]').click();
+    await page.locator('.kp-ok').click();
+    const saved = await page.evaluate(async () => (await import('./js/core/store.js')).store.data);
+    assert.equal(Object.values(saved.mistakes)[0].count, 2);
+    assert.equal(Object.values(saved.stats['psy.calcul'])[0][0], 1);
+    await page.goto(base + '#/flashcards');
+    await page.locator('#deck-search').fill('personnelles');
+    await page.getByRole('link', { name: /cartes personnelles/ }).click();
+    await page.locator('.flashcard').click();
+    await page.getByRole('button', { name: /Je savais/ }).click();
+    await page.getByText('Séance terminée', { exact: false }).waitFor();
+    await page.goto(base + '#/coach');
+    await page.getByRole('button', { name: '90 min' }).click();
+    await page.getByRole('heading', { name: /Programme/ }).waitFor();
+    await page.goto(base + '#/exam/diagnostic-general');
+    await page.getByText('Anglais général et aéronautique', { exact: false }).waitFor();
+    await page.goto(base + '#/reglages');
+    await page.locator('#profile-dailyMinutes').fill('60');
+    await page.getByRole('button', { name: 'Enregistrer le profil' }).click();
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('[data-export]').click()]);
+    const stream = await download.createReadStream();
+    const chunks = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    const backup = Buffer.concat(chunks);
+    assert.equal(JSON.parse(backup).data.profile.dailyMinutes, 60);
+    const input = page.locator('[data-import]');
+    await input.setInputFiles({ name: 'invalide.json', mimeType: 'application/json', buffer: Buffer.from('{"stats": null}') });
+    await page.getByText('Ce fichier n’est pas une sauvegarde Prépa EOPN valide.').waitFor();
+    await input.setInputFiles({ name: 'valide.json', mimeType: 'application/json', buffer: backup });
+    await page.getByText('Sauvegarde importée', { exact: false }).waitFor();
+    assert.equal(await page.locator('#profile-dailyMinutes').inputValue(), '60');
+    assert.deepEqual(errors, [], device);
+    console.log(device + ' : carnet, classement, flashcard, révision isolée, coach, diagnostic et sauvegardes OK');
+    await context.close();
+  }
+} finally {
+  await browser.close();
+}

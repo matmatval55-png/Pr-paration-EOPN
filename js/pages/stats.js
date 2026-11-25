@@ -14,9 +14,13 @@ export function renderStats(root) {
   const draw = () => {
     const weak = weakPoints(6);
     const exams = store.data.exams.slice(-8).reverse();
+    const selection = store.data.settings.selectionDate;
+    const selectionDate = selection ? new Date(selection + 'T12:00:00').toLocaleDateString('fr-FR') : 'à renseigner';
     const timeTotal = Object.values(store.data.stats).reduce((a, g) => a + Object.values(g).reduce((ms, row) => ms + row[2], 0), 0);
     root.innerHTML = `
       <h1>Tableau de bord</h1>
+      <p>Sélection : ${esc(selectionDate)} · objectif quotidien : ${esc(store.data.profile.dailyMinutes)} min · ${store.data.exams.length} examens terminés</p>
+      <p><a href="#/erreurs">Ouvrir le carnet d’erreurs</a></p>
       <a class="row-link" href="#/suivi" style="border-color:var(--accent);margin-bottom:12px"><span style="font-size:1.4rem">📈</span><span class="grow"><span class="title">Suivi détaillé et conseils du coach</span><br><span class="sub">Niveau et maîtrise par exercice, tendances, examens blancs</span></span><span class="chev">›</span></a>
       <div class="stat-row">
         <div class="stat"><b>${streak()} 🔥</b><span>série actuelle</span></div>
@@ -30,7 +34,7 @@ export function renderStats(root) {
       </div>
       <div class="card">
         <h3>Progression</h3>
-        <div class="seg" style="margin-bottom:8px"><button data-r="14" class="${range === 14 ? 'on' : ''}">14 j</button><button data-r="30" class="${range === 30 ? 'on' : ''}">30 j</button><button data-r="90" class="${range === 90 ? 'on' : ''}">90 j</button></div>
+        <div class="seg" style="margin-bottom:8px"><button data-r="7" class="${range === 7 ? 'on' : ''}">7 j</button><button data-r="30" class="${range === 30 ? 'on' : ''}">30 j</button><button data-r="90" class="${range === 90 ? 'on' : ''}">90 j</button></div>
         ${rateChart(dailySeries(null, range))}
       </div>
       <div class="card"><h3>Par module (${range} j)</h3>${hbars(mods.map((m) => {

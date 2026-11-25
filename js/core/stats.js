@@ -4,7 +4,7 @@ import { getGen } from './registry.js';
 
 const SAMPLE_LIMIT = 120;
 
-export function record(genId, ok, ms, { timeout = false } = {}) {
+export function record(genId, ok, ms, { timeout = false, level = null } = {}) {
   const d = today();
   store.update((s) => {
     const g = (s.stats[genId] ||= {});
@@ -13,7 +13,7 @@ export function record(genId, ok, ms, { timeout = false } = {}) {
     row[1] += ok ? 1 : 0;
     row[2] += Math.round(ms || 0);
     const samples = ((s.responseSamples ||= {})[genId] ||= []);
-    samples.push([d, Math.max(0, Math.round(ms || 0)), timeout ? 'timeout' : ok ? 'correct' : 'wrong']);
+    samples.push([d, Math.max(0, Math.round(ms || 0)), timeout ? 'timeout' : ok ? 'correct' : 'wrong', level]);
     if (samples.length > SAMPLE_LIMIT) samples.splice(0, samples.length - SAMPLE_LIMIT);
     const day = (s.days[d] ||= { n: 0, ok: 0, ms: 0 });
     day.n += 1;
@@ -74,9 +74,9 @@ export function genSummary(genId, days = 3650) {
   return { n, ok, rate: n ? ok / n : null, avgMs: n ? ms / n : null };
 }
 
-export function responseDiagnostics(genId, days = 30) {
+export function responseDiagnostics(genId, days = 30, level = null) {
   const from = dayOffset(days - 1);
-  const samples = (store.data.responseSamples?.[genId] || []).filter(([date]) => date >= from);
+  const samples = (store.data.responseSamples?.[genId] || []).filter(([date, , , sampleLevel]) => date >= from && (level == null || sampleLevel === level));
   const times = samples.filter(([, , kind]) => kind !== 'timeout').map(([, ms]) => ms).sort((a, b) => a - b);
   const length = times.length;
   return {

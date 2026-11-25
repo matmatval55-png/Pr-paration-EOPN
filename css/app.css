@@ -573,3 +573,14 @@ details.card[open] > summary::after { content: '–'; }
 .ver-badge { display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; padding: 3px 7px; border: 1px solid var(--line); border-radius: 99px; font-size: 0.68rem; font-weight: 600; color: var(--muted); text-decoration: none; font-variant-numeric: tabular-nums; }
 .ver-badge svg { display: block; }
 .topbar .brand { white-space: nowrap; min-width: 0; }
+
+
+.update-notice {
+  position: fixed;
+  z-index: 10;
+  inset: auto max(12px, env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) auto;
+  max-width: calc(100vw - 24px);
+  background: var(--instr-bg);
+  box-shadow: 0 2px 12px #0006;
+}
+.in-quiz .update-notice { display: none; }

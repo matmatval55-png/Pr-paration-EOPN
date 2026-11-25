@@ -4,7 +4,7 @@ import { EXAMS } from '../exams.js';
 import { getGen } from '../core/registry.js';
 import { runQuiz, summaryHTML, fmtClock } from '../core/quiz.js';
 import { store } from '../core/store.js';
-import { el, esc } from '../core/ui.js';
+import { el, esc, fmtMs } from '../core/ui.js';
 import { makeRng, newSeed } from '../core/rng.js';
 
 export function renderExam(root, id) {
@@ -27,7 +27,7 @@ export function renderExam(root, id) {
         <h3>Déroulé</h3>
         ${ex.sections.map((s, i) => (s.pause ? `<div class="section-res muted"><span>☕ ${esc(s.title)}</span><span>${fmtClock(s.pause * 1000)}</span></div>` : `<div class="section-res"><span>${ex.sections.slice(0, i + 1).filter((x) => !x.pause).length}. ${esc(s.title)}</span><span class="muted">${s.count} q · ${fmtClock(s.time * 1000)}</span></div>`)).join('')}
         <p class="small muted">⚠️ Format simulé : la durée et le nombre exacts de questions des épreuves officielles ne sont pas publiés. Aucune correction pendant l’examen ; bilan détaillé à la fin.</p>
-        ${ex.fixedLevel ? '<p class="small">Niveau difficile</p>' : '<div class="field"><label>Difficulté</label><div class="seg"><button data-l="1">Facile</button><button data-l="2">Moyen</button><button data-l="3" class="on">Difficile</button></div></div>'}
+        ${ex.fixedLevel ? `<p class="small">Niveau ${ex.fixedLevel}</p>` : '<div class="field"><label>Difficulté</label><div class="seg"><button data-l="1">Facile</button><button data-l="2">Moyen</button><button data-l="3" class="on">Difficile</button></div></div>'}
         <button class="btn primary block" data-start>Démarrer l’examen</button>
       </div>
       ${past.length ? `<div class="card"><h3>Derniers résultats</h3>${past.map((p) => `<div class="section-res"><span>${new Date(p.ts).toLocaleDateString('fr-FR')} · niv. ${p.level}</span><b>${Math.round((p.ok / p.n) * 100)} %</b></div>`).join('')}</div>` : ''}
@@ -43,7 +43,8 @@ export function renderExam(root, id) {
 
   function runSections() {
     const results = [];
-    const rng = makeRng(newSeed());
+    const seed = newSeed();
+    const rng = makeRng(seed);
     // Les formats à composition fixe conservent leurs quotas entre deux passages.
     const picker = makePicker(rng.next, { excludeSeen: !ex.fixedComposition });
     const pick = (gid) => {
@@ -71,7 +72,7 @@ export function renderExam(root, id) {
     store.flush();
     document.body.classList.add('in-quiz');
     const step = (k) => {
-      if (k >= ex.sections.length) return finish(results);
+      if (k >= ex.sections.length) return finish(results, seed);
       const s = ex.sections[k];
       root.innerHTML = '';
       if (s.pause) return pause(s, () => step(k + 1));
@@ -147,29 +148,42 @@ export function renderExam(root, id) {
     box.querySelector('[data-go]').onclick = go;
   }
 
-  function finish(results) {
+  function finish(results, seed) {
     document.body.classList.remove('in-quiz');
     const all = results.flatMap((r) => r.history);
     const ok = all.filter((h) => h.ok).length;
     const n = results.reduce((a, r) => a + r.total, 0);
+    const sections = results.map(({ title, total, history }) => {
+      const timeouts = history.filter((item) => item.timeout).length;
+      return { title, n: total, ok: history.filter((item) => item.ok).length,
+        answered: history.length - timeouts, timeouts, omitted: total - history.length };
+    });
+    const answered = all.filter((item) => !item.timeout);
+    const times = answered.map((item) => item.ms).sort((a, b) => a - b);
+    const median = times.length ? (times[Math.floor((times.length - 1) / 2)] + times[Math.floor(times.length / 2)]) / 2 : null;
+    const version = ex.fixedComposition ? 1 : 0;
+    const previous = past.find((item) => item.level === level && item.n === n && (item.formatVersion || 0) === version);
+    const change = previous ? Math.round(100 * (ok / n - previous.ok / previous.n)) : null;
+    const weakest = sections.reduce((worst, section) => !worst || section.ok / section.n < worst.ok / worst.n ? section : worst, null);
     if (n) store.update((s) => {
       delete s.examInProgress;
-      s.exams.push({ id, title: ex.title, level, ts: Date.now(), ok, n, sections: results.map((r) => ({ title: r.title, ok: r.history.filter((h) => h.ok).length, n: r.total, answered: r.history.filter((h) => !h.timeout).length })) });
+      s.exams.push({ id, title: ex.title, seed, formatVersion: version, level, ts: Date.now(), ok, n, median, sections });
       if (s.exams.length > 200) s.exams.splice(0, s.exams.length - 200);
     });
+
     store.flush();
     root.innerHTML = '';
     const page = el(`
       <div>
         <h1>Résultat : ${n ? Math.round((ok / n) * 100) : 0} %</h1>
         <p class="muted">${ok} bonnes réponses sur ${n} questions (les questions non traitées dans le temps comptent comme fausses).</p>
-        <div class="card">${results
-          .map((r) => {
-            const o = r.history.filter((h) => h.ok).length;
-            return `<div class="section-res"><span>${esc(r.title)}<br><span class="small muted">${r.history.filter((h) => !h.timeout).length}/${r.total} traitées</span></span><b>${o}/${r.total}</b></div>`;
-          })
-          .join('')}</div>
-        ${summaryHTML(all.filter((h) => !h.timeout), { title: 'Correction détaillée (questions traitées uniquement)' })}
+        <p>Précision sur les réponses données : ${answered.length ? Math.round(100 * ok / answered.length) + ' %' : '—'} · médiane : ${fmtMs(median)}</p>
+        ${change !== null ? `<p>Écart avec le passage comparable précédent : ${change > 0 ? '+' : ''}${change} points.</p>` : ''}
+        <div class="card">${sections.map((r) =>
+          `<div class="section-res"><span>${esc(r.title)}<br><span class="small muted">${r.answered}/${r.n} traitées · ${r.omitted} omissions · ${r.timeouts} hors délai</span></span><b>${r.ok}/${r.n}</b></div>`
+        ).join('')}</div>
+        ${weakest ? `<p>Bloc à retravailler en priorité : <strong>${esc(weakest.title)}</strong> (${weakest.ok}/${weakest.n}).</p>` : ''}
+        ${summaryHTML(answered, { title: 'Correction détaillée (questions traitées uniquement)' })}
         <div class="btn-row"><button class="btn primary" data-again>Refaire</button><a class="btn" href="${ex.back || '#/psycho'}">Retour</a></div>
       </div>`);
     page.querySelector('[data-again]').onclick = () => renderExam(root, id);

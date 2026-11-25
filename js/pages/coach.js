@@ -9,7 +9,7 @@ import { lineChart } from '../core/charts.js';
 import { el, esc, pct, fmtMs } from '../core/ui.js';
 import { SECTIONS } from '../cours/index.js';
 
-const LVL = ['', 'Facile', 'Moyen', 'Difficile'];
+const LVL = ['', 'Facile', 'Moyen', 'Difficile', 'Expert', 'Haute intensité'];
 
 // Fiche de cours associée à un exercice (lien « relire le cours »).
 export function ficheFor(genId) {
@@ -28,16 +28,20 @@ const lvlBadge = (genId) => {
 };
 
 export function renderCoach(root, module = null) {
-  const state = { minutes: store.data.settings.coachMinutes || 15, module: module || 'all', reviews: store.data.settings.coachReviews ? '1' : '0' };
+  const durations = [15, 30, 45, 60, 90];
+  const targetMinutes = store.data.profile.dailyMinutes;
+  const defaultDuration = durations.filter((minute) => minute <= targetMinutes).at(-1) || durations[0];
+  const savedMinutes = store.data.settings.coachMinutes;
+  const state = { minutes: durations.includes(savedMinutes) ? savedMinutes : defaultDuration, module: module || 'all', reviews: store.data.settings.coachReviews === false ? '0' : '1' };
   let plan = null;
   const draw = () => {
     plan = buildSession({ minutes: Number(state.minutes), module: state.module === 'all' ? null : state.module, reviews: state.reviews === '1' });
     root.innerHTML = '';
     const page = el(`<div>
       <h1>🧭 Séance coach</h1>
-      <p class="muted">Une séance construite à partir de <b>tes résultats</b>, uniquement avec des <b>questions que tu n’as jamais eues</b> : tes points faibles, ce que tu n’as pas travaillé depuis longtemps, chacun à <b>ton niveau</b> actuel. Le niveau monte après 4 bonnes réponses sur 5 et baisse après 2 erreurs d’affilée, et il est mémorisé d’une séance à l’autre.</p>
+      <p class="muted">Le coach choisit des exercices selon les résultats au niveau travaillé, les dépassements mesurés et la date de la dernière pratique. Les révisions sont comptées séparément.</p>
       <div class="card">
-        <div class="field"><label>Durée</label>${seg('minutes', [[10, '10 min'], [15, '15 min'], [25, '25 min'], [40, '40 min']], state.minutes)}</div>
+        <div class="field"><label>Durée</label>${seg('minutes', durations.map((minutes) => [minutes, `${minutes} min`]), state.minutes)}</div>
         <div class="field"><label>Matière</label>${seg('module', [['all', 'Tout'], ...Object.keys(COACH_MODULES).map((k) => [k, { psycho: 'Psycho', maths: 'Maths', physique: 'Physique', anglais: 'Anglais', culture: 'Culture' }[k]])], state.module)}</div>
         <div class="field"><label>Mes erreurs à revoir</label>${seg('reviews', [['0', 'Non (que du neuf)'], ['1', 'Les inclure']], state.reviews)}<p class="small muted">Les erreurs à revoir sont volontairement les mêmes questions que celles que tu as ratées.</p></div>
       </div>
@@ -74,12 +78,14 @@ export function renderCoach(root, module = null) {
     runQuiz(root, {
       title: 'Séance coach',
       total: p.items.length,
+      totalTime: Number(state.minutes) * 60,
+      isReview: (i) => p.items[i]?.review === true,
       mode: 'train',
       next: (i) => p.items[i]?.spec || null,
       onFinish(history) {
         document.body.classList.remove('in-quiz');
         root.innerHTML = '';
-        root.append(el(`<div>${summaryHTML(history, { title: 'Bilan de la séance' })}${evolutionHTML(before, history)}<a class="btn primary block" href="#/coach">Nouvelle séance</a><a class="btn block" href="#/suivi" style="margin-top:8px">📈 Mon suivi</a></div>`));
+        root.append(el(`<div>${summaryHTML(history, { title: 'Bilan de la séance' })}${evolutionHTML(before, history.filter((_, i) => !p.items[i]?.review))}<a class="btn primary block" href="#/coach">Nouvelle séance</a><a class="btn block" href="#/suivi" style="margin-top:8px">📈 Mon suivi</a></div>`));
       },
       onQuit() {
         document.body.classList.remove('in-quiz');

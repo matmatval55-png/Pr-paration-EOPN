@@ -5,15 +5,18 @@ const DEFAULT = () => ({
   version: 1,
   createdAt: Date.now(),
   settings: { theme: 'dark', selectionDate: '', hoursPerWeek: 6, sex: 'H' },
+  profile: { age: 18, studies: 'L1 droit', education: 'Bac général · maths et SES', english: 'B2', targetEnglish: 'C1', goals: 'EOPN, compétences transférables EOPAN et cadets', experience: 'Expérience régulière sur simulateur de vol et pratique sportive', dailyMinutes: 45 },
   days: {}, // 'AAAA-MM-JJ' -> { n, ok, ms }
   stats: {}, // idExercice -> { 'AAAA-MM-JJ': [n, ok, ms] }
   responseSamples: {}, // idExercice -> [jour, durée, résultat] (échantillon glissant)
+  mistakes: {}, // carnet d’erreurs, indexé par graine et niveau
   srs: {}, // clé -> { spec, box, due, lapses }
   hist: {}, // idExercice -> empreintes de toutes les questions déjà posées (jamais de doublon)
   mastery: {}, // idExercice -> { lvl, best, n, ok, last, h } (niveau mémorisé, voir mastery.js)
   exams: [], // historique des examens blancs
   progress: {}, // ex. 'maths.fractions' -> { read: true }
   sport: [], // tests et séances de sport
+  personalCards: {}, // matière -> [[recto, verso], …]
   cards: {}, // flashcards : 'paquet|n' -> { box, due, seen }
   interview: { notes: {}, sessions: [] }, // entretien
   planning: { days: [0, 1, 2, 3, 4, 5, 6], done: {} },
@@ -50,13 +53,27 @@ function parseBackup(text) {
       !/^\d{4}-\d{2}-\d{2}$/.test(sample[0]) || !Number.isFinite(sample[1]) ||
       !['correct', 'wrong', 'timeout'].includes(sample[2]))) throw invalidBackup();
   }
+  for (const item of Object.values(data.mistakes || {})) {
+    if (!isRecord(item) || !isRecord(item.spec) ||
+      typeof item.spec.gen !== 'string' || !Number.isInteger(item.spec.level) ||
+      !Number.isInteger(item.spec.seed) || !Number.isFinite(item.ts) ||
+      !Number.isFinite(item.ms) || !Number.isInteger(item.count) || item.count < 1 ||
+      !['prompt', 'expected', 'response', 'correction', 'cause'].every((key) => typeof item[key] === 'string')) {
+      throw invalidBackup();
+    }
+  }
+  for (const [module, cards] of Object.entries(data.personalCards || {})) {
+    if (!['psycho', 'maths', 'physique', 'anglais', 'culture'].includes(module) ||
+      !Array.isArray(cards) || cards.some((card) => !Array.isArray(card) || card.length !== 2 ||
+        card.some((side) => typeof side !== 'string' || !side.trim() || side.length > 2000))) throw invalidBackup();
+  }
   if (data.exams?.some((exam) => !isRecord(exam) ||
       !Number.isFinite(new Date(exam.ts).getTime()) || !Number.isFinite(exam.level) ||
       !Number.isFinite(exam.ok) || !Number.isFinite(exam.n) || exam.n <= 0)) {
     throw invalidBackup();
   }
   const restored = { ...defaults, ...data };
-  for (const key of ['settings', 'interview', 'planning', 'sante']) {
+  for (const key of ['settings', 'profile', 'interview', 'planning', 'sante']) {
     restored[key] = { ...defaults[key], ...data[key] };
   }
   return restored;

@@ -20,18 +20,6 @@ function bindSeg(root, state) {
   );
 }
 
-// Choix du niveau suivant en mode « auto » : +1 après 3 réussites d'affilée, −1 après 2 échecs.
-export function adaptiveLevel(history, start = 1, max = 3) {
-  let lvl = start, okRun = 0, koRun = 0;
-  for (const h of history) {
-    if (h.ok) (okRun++, (koRun = 0));
-    else (koRun++, (okRun = 0));
-    if (okRun >= 3 && lvl < max) (lvl++, (okRun = 0));
-    if (koRun >= 2 && lvl > 1) (lvl--, (koRun = 0));
-  }
-  return lvl;
-}
-
 export function renderTrain(root, genId, { back = '#/psycho', progressive = false, defaults = {} } = {}) {
   const g = getGen(genId);
   if (!g) {
@@ -53,10 +41,10 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
         <div class="stat"><b>${fmtMs(s.avgMs)}</b><span>temps moyen</span></div>
       </div>
       <div class="card">
-        ${g.levels > 1 ? `<div class="field"><label>Niveau</label>${seg('level', [...(progressive ? [['prog', 'Progressif']] : [['auto', 'Auto']]), ...[[1, 'Facile'], [2, 'Moyen'], [3, 'Difficile']].slice(0, g.levels)], state.level)}</div>` : ''}
+        ${g.levels > 1 ? `<div class="field"><label>Niveau</label>${seg('level', [...(progressive ? [['prog', 'Progressif']] : [['auto', 'Auto']]), ...[[1, 'Facile'], [2, 'Moyen'], [3, 'Difficile'], [4, 'Expert'], [5, 'Haute intensité']].slice(0, g.levels)], state.level)}</div>` : ''}
         <div class="field"><label>Nombre de questions</label>${seg('count', [[10, '10'], [20, '20'], ['inf', 'Illimité']], state.count)}</div>
         <div class="field"><label>Chronomètre par question</label>${seg('chrono', [[1, 'Oui'], [0, 'Non']], state.chrono)}</div>
-        <p class="small muted">${g.bank ? `Banque de ${g.bankSize(0)} questions, dont <b>${remaining(genId, 0)} jamais vues</b>. Tu ne retombes jamais deux fois sur la même question.` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${['', 'facile', 'moyen', 'difficile'][levelFor(genId)]}) ; il monte après 3 bonnes réponses d’affilée et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
+        <p class="small muted">${g.bank ? `Banque de ${g.bankSize(0)} questions, dont <b>${remaining(genId, 0)} jamais vues</b>. Tu ne retombes jamais deux fois sur la même question.` : progressive ? 'Progressif : 3 exercices faciles, 4 moyens puis 3 difficiles.' : g.levels > 1 ? `Auto : tu démarres à ton niveau mémorisé (${levelFor(genId)}) ; il monte après 4 réussites sur 5 au niveau actuel et baisse après 2 erreurs.` : ''} Correction détaillée après chaque réponse.</p>
         <button class="btn primary block" data-start>Commencer</button>
       </div>
     </div>`);
@@ -70,16 +58,16 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
     // jamais une question déjà vue : historique complet (voir core/seen.js)
     const pick = makePicker();
     let exhausted = false;
-    const levelAt = (i, history) => {
+    const levelAt = (i) => {
       let lvl;
-      if (state.level === 'auto') lvl = adaptiveLevel(history, levelFor(genId), g.levels);
+      if (state.level === 'auto') lvl = levelFor(genId);
       else if (state.level === 'prog') lvl = prog[Math.min(prog.length - 1, Math.floor((i / (total || 10)) * prog.length))];
       else lvl = Number(state.level);
       return Math.min(lvl, g.levels);
     };
     // si le niveau demandé est épuisé, on essaie les autres niveaux avant d'abandonner
     const draw = (lvl) => {
-      for (const l of [lvl, ...[1, 2, 3].filter((x) => x !== lvl && x <= g.levels)]) {
+      for (const l of [lvl, ...Array.from({ length: g.levels }, (_, i) => i + 1).filter((x) => x !== lvl)]) {
         const sp = pick(genId, l);
         if (sp) return sp;
       }
@@ -87,7 +75,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
       return null;
     };
     if (g.levels === 1) state.level = '1';
-    const first = draw(levelAt(0, []));
+    const first = draw(levelAt(0));
     if (!first) return showExhausted();
     document.body.classList.add('in-quiz');
     runQuiz(root, {
@@ -95,9 +83,9 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
       total,
       mode: 'train',
       noTimer: state.chrono !== '1',
-      next(i, history) {
+      next(i) {
         if (total && i >= total) return null;
-        return i === 0 ? first : draw(levelAt(i, history));
+        return i === 0 ? first : draw(levelAt(i));
       },
       onFinish(history) {
         document.body.classList.remove('in-quiz');

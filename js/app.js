@@ -11,6 +11,7 @@ import { renderPsycho } from './pages/psycho.js';
 import { renderTrain } from './pages/train.js';
 import { renderExam } from './pages/exam.js';
 import { renderCourseList, renderChapter } from './pages/course.js';
+import { renderMistakes } from './pages/mistakes.js';
 import { renderReview } from './pages/review.js';
 import { renderStats } from './pages/stats.js';
 import { renderSettings } from './pages/settings.js';
@@ -92,7 +93,7 @@ const routes = [
   [/^maths\/([^/]+)(?:\/([^/]+))?$/, (m) => renderChapter(view, { module: 'maths', chapters: MATHS, id: m[1], tab: m[2] }), 'cours'],
   [/^physique$/, () => renderCourseList(view, { module: 'physique', title: 'Physique', chapters: PHYS, intro: 'Mécanique, énergie, électricité, optique et mécanique du vol, au format cours + méthode + exercices corrigés pas à pas. Les chapitres « Unités » et « Vitesse » sont prioritaires : on les retrouve dans les problèmes des tests.' }), 'cours'],
   [/^physique\/([^/]+)(?:\/([^/]+))?$/, (m) => renderChapter(view, { module: 'physique', chapters: PHYS, id: m[1], tab: m[2] }), 'cours'],
-  [/^anglais$/, () => renderHub(view, { module: 'anglais', title: 'Anglais', intro: 'Objectif C1. Le test officiel (« test de Chambéry ») est un QCM de compréhension écrite : 150 questions en 55 minutes, soit environ 22 s par question. Travaille la vitesse autant que la justesse. (Module en anglais, explications parfois en français.)', groups: ['Grammar', 'Vocabulary', 'Radiotelephony', 'Reading'], icons: { Grammar: '📘', Vocabulary: '🗂️', Radiotelephony: '📻', Reading: '📰' }, before: `<a class="row-link" href="#/flashcards" style="border-color:var(--accent)"><span style="font-size:1.4rem">🃏</span><span class="grow"><span class="title">Flashcards</span><br><span class="sub">${DECKS.reduce((a, d) => a + deckStats(d).due, 0)} carte(s) à revoir · révision espacée</span></span><span class="chev">›</span></a>` }), 'cours'],
+  [/^anglais$/, () => renderHub(view, { module: 'anglais', title: 'Anglais', intro: 'Objectif C1. Le format long de l’application propose 150 questions en 55 minutes. Il s’agit d’un format d’entraînement inspiré de descriptions de sélection. Travaille la vitesse autant que la justesse. (Module en anglais, explications parfois en français.)', groups: ['Grammar', 'Vocabulary', 'Radiotelephony', 'Reading'], icons: { Grammar: '📘', Vocabulary: '🗂️', Radiotelephony: '📻', Reading: '📰' }, before: `<a class="row-link" href="#/flashcards" style="border-color:var(--accent)"><span style="font-size:1.4rem">🃏</span><span class="grow"><span class="title">Flashcards</span><br><span class="sub">${DECKS.reduce((a, d) => a + deckStats(d).due, 0)} carte(s) à revoir · révision espacée</span></span><span class="chev">›</span></a>` }), 'cours'],
   [/^flashcards$/, () => renderFlashList(view), 'cours'],
   [/^flashcards\/(.+)$/, (m) => renderFlashDeck(view, m[1]), 'cours'],
   [/^culture$/, () => renderHub(view, { module: 'culture', title: 'Culture & BIA', intro: 'Culture militaire et aéronautique (utile pour l’entretien et un éventuel test de culture, non confirmé officiellement) et révision complète du BIA.', groups: CULTURE_GROUPS, icons: { [CULTURE_GROUPS[0]]: '🎖️', [CULTURE_GROUPS[1]]: '🛩️' } }), 'cours'],
@@ -105,6 +106,7 @@ const routes = [
   [/^cours$/, () => renderCours(view), 'cours'],
   [/^bibliotheque$/, () => renderBibliotheque(view), 'biblio'],
   [/^fiche\/([^/]+)\/([^/]+)$/, (m) => renderFiche(view, m[1], m[2]), 'biblio'],
+  [/^erreurs$/, () => renderMistakes(view), 'stats'],
   [/^revision$/, () => renderReview(view), 'home'],
   [/^coach(?:\/([a-z]+))?$/, (m) => renderCoach(view, m[1] || null), 'home'],
   [/^suivi$/, () => renderSuivi(view), 'stats'],
@@ -119,9 +121,7 @@ const routes = [
 ];
 
 let pageCleanup = null;
-let pendingReload = false; // nouvelle version prête : rechargement au prochain changement de page
 function route() {
-  if (pendingReload) return location.reload();
   stopActiveQuiz();
   pageCleanup?.();
   pageCleanup = null;
@@ -173,8 +173,7 @@ navigator.storage?.persist?.().catch(() => {});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
 route();
 
-// Mises à jour : vérifiées à chaque retour sur l'appli ; la nouvelle version est chargée
-// automatiquement (après la séance en cours si un exercice est ouvert).
+// Affiche la mise à jour disponible sans interrompre une séance.
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   const hadController = !!navigator.serviceWorker.controller;
   addEventListener('load', async () => {
@@ -184,8 +183,15 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     } catch {}
   });
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController || pendingReload) return;
-    pendingReload = true;
-    if (!document.body.classList.contains('in-quiz')) location.reload();
+    if (!hadController || document.querySelector('.update-notice')) return;
+    const notice = document.createElement('button');
+    notice.type = 'button';
+    notice.className = 'btn update-notice';
+    notice.textContent = 'Mise à jour disponible · recharger';
+    notice.onclick = () => {
+      store.flush();
+      location.reload();
+    };
+    document.body.append(notice);
   });
 }

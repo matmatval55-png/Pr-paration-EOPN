@@ -1,8 +1,9 @@
+import { recordMistake } from './mistakes.js';
 // Moteur de séance : affiche les questions, chronomètre, corrige et enregistre.
 import { markSeen } from './seen.js';
 import { updateMastery } from './mastery.js';
 import { makeQuestion } from './registry.js';
-import { record } from './stats.js';
+import { record, recordActivity } from './stats.js';
 import { onAnswer } from './srs.js';
 import { el, esc, keypad, parseNum, vibrate } from './ui.js';
 import { n as fmtN } from './fmt.js';
@@ -188,10 +189,16 @@ export function runQuiz(root, opts) {
       const ms = performance.now() - t0;
       const item = { spec: q.spec, q, ms, ...result };
       history.push(item);
-      record(q.spec.gen, item.ok, ms, { timeout: item.timeout });
-      updateMastery(q.spec, item.ok);
+      const review = opts.mode === 'review' || opts.isReview?.(history.length - 1);
+      if (review) {
+        recordActivity(ms);
+      } else {
+        record(q.spec.gen, item.ok, ms, { timeout: item.timeout, level: q.spec.level });
+        if (opts.mode !== 'exam') updateMastery(q.spec, item.ok);
+      }
+      if (!item.ok) recordMistake(item);
       markSeen(q.spec, q);
-      onAnswer(q.spec, item.ok, opts.mode === 'review');
+      onAnswer(q.spec, item.ok, review);
       if (opts.mode !== 'exam') vibrate(item.ok ? 15 : [40, 40, 40]);
       if (opts.mode === 'exam') {
         cleanup?.();
