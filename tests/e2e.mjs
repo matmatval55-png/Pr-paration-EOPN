@@ -10,8 +10,9 @@ const { chromium, devices } = pw;
 const BASE = process.argv[2] || 'http://localhost:8080/';
 const SHOTS = process.env.SHOTS || '';
 const errors = [];
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ ...devices['iPhone 13'], colorScheme: process.env.DARK ? 'dark' : 'light' });
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
+const ctx = await browser.newContext({ ...devices[process.env.E2E_DEVICE || 'iPhone 13'], colorScheme: process.env.DARK ? 'dark' : 'light' });
 const page = await ctx.newPage();
 page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
 page.on('dialog', (d) => d.accept(d.type() === 'prompt' ? 'test' : undefined).catch(() => {}));
@@ -109,6 +110,15 @@ for (let i = 0; i < 20; i++) {
 }
 await page.waitForSelector('.summary', { timeout: 10000 });
 await shot('exam-result');
+
+// Un rechargement pendant une section signale un passage sans score.
+await go('#/exam/express-30');
+await page.locator('[data-start]').click();
+await page.locator('[data-go]').click();
+await page.waitForSelector('.qcard');
+await page.reload();
+await page.waitForSelector('text=Passage précédent incomplet');
+if (await page.locator('text=Derniers résultats').count()) errors.push('examen interrompu : score global enregistré');
 
 // 5 ter. Bibliothèque : ouvrir chaque fiche, en marquer une comme lue
 const fiches = await page.evaluate(async () => (await import('./js/cours/index.js')).SECTIONS.flatMap((s) => s.fiches.map((f) => `${s.id}/${f.id}`)));
@@ -258,11 +268,10 @@ for (const h of ['', '#/psycho', '#/maths/trigo', '#/physique/optique', '#/angla
 }
 
 // 8. Hors ligne (après installation du service worker)
-await page.evaluate(() => navigator.serviceWorker.ready);
-await page.reload();
-await page.waitForTimeout(500);
-await ctx.setOffline(true);
+await page.waitForFunction(() => !!navigator.serviceWorker.controller);
 await go('#/maths/probas');
+await ctx.setOffline(true);
+await page.reload();
 const offlineOk = await page.locator('h1').innerText().catch(() => '');
 if (!/Probabilités/.test(offlineOk)) errors.push('hors ligne : la page ne se charge pas');
 await ctx.setOffline(false);

@@ -2,7 +2,7 @@
 // Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
 // mise à jour en arrière-plan. Une nouvelle version est installée en contournant le cache HTTP,
 // puis la page se recharge d'elle-même (voir app.js).
-const VERSION = 'v19';
+const VERSION = 'v20';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -139,17 +139,12 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const cached = await cache.match(req, { ignoreSearch: true });
-      const network = fetch(req)
-        .then((res) => {
-          if (res.ok) cache.put(req, res.clone());
-          return res;
-        })
-        .catch(() => null);
-      if (cached) {
-        e.waitUntil(network);
-        return cached;
+      if (cached) return cached;
+      try {
+        return await fetch(req);
+      } catch {
+        return req.mode === 'navigate' ? (await cache.match('./index.html')) || Response.error() : Response.error();
       }
-      return (await network) || (req.mode === 'navigate' ? cache.match('./index.html') : Response.error());
     }),
   );
 });

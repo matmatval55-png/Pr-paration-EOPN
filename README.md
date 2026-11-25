@@ -62,6 +62,25 @@ npm test                         # tests des générateurs (Node 18+)
 node tests/e2e.mjs               # test navigateur (Playwright, serveur local lancé)
 ```
 
+Sur le cloud, l’installation fournit Playwright et le serveur statique dans
+`/workspace/.eopn-tools`. Le navigateur Chromium fourni par l’environnement
+peut être utilisé pour les deux profils tactiles.
+
+```bash
+NODE_PATH=/workspace/.eopn-tools/node_modules \
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \
+  E2E_DEVICE='iPad (gen 7)' node tests/e2e.mjs
+```
+
+Le profil par défaut est `iPhone 13`. Ces profils émulent les dimensions et
+les entrées tactiles dans Chromium.
+
+Les examens de 30, 60, 90 et 120 minutes présentent des quotas fixes par
+exercice. Les questions peuvent revenir d’un passage à l’autre. Chaque bloc
+a son propre chronomètre. Un rechargement interrompt le passage en cours et
+aucun score global n’est enregistré. Une fin de bloc sur échéance conserve
+toutes les questions prévues au dénominateur.
+
 Quand tu ajoutes un fichier JS/CSS, ajoute-le à la liste `FILES` de `sw.js` et incrémente `VERSION` (le test `tests/sw.test.js` le vérifie).
 
 ### Arborescence
