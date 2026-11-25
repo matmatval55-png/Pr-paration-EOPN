@@ -1,5 +1,5 @@
 // Planning : programme de la semaine selon la date de sélection, les heures disponibles et les points faibles.
-import { MODS, buildWeek, weeksUntil, phaseFor, PHASES } from '../planning/plan.js';
+import { MODS, buildWeek, replanWeek, weeksUntil, phaseFor, PHASES } from '../planning/plan.js';
 import { store, today } from '../core/store.js';
 import { weakPoints, genSummary, moduleSummary } from '../core/stats.js';
 import { dueItems } from '../core/srs.js';
@@ -69,7 +69,7 @@ export function suggestion(mod, phaseId, k = 0) {
   }
 }
 
-function currentWeek() {
+function currentWeek(remember = false) {
   const s = store.data.settings;
   const weeks = weeksUntil(s.selectionDate);
   const mods = ['psycho', 'maths', 'anglais', 'physique', 'culture'];
@@ -78,7 +78,30 @@ function currentWeek() {
     return r.n >= 10 && r.rate < 0.6;
   });
   const days = store.data.planning?.days ?? [0, 1, 2, 3, 4, 5, 6];
-  return { weeks, weak, plan: buildWeek({ hours: s.hoursPerWeek, days, weeks, weak }) };
+  const state = store.data.planning;
+  const now = new Date();
+  const day = today(now);
+  const dates = Array.from({ length: 7 }, (_, i) =>
+    today(new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayIndex(now) + i)));
+  const base = buildWeek({ hours: s.hoursPerWeek, days, weeks, weak });
+  const plan = replanWeek(base, { dates, today: day, snapshots: state.snapshots,
+    done: state.done, weak, cap: store.data.profile.dailyMinutes, selection: s.selectionDate });
+  if (remember) store.update((data) => {
+    const snapshots = (data.planning.snapshots ||= {});
+    for (const key of Object.keys(snapshots)) {
+      if (Date.parse(day) - Date.parse(key) > 14 * 86400000) delete snapshots[key];
+    }
+    dates.forEach((date, i) => {
+      if (date < day) return;
+      const snapshot = plan.perDay[i];
+      if (date === day && snapshots[date]) {
+        const known = new Map(snapshots[date].map((block) => [block.key, block]));
+        for (const block of snapshot) known.set(block.key, block);
+        snapshots[date] = [...known.values()];
+      } else snapshots[date] = snapshot;
+    });
+  });
+  return { weeks, weak, plan };
 }
 
 export function todayBlocks() {
@@ -88,7 +111,7 @@ export function todayBlocks() {
 
 export function renderPlanning(root) {
   const s = store.data.settings;
-  const { weeks, weak, plan } = currentWeek();
+  const { weeks, weak, plan } = currentWeek(true);
   const days = store.data.planning?.days ?? [0, 1, 2, 3, 4, 5, 6];
   const done = store.data.planning?.done?.[today()] || {};
   const di = dayIndex();
@@ -96,12 +119,12 @@ export function renderPlanning(root) {
   week0.setDate(week0.getDate() - di);
   const row = (b, dayI, i) => {
     const sug = suggestion(b.mod, plan.phase.id, i + dayI);
-    const key = `${b.mod}-${i}`;
+    const key = b.key;
     const isToday = dayI === di;
     return `<div class="row-link" style="cursor:default">
       <span style="font-size:1.3rem">${MODS[b.mod].ico}</span>
-      <span class="grow"><span class="title">${MODS[b.mod].label} · ${b.min} min</span><br><a class="sub" href="${sug.href}">${esc(sug.txt || '')} →</a></span>
-      ${isToday ? `<button class="btn-icon" data-done="${key}" aria-label="Fait">${done[key] ? '✔' : '○'}</button>` : ''}
+      <span class="grow"><span class="title">${MODS[b.mod].label} · ${b.min} min${b.source ? ` · Report du ${esc(b.source)}` : ''}</span><br><a class="sub" href="${sug.href}">${esc(sug.txt || '')} →</a></span>
+      ${isToday ? `<button class="btn-icon" data-done="${esc(key)}" aria-label="Fait">${done[key] ? '✔' : '○'}</button>` : ''}
     </div>`;
   };
   root.innerHTML = '';
@@ -123,6 +146,7 @@ export function renderPlanning(root) {
         ${plan.sport.includes(di) ? `<a class="row-link" href="#/sport"><span style="font-size:1.3rem">🏃</span><span class="grow"><span class="title">Sport · 45 min</span><br><span class="sub">Séance du programme →</span></span></a>` : ''}
       </div>
       <h2>Ma semaine</h2>
+      ${plan.backlog ? `<p class="small muted">${plan.backlog} créneau(x) manqué(s) sans place cette semaine.</p>` : ''}
       ${JOURS.map((j, d) => {
         if (d === di) return '';
         const date = new Date(week0);
@@ -139,13 +163,13 @@ export function renderPlanning(root) {
       <div class="card">
         <h3>📅 Ajouter à mon agenda</h3>
         <p class="small muted">Télécharge les 4 prochaines semaines (fichier .ics) et ouvre-le : ton téléphone propose d’ajouter les séances à ton agenda, avec un rappel 10 min avant. Refais l’export si tu changes tes disponibilités.</p>
-        <div class="field"><label for="ics-hour">Heure de début des séances</label><input type="time" id="ics-hour" value="${store.data.planning?.hour || '18:00'}"></div>
+        <div class="field"><label for="ics-hour">Heure de début des séances</label><input type="time" id="ics-hour" value="${esc(store.data.planning?.hour || '18:00')}"></div>
         <button class="btn primary block" data-ics>Télécharger le planning (.ics)</button>
       </div>
       <details class="card"><summary><b>Comment le planning est calculé</b></summary><div class="course small">
         <p>Le temps est découpé en créneaux de 30 min, répartis selon la phase :</p>
         <ul>${PHASES.map((p) => `<li><b>${p.title}</b> (${p.min ? `plus de ${p.min} semaines avant J` : 'les 8 dernières semaines'}) : ${Object.entries(p.w).map(([k, v]) => `${MODS[k].label} ${v} %`).join(', ')}.</li>`).join('')}</ul>
-        <p>Les modules où tu réussis moins de 60 % des questions reçoivent du temps en plus. Le sport (3 séances de 45 min) s’ajoute à ces heures. Les activités proposées suivent ta progression : chapitre non lu, exercice le plus faible, examen blanc…</p>
+        <p>Les modules où tu réussis moins de 60 % des questions reçoivent du temps en plus. Le sport (3 séances de 45 min) s’ajoute à ces heures. Les créneaux manqués affichés au cours des deux dernières semaines peuvent être reportés, à raison d’un ajout par jour disponible sous le plafond quotidien du profil. Les activités proposées suivent ta progression : chapitre non lu, exercice le plus faible, examen blanc…</p>
       </div></details>
     </div>`);
   root.append(page);
@@ -163,7 +187,7 @@ export function renderPlanning(root) {
   page.querySelector('[data-ics]').onclick = () => {
     const hour = page.querySelector('#ics-hour').value || '18:00';
     store.update((d) => ((d.planning ||= {}).hour = hour));
-    const ics = buildICS(plan, { hour, url: location.origin + location.pathname });
+    const ics = buildICS(plan, { hour, url: location.origin + location.pathname, recurring: currentWeek().plan.perDay.map((blocks) => blocks.filter((block) => !block.source)) });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
     a.download = 'prepa-eopn-planning.ics';

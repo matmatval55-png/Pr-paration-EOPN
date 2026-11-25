@@ -9,7 +9,7 @@ const esc = (s) => String(s).replace(/[\;,]/g, (c) => '\\' + c).replace(/\n/g, '
  * plan : résultat de buildWeek ; from : Date (aujourd'hui) ; hour : 'HH:MM' ; weeks : nombre de semaines.
  * Un événement par jour de travail (somme des créneaux) + un événement par séance de sport.
  */
-export function buildICS(plan, { from = new Date(), hour = '18:00', weeks = 4, url = '' } = {}) {
+export function buildICS(plan, { from = new Date(), hour = '18:00', weeks = 4, url = '', recurring = plan.perDay } = {}) {
   const [h, m] = hour.split(':').map(Number);
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Prepa EOPN//Planning//FR', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:Prépa EOPN'];
   const now = stamp(new Date());
@@ -21,7 +21,8 @@ export function buildICS(plan, { from = new Date(), hour = '18:00', weeks = 4, u
   for (let i = 0; i < weeks * 7; i++) {
     const day = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i, h, m);
     const di = (day.getDay() + 6) % 7;
-    const blocks = plan.perDay[di];
+    const sameWeek = i < 7 - ((from.getDay() + 6) % 7);
+    const blocks = (sameWeek ? plan.perDay : recurring)[di];
     const total = blocks.reduce((a, b) => a + b.min, 0);
     if (total) {
       const desc = blocks.map((b) => `${MODS[b.mod].label} : ${b.min} min`).join('\n') + (url ? `\n\nOuvrir l’application : ${url}#/planning` : '');

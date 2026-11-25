@@ -20,8 +20,8 @@ register({
       kind: 'custom',
       prompt: `<b>${dur} secondes</b> : garde le doigt (ou la souris) sur la cible ◎, réponds aux calculs${lights ? ' et touche un voyant dès qu’il passe au <b style="color:var(--danger)">rouge</b>' : ''}.`,
       timeLimit: dur + 4,
-      explain: `<p>Score global = ${lights ? '40 % poursuite + 40 % calculs + 20 % voyants' : '50 % poursuite + 50 % calculs'}. Réussi à partir de 60 %.</p><p class="tip">Méthode : la poursuite est une tâche « de fond » ; garde la cible dans ta vision périphérique et jette un coup d’œil bref aux calculs. Ne t’acharne pas sur un calcul difficile : une réponse rapide vaut mieux qu’une poursuite perdue. C’est exactement ce qu’on attend d’un pilote : piloter d’abord, puis gérer le reste.</p>`,
-      mount(area, finish) {
+      explain: `<p>Score global = ${lights ? '40 % poursuite + 40 % calculs + 20 % voyants' : '50 % poursuite + 50 % calculs'}. Objectif interne : ${level === 3 ? '75 % au global et 65 % minimum par tâche' : '60 % au global et 40 % minimum par tâche'}. Les fausses alertes pénalisent la surveillance.</p><p class="tip">Méthode : la poursuite est une tâche « de fond » ; garde la cible dans ta vision périphérique et jette un coup d’œil bref aux calculs. Ne t’acharne pas sur un calcul difficile : une réponse rapide vaut mieux qu’une poursuite perdue. C’est exactement ce qu’on attend d’un pilote : piloter d’abord, puis gérer le reste.</p>`,
+      mount(area, finish, { mode } = {}) {
         const ui = el(`
           <div class="mt">
             <div class="mt-track"><div class="mt-target">◎</div><div class="mt-clock"></div></div>
@@ -55,6 +55,7 @@ register({
 
         let tx = 0.5, ty = 0.5, vx = 0.3, vy = 0.2, inside = 0, frames = 0;
         let calcOk = 0, calcN = 0, curAns = null;
+        let falseAlarms = 0;
         let lightOk = 0, lightN = 0, litIdx = -1, litT = 0;
         const t0 = performance.now();
         let last = t0, nextCalc = t0 + 800, nextLight = t0 + 4000 + rnd() * 3000;
@@ -78,7 +79,7 @@ register({
             bt.onclick = () => {
               if (curAns == null) return;
               if (v === curAns) calcOk++;
-              bt.classList.add(v === curAns ? 'right' : 'wrong');
+              if (mode !== 'exam') bt.classList.add(v === curAns ? 'right' : 'wrong');
               curAns = null;
               nextCalc = performance.now() + 500;
             };
@@ -96,7 +97,7 @@ register({
                 b.classList.remove('red');
                 litIdx = -1;
               } else {
-                lightOk = Math.max(0, lightOk - 0.5);
+                falseAlarms++;
                 b.classList.add('flash');
                 setTimeout(() => b.classList.remove('flash'), 200);
               }
@@ -153,12 +154,12 @@ register({
           cancelAnimationFrame(raf);
           const tr = frames ? inside / frames : 0;
           const ca = calcN ? calcOk / calcN : 0;
-          const li = lightN ? lightOk / lightN : 1;
+          const li = lightN ? Math.max(0, lightOk - 0.5 * falseAlarms) / lightN : 0;
           const score = lights ? 0.4 * tr + 0.4 * ca + 0.2 * li : 0.5 * tr + 0.5 * ca;
           ui.querySelectorAll('button').forEach((x) => (x.disabled = true));
           finish({
-            ok: score >= 0.6,
-            explainExtra: `<p>Poursuite : <b>${Math.round(tr * 100)} %</b> du temps sur la cible · Calculs : <b>${calcOk}/${calcN}</b>${lights ? ` · Voyants : <b>${Math.round(lightOk)}/${lightN}</b>` : ''}<br>Score global : <b>${Math.round(score * 100)} %</b></p>`,
+            ok: score >= (level === 3 ? 0.75 : 0.6) && tr >= (level === 3 ? 0.65 : 0.4) && ca >= (level === 3 ? 0.65 : 0.4) && (!lights || li >= (level === 3 ? 0.65 : 0.4)),
+            explainExtra: `<p>Poursuite : <b>${Math.round(tr * 100)} %</b> du temps sur la cible · Calculs : <b>${calcOk}/${calcN}</b>${lights ? ` · Voyants : <b>${lightOk}/${lightN}</b> · fausses alertes : ${falseAlarms}` : ''}<br>Score global : <b>${Math.round(score * 100)} %</b></p>`,
           });
         };
         return () => {

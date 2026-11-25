@@ -86,7 +86,7 @@ register({
           let good = 0, hits = 0, miss = 0, fa = 0;
           for (let k = n; k < total; k++) {
             const a = answers[k] === true;
-            if (a === target[k]) good++;
+            if (answers[k] === target[k]) good++;
             if (target[k] && a) hits++;
             if (target[k] && !a) miss++;
             if (!target[k] && a) fa++;

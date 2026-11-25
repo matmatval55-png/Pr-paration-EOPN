@@ -44,33 +44,44 @@ export function renderEntretien(root) {
 // Enregistrement audio de la réponse (pour se réécouter) — rien n'est envoyé ni conservé après la page.
 function recorder() {
   let rec = null, stream = null, chunks = [];
+  let request = 0;
   return {
     get supported() {
       return !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
     },
     async start() {
+      const id = ++request;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const acquired = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (id !== request) {
+          acquired.getTracks().forEach((track) => track.stop());
+          return false;
+        }
+        stream = acquired;
         chunks = [];
         rec = new MediaRecorder(stream);
-        rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+        const buffers = chunks;
+        rec.ondataavailable = (e) => e.data.size && buffers.push(e.data);
         rec.start();
         return true;
       } catch {
+        stream?.getTracks().forEach((track) => track.stop());
         return false;
       }
     },
     stop() {
       return new Promise((resolve) => {
         if (!rec || rec.state === 'inactive') return resolve(null);
-        rec.onstop = () => {
-          stream?.getTracks().forEach((t) => t.stop());
-          resolve(chunks.length ? new Blob(chunks, { type: rec.mimeType || 'audio/webm' }) : null);
+        const recording = rec, recordedStream = stream, buffers = chunks;
+        recording.onstop = () => {
+          recordedStream?.getTracks().forEach((track) => track.stop());
+          resolve(buffers.length ? new Blob(buffers, { type: recording.mimeType || 'audio/webm' }) : null);
         };
-        rec.stop();
+        recording.stop();
       });
     },
     kill() {
+      request++;
       try {
         rec?.state !== 'inactive' && rec?.stop();
       } catch {
@@ -84,7 +95,8 @@ function recorder() {
 export function renderSimulation(root) {
   let theme = 'all';
   let timers = [];
-  let recordOn = true;
+  let recordOn = false;
+  let phase = 0;
   const mic = recorder();
   let audioUrl = null;
   const clear = () => (timers.forEach(clearInterval), (timers = []));
@@ -93,7 +105,7 @@ export function renderSimulation(root) {
     <div>
       <a href="#/entretien" class="small">← Entretien</a>
       <h1>Simulation d’entretien</h1>
-            <label class="check mic-opt"><input type="checkbox" id="rec" checked> 🎙️ Enregistrer ma réponse pour me réécouter (reste sur le téléphone)</label>
+            <label class="check mic-opt"><input type="checkbox" id="rec"> 🎙️ Enregistrer ma réponse pour me réécouter (reste sur le téléphone)</label>
       <div class="field"><label for="theme">Thème</label><select id="theme"><option value="all">Tous les thèmes</option>${THEMES.map((t) => `<option>${esc(t)}</option>`).join('')}</select></div>
       <div class="sim"></div>
     </div>`);
@@ -104,6 +116,7 @@ export function renderSimulation(root) {
   else page.querySelector('#rec').onchange = (e) => (recordOn = e.target.checked);
 
   function intro() {
+    phase++;
     clear();
     mic.kill();
     evaluating = false;
@@ -127,10 +140,13 @@ export function renderSimulation(root) {
 
   function ask() {
     clear();
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    audioUrl = null;
     evaluating = false;
     const pool = QUESTIONS.filter((q) => theme === 'all' || q.theme === theme);
     const q = pool[Math.floor(Math.random() * pool.length)];
     const t0 = Date.now();
+    const activePhase = ++phase;
     sim.innerHTML = `
       <div class="card">
         <p class="small muted">${esc(q.theme)}</p>
@@ -149,6 +165,7 @@ export function renderSimulation(root) {
       btn.onclick = null;
       if (recordOn && mic.supported) {
         const ok = await mic.start();
+        if (activePhase !== phase) return;
         if (ok) sim.querySelector('.sim-clock').insertAdjacentHTML('afterend', '<p class="center small" style="color:var(--danger)">● Enregistrement en cours</p>');
       }
       btn.textContent = 'J’ai terminé';
@@ -167,19 +184,34 @@ export function renderSimulation(root) {
     if (evaluating) return;
     evaluating = true;
     clear();
+    const activePhase = phase;
     const blob = await mic.stop();
+    if (activePhase !== phase) return;
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     audioUrl = blob ? URL.createObjectURL(blob) : null;
     sim.innerHTML = `
       <div class="card">
         <h3>« ${esc(q.q)} »</h3>
         <p class="small muted">Durée totale : ${fmtClock(Date.now() - t0)}</p>
-        ${audioUrl ? `<h4>🎧 Réécoute ta réponse</h4><audio controls src="${audioUrl}" style="width:100%"></audio><p class="small muted">Repère les « euh », les silences, les phrases trop longues, le ton monotone. <a href="${audioUrl}" download="entretien-${new Date().toISOString().slice(0, 10)}.webm">Télécharger</a></p>` : ''}
+        ${audioUrl ? `<h4>🎧 Réécoute ta réponse</h4><audio controls src="${audioUrl}" style="width:100%"></audio><p class="small muted">Repère les « euh », les silences, les phrases trop longues, le ton monotone. <a href="${audioUrl}" download="entretien-${new Date().toISOString().slice(0, 10)}.${blob.type.includes('mp4') ? 'm4a' : 'webm'}">Télécharger</a></p>` : ''}
         <h4>Auto-évaluation</h4>
         ${CRITERES.map((c, i) => `<label class="check"><input type="checkbox" data-c="${i}"> ${esc(c)}</label>`).join('')}
         ${advice(q)}
         <div class="btn-row"><button class="btn primary" data-save>Enregistrer et question suivante</button></div>
       </div>`;
+    const probes = [
+      'Quel fait concret permettrait de vérifier ce que tu viens d’affirmer ?',
+      'Quelle autre décision avais-tu envisagée et pour quelle raison l’as-tu écartée ?',
+      'Que changerais-tu si tu devais revivre cette situation demain ?',
+    ];
+    const probe = el(`<details><summary>Question de relance (30 s)</summary><p>${esc(probes[qid(q) % probes.length])}</p><button type="button" class="btn" data-probe>Chronométrer ma réponse</button><p data-probe-clock aria-live="off"></p></details>`);
+    sim.querySelector('[data-save]').before(probe);
+    probe.querySelector('[data-probe]').onclick = () => {
+      clear();
+      const button = probe.querySelector('[data-probe]');
+      button.disabled = true;
+      countdown(30, 'Temps restant', () => { button.disabled = false; }, probe.querySelector('[data-probe-clock]'));
+    };
     sim.querySelector('[data-save]').onclick = () => {
       const score = sim.querySelectorAll('input[data-c]:checked').length;
       store.update((s) => {
@@ -196,6 +228,7 @@ export function renderSimulation(root) {
 
   intro();
   return () => {
+    phase++;
     clear();
     mic.kill();
     if (audioUrl) URL.revokeObjectURL(audioUrl);

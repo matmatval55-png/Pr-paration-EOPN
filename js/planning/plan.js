@@ -73,3 +73,36 @@ export function buildWeek({ hours = 6, days = [0, 1, 2, 3, 4, 5, 6], weeks = nul
   const sport = pref.map((p) => (d.includes(p) ? p : d[(pref.indexOf(p) * Math.ceil(d.length / 3)) % d.length]));
   return { phase, perDay, alloc, sport: [...new Set(sport)] };
 }
+
+// Seuls les créneaux effectivement affichés peuvent devenir des séances manquées.
+export function replanWeek(plan, { dates, today, snapshots = {}, done = {}, weak = [], cap = 60, selection = '' }) {
+  const perDay = plan.perDay.map((blocks) => blocks.map((block, i) =>
+    ({ ...block, key: `${block.mod}-${i}` })));
+  const completed = new Set(Object.values(done).flatMap((day) =>
+    Object.entries(day || {}).filter(([key, value]) => key.startsWith('r-') && value).map(([key]) => key)));
+  const work = [];
+  for (const [date, blocks] of Object.entries(snapshots)) {
+    const age = (Date.parse(today) - Date.parse(date)) / 86400000;
+    if (!(age > 0 && age <= 14) || !Array.isArray(blocks)) continue;
+    for (const block of blocks) {
+      if (block.source || !Object.hasOwn(MODS, block.mod) || done[date]?.[block.key]) continue;
+      for (let offset = 0; offset < Math.min(1800, block.min); offset += 30) {
+        const key = `r-${date}-${block.key}-${offset}`;
+        if (!completed.has(key)) work.push({ mod: block.mod, min: 30, key, source: date });
+      }
+    }
+  }
+  work.sort((a, b) => Number(weak.includes(b.mod)) - Number(weak.includes(a.mod)) || a.source.localeCompare(b.source));
+  dates.forEach((date, index) => {
+    const blocks = perDay[index];
+    if (date < today || (selection && date >= selection) || !blocks.length) return;
+    const existing = snapshots[date]?.find?.((item) => item.source && done[date]?.[item.key]);
+    if (existing) {
+      blocks.push(existing);
+      return;
+    }
+    const load = blocks.reduce((total, block) => total + block.min, 0);
+    if (load + 30 <= cap && work.length) blocks.push(work.shift());
+  });
+  return { ...plan, perDay, backlog: work.length };
+}

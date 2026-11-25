@@ -87,6 +87,10 @@ test('maîtrise : score et statut', () => {
   const id = 'psy.vor';
   for (let i = 0; i < 20; i++) updateMastery({ gen: id, level: levelFor(id), seed: i }, true);
   assert.equal(levelFor(id), getGen(id).levels);
+  assert.equal(status(id).id, 'learning');
+  for (let seed = 20; seed < 30; seed++) {
+    updateMastery({ gen: id, level: levelFor(id), seed }, true);
+  }
   assert.equal(status(id).id, 'master');
   assert.equal(masteryScore(id), 100);
 });

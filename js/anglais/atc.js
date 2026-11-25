@@ -107,7 +107,7 @@ register({
     const spoken = t.spoken.replace(/"/g, '');
     return {
       kind: 'mcq',
-      prompt: `<button type="button" class="btn primary block" data-speak="${spoken}" data-rate="${rate}">🔊 Écouter le message${level === 3 ? ' (rapide)' : ''}</button>
+      prompt: `<button type="button" class="btn primary block" data-speak="${spoken}" data-rate="${rate}">🔊 Écouter la voix synthétique${level === 3 ? ' (rapide)' : ''}</button>
         <details class="small" style="margin:8px 0"><summary>Afficher le texte (si pas de son)</summary>${t.text}</details>${t.q}`,
       choices,
       answer,

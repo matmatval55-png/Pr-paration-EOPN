@@ -53,12 +53,17 @@ for (const g of listGens()) {
 // Banques : la bonne réponse ne doit pas figurer parmi les distracteurs (sinon le QCM serait faux),
 // et chaque élément doit avoir au moins 2 distracteurs distincts.
 test('banques de questions bien formées', () => {
+  const visible = (html) => String(html).replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, ' ')
+    .normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
   for (const g of listGens().filter((x) => x.bank)) {
     const n = g.bankSize(0);
     for (let i = 0; i < n; i++) {
       const q = makeQuestion({ gen: g.id, level: 0, seed: i });
       assert.ok(q.choices.length >= 3, `${g.id} #${i} : pas assez de choix`);
-      assert.equal(new Set(q.choices).size, q.choices.length, `${g.id} #${i} : doublon dans les choix`);
+      const choices = q.choices.map(visible);
+      assert.equal(new Set(choices).size, choices.length, `${g.id} #${i} : doublon visible dans les choix`);
+      assert.ok(choices.every(Boolean), `${g.id} #${i} : choix vide`);
+      assert.ok(choices[q.answer] && visible(q.prompt) && visible(q.explain), `${g.id} #${i} : contenu manquant`);
     }
   }
 });

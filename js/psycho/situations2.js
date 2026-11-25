@@ -71,14 +71,14 @@ register({
 });
 
 /* ---------- 2. Aiguilles de navigation : CDI (VOR) et ILS ---------- */
-export function cdiSVG(dev, to = true) {
+export function cdiSVG(dev, to = true, animate = true) {
   // dev de -5 à +5 points ; aiguille à droite = route à droite
   const x = 100 + dev * 14;
   return `<svg viewBox="0 0 200 218" class="instr" aria-label="CDI">
     <circle cx="100" cy="100" r="96" fill="var(--instr-bg)" stroke="currentColor" stroke-width="4"/>
     ${[-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((d) => `<circle cx="${100 + d * 14}" cy="100" r="3" fill="currentColor" opacity="0.7"/>`).join('')}
     <circle cx="100" cy="100" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
-    <line x1="${x}" y1="30" x2="${x}" y2="170" stroke="var(--warn)" stroke-width="5" stroke-linecap="round"><animate attributeName="x1" values="100;${x}" dur="1.4s" fill="freeze"/><animate attributeName="x2" values="100;${x}" dur="1.4s" fill="freeze"/></line>
+    <line x1="${x}" y1="30" x2="${x}" y2="170" stroke="var(--warn)" stroke-width="5" stroke-linecap="round">${animate ? `<animate attributeName="x1" values="100;${x}" dur="1.4s" fill="freeze"/><animate attributeName="x2" values="100;${x}" dur="1.4s" fill="freeze"/>` : ''}</line>
     <text x="150" y="60" font-size="16" font-weight="800" fill="var(--ok)">${to ? 'TO ▲' : 'FROM ▼'}</text>
     <text x="100" y="213" text-anchor="middle" font-size="11" fill="currentColor">CDI (VOR)</text>
   </svg>`;

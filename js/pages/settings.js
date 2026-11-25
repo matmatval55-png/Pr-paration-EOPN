@@ -6,6 +6,12 @@ import { MODULES } from './modules.js';
 import { downloadBackup, reportsText, githubIssueUrl } from '../core/reports.js';
 import { esc } from '../core/ui.js';
 
+const PROFILE_FIELDS = [
+  ['age', 'Âge', 100], ['studies', 'Études en cours'], ['education', 'Formation précédente'],
+  ['english', 'Niveau d’anglais'], ['targetEnglish', 'Objectif en anglais'], ['goals', 'Objectifs de sélection'],
+  ['experience', 'Expérience et pratique'], ['dailyMinutes', 'Minutes disponibles par jour', 180],
+];
+
 let deferredPrompt = null;
 addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -14,6 +20,7 @@ addEventListener('beforeinstallprompt', (e) => {
 
 export function renderSettings(root) {
   const s = store.data.settings;
+  const profile = store.data.profile;
   root.innerHTML = '';
   const page = el(`
     <div>
@@ -22,10 +29,15 @@ export function renderSettings(root) {
       ${store.storageOk ? '' : '<div class="card" style="border-color:var(--danger)">⚠️ Le stockage local est indisponible (navigation privée ?). Tes progrès ne seront pas conservés : pense à exporter tes données.</div>'}
       <div class="card">
         <h3>Ma sélection</h3>
-        <div class="field"><label for="date">Date de la sélection (approximative)</label><input type="date" id="date" value="${s.selectionDate || ''}"></div>
-        <div class="field"><label for="hours">Heures disponibles par semaine</label><input type="number" id="hours" min="1" max="30" step="0.5" value="${s.hoursPerWeek}"></div>
+        <div class="field"><label for="date">Date de la sélection (approximative)</label><input type="date" id="date" value="${esc(s.selectionDate || '')}"></div>
+        <div class="field"><label for="hours">Heures disponibles par semaine</label><input type="number" id="hours" min="1" max="30" step="0.5" value="${esc(s.hoursPerWeek)}"></div>
         <div class="field"><label>Barème sportif</label><div class="seg" data-k="sex"><button data-v="H" class="${s.sex === 'H' ? 'on' : ''}">Hommes</button><button data-v="F" class="${s.sex === 'F' ? 'on' : ''}">Femmes</button></div></div>
       </div>
+      <form class="card" data-profile>
+        <h3>Profil de préparation</h3>
+        ${PROFILE_FIELDS.map(([key, label, max]) => `<div class="field"><label for="profile-${key}">${label}</label><input id="profile-${key}" name="${key}" ${max ? `type="number" min="1" max="${max}" required` : 'type="text" maxlength="160"'} value="${esc(profile[key] ?? '')}"></div>`).join('')}
+        <button class="btn" type="submit">Enregistrer le profil</button>
+      </form>
       <div class="card">
         <h3>Apparence</h3>
         <div class="seg" data-k="theme"><button data-v="auto" class="${s.theme === 'auto' ? 'on' : ''}">Auto</button><button data-v="light" class="${s.theme === 'light' ? 'on' : ''}">Clair</button><button data-v="dark" class="${s.theme === 'dark' ? 'on' : ''}">Sombre</button></div>
@@ -61,6 +73,16 @@ export function renderSettings(root) {
     </div>`);
   root.append(page);
 
+  page.querySelector('[data-profile]').onsubmit = (event) => {
+    event.preventDefault();
+    const values = new FormData(event.currentTarget);
+    store.update((d) => {
+      for (const [key, , max] of PROFILE_FIELDS) {
+        d.profile[key] = max ? Number(values.get(key)) : String(values.get(key)).trim();
+      }
+    });
+    toast('Profil enregistré');
+  };
   page.querySelector('#date').onchange = (e) => store.update((d) => (d.settings.selectionDate = e.target.value));
   page.querySelector('#hours').onchange = (e) => store.update((d) => (d.settings.hoursPerWeek = Math.max(1, Math.min(30, Number(e.target.value) || 6))));
   page.querySelectorAll('.seg[data-k]').forEach((sg) =>

@@ -3,7 +3,7 @@
 import { store } from './store.js';
 import { getGen } from './registry.js';
 
-const RECENT = 12; // nombre de dernières réponses prises en compte
+const RECENT = 30; // nombre de dernières réponses prises en compte
 const DAY = 86400000;
 
 const blank = () => ({ lvl: 1, best: 1, n: 0, ok: 0, last: 0, h: [], up: 0 });
@@ -76,10 +76,12 @@ export function status(genId) {
   const g = getGen(genId);
   const m = masteryOf(genId);
   const rate = recentRate(m);
+  const top = m.h.filter(([l]) => l === (g?.levels || 1));
+  const topRate = top.length ? top.filter(([,o]) => o).length / top.length : 0;
   if (!m.n) return { id: 'new', label: 'jamais fait', cls: '' };
-  if (m.n >= 8 && m.lvl >= (g?.levels || 1) && rate >= 0.8) {
+  if (top.length >= 20 && m.lvl >= (g?.levels || 1) && topRate >= 0.9) {
     const d = daysSince(m.last);
-    return d > 14 ? { id: 'rusty', label: 'maîtrisé, à entretenir', cls: 'warn' } : { id: 'master', label: 'maîtrisé', cls: 'ok' };
+    return d > 14 ? { id: 'rusty', label: 'maîtrisé, à entretenir', cls: 'warn' } : { id: 'master', label: 'maîtrisé (objectif interne)', cls: 'ok' };
   }
   if (m.n >= 4 && rate < 0.6) return { id: 'weak', label: 'fragile', cls: 'ko' };
   return { id: 'learning', label: 'en progression', cls: '' };

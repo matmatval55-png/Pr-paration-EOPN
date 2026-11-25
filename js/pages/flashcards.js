@@ -1,3 +1,4 @@
+import { CARD_SUBJECTS, addPersonalCard, personalDecks } from '../core/personal-cards.js';
 // Flashcards avec répétition espacée (boîtes de Leitner) — module anglais.
 import { DECKS } from '../anglais/index.js';
 import { store } from '../core/store.js';
@@ -24,18 +25,47 @@ export function deckStats(deck) {
 }
 
 export function renderFlashList(root) {
+  const decks = [...DECKS, ...personalDecks()];
   root.innerHTML = `
     <a href="#/anglais" class="small">← Anglais</a>
     <h1>Flashcards</h1>
     <p class="muted">Retourne la carte, puis dis honnêtement si tu savais. Les cartes connues reviennent de plus en plus rarement (1, 3, 7, 14, 30 jours), les autres reviennent tout de suite.</p>
-    <div class="list">${DECKS.map((d) => {
+    <form class="card" data-card-form>
+      <h2>Créer une carte</h2>
+      <div class="field"><label for="card-module">Matière</label><select id="card-module" name="module">${Object.entries(CARD_SUBJECTS).map(([id, name]) => `<option value="${id}">${esc(name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="card-front">Recto</label><textarea id="card-front" name="front" maxlength="2000" required></textarea></div>
+      <div class="field"><label for="card-back">Verso</label><textarea id="card-back" name="back" maxlength="2000" required></textarea></div>
+      <button class="btn primary">Enregistrer la carte</button><p data-card-status role="status"></p>
+    </form>
+    <div class="field"><label for="deck-search">Rechercher une carte ou un paquet</label><input type="search" id="deck-search"></div>
+    <div class="list">${decks.map((d) => {
       const s = deckStats(d);
-      return `<a class="row-link" href="#/flashcards/${d.id}"><span class="grow"><span class="title">${esc(d.title)}</span><br><span class="sub">${s.total} cartes · ${s.learned} maîtrisées · ${s.fresh} nouvelles</span></span>${s.due ? `<span class="badge warn">${s.due} à revoir</span>` : ''}<span class="chev">›</span></a>`;
+      return `<a class="row-link" data-deck="${esc(d.id)}" href="#/flashcards/${d.id}"><span class="grow"><span class="title">${esc(d.title)}</span><br><span class="sub">${s.total} cartes · ${s.learned} maîtrisées · ${s.fresh} nouvelles</span></span>${s.due ? `<span class="badge warn">${s.due} à revoir</span>` : ''}<span class="chev">›</span></a>`;
     }).join('')}</div>`;
+  const form = root.querySelector('[data-card-form]');
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    if (!addPersonalCard(data.get('module'), data.get('front'), data.get('back'))) {
+      form.querySelector('[data-card-status]').textContent = 'Carte vide, trop longue ou déjà enregistrée.';
+      return;
+    }
+    renderFlashList(root);
+    root.querySelector('[data-card-status]').textContent = 'Carte enregistrée.';
+  };
+  const search = root.querySelector('#deck-search');
+  search.oninput = () => {
+    const query = search.value.trim().toLocaleLowerCase();
+    root.querySelectorAll('[data-deck]').forEach((link, i) => {
+      const deck = decks[i];
+      link.hidden = !deck.title.toLocaleLowerCase().includes(query) &&
+        !deck.cards.some((sides) => sides.some((side) => side.toLocaleLowerCase().includes(query)));
+    });
+  };
 }
 
 export function renderFlashDeck(root, id) {
-  const deck = DECKS.find((d) => d.id === id);
+  const deck = [...DECKS, ...personalDecks()].find((d) => d.id === id);
   if (!deck) return renderFlashList(root);
   const now = Date.now();
   const idx = deck.cards.map((_, i) => i);

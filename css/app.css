@@ -573,3 +573,20 @@ details.card[open] > summary::after { content: '–'; }
 .ver-badge { display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; padding: 3px 7px; border: 1px solid var(--line); border-radius: 99px; font-size: 0.68rem; font-weight: 600; color: var(--muted); text-decoration: none; font-variant-numeric: tabular-nums; }
 .ver-badge svg { display: block; }
 .topbar .brand { white-space: nowrap; min-width: 0; }
+
+
+.update-notice {
+  display: block;
+  margin: 12px auto 0;
+  max-width: calc(100% - 32px);
+}
+.in-quiz .update-notice { display: none; }
+
+.navlab-instruments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.navlab-instruments svg { width: 100%; display: block; }
+
+@media (min-width: 640px) { .navlab-instruments { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

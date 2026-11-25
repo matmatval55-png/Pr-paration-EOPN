@@ -3,13 +3,13 @@ import { buildSession, advice, trend, COACH_MODULES, candidates } from '../core/
 import { masteryOf, masteryScore, status, recentRate, daysSince, levelFor } from '../core/mastery.js';
 import { runQuiz, summaryHTML } from '../core/quiz.js';
 import { listGens, getGen } from '../core/registry.js';
-import { genSummary } from '../core/stats.js';
+import { genSummary, responseDiagnostics } from '../core/stats.js';
 import { store } from '../core/store.js';
 import { lineChart } from '../core/charts.js';
 import { el, esc, pct, fmtMs } from '../core/ui.js';
 import { SECTIONS } from '../cours/index.js';
 
-const LVL = ['', 'Facile', 'Moyen', 'Difficile'];
+const LVL = ['', 'Facile', 'Moyen', 'Difficile', 'Expert', 'Haute intensité'];
 
 // Fiche de cours associée à un exercice (lien « relire le cours »).
 export function ficheFor(genId) {
@@ -28,16 +28,20 @@ const lvlBadge = (genId) => {
 };
 
 export function renderCoach(root, module = null) {
-  const state = { minutes: store.data.settings.coachMinutes || 15, module: module || 'all', reviews: store.data.settings.coachReviews ? '1' : '0' };
+  const durations = [15, 30, 45, 60, 90];
+  const targetMinutes = store.data.profile.dailyMinutes;
+  const defaultDuration = durations.filter((minute) => minute <= targetMinutes).at(-1) || durations[0];
+  const savedMinutes = store.data.settings.coachMinutes;
+  const state = { minutes: durations.includes(savedMinutes) ? savedMinutes : defaultDuration, module: module || 'all', reviews: store.data.settings.coachReviews === false ? '0' : '1' };
   let plan = null;
   const draw = () => {
     plan = buildSession({ minutes: Number(state.minutes), module: state.module === 'all' ? null : state.module, reviews: state.reviews === '1' });
     root.innerHTML = '';
     const page = el(`<div>
       <h1>🧭 Séance coach</h1>
-      <p class="muted">Une séance construite à partir de <b>tes résultats</b>, uniquement avec des <b>questions que tu n’as jamais eues</b> : tes points faibles, ce que tu n’as pas travaillé depuis longtemps, chacun à <b>ton niveau</b> actuel. Le niveau monte après 4 bonnes réponses sur 5 et baisse après 2 erreurs d’affilée, et il est mémorisé d’une séance à l’autre.</p>
+      <p class="muted">Le coach choisit des exercices selon les résultats au niveau travaillé, les dépassements mesurés et la date de la dernière pratique. Les révisions sont comptées séparément.</p>
       <div class="card">
-        <div class="field"><label>Durée</label>${seg('minutes', [[10, '10 min'], [15, '15 min'], [25, '25 min'], [40, '40 min']], state.minutes)}</div>
+        <div class="field"><label>Durée</label>${seg('minutes', durations.map((minutes) => [minutes, `${minutes} min`]), state.minutes)}</div>
         <div class="field"><label>Matière</label>${seg('module', [['all', 'Tout'], ...Object.keys(COACH_MODULES).map((k) => [k, { psycho: 'Psycho', maths: 'Maths', physique: 'Physique', anglais: 'Anglais', culture: 'Culture' }[k]])], state.module)}</div>
         <div class="field"><label>Mes erreurs à revoir</label>${seg('reviews', [['0', 'Non (que du neuf)'], ['1', 'Les inclure']], state.reviews)}<p class="small muted">Les erreurs à revoir sont volontairement les mêmes questions que celles que tu as ratées.</p></div>
       </div>
@@ -74,12 +78,14 @@ export function renderCoach(root, module = null) {
     runQuiz(root, {
       title: 'Séance coach',
       total: p.items.length,
+      totalTime: Number(state.minutes) * 60,
+      isReview: (i) => p.items[i]?.review === true,
       mode: 'train',
       next: (i) => p.items[i]?.spec || null,
       onFinish(history) {
         document.body.classList.remove('in-quiz');
         root.innerHTML = '';
-        root.append(el(`<div>${summaryHTML(history, { title: 'Bilan de la séance' })}${evolutionHTML(before, history)}<a class="btn primary block" href="#/coach">Nouvelle séance</a><a class="btn block" href="#/suivi" style="margin-top:8px">📈 Mon suivi</a></div>`));
+        root.append(el(`<div>${summaryHTML(history, { title: 'Bilan de la séance' })}${evolutionHTML(before, history.filter((_, i) => !p.items[i]?.review))}<a class="btn primary block" href="#/coach">Nouvelle séance</a><a class="btn block" href="#/suivi" style="margin-top:8px">📈 Mon suivi</a></div>`));
       },
       onQuit() {
         document.body.classList.remove('in-quiz');
@@ -117,7 +123,7 @@ export function renderSuivi(root) {
   const adv = advice();
   const exams = store.data.exams || [];
   const byExam = {};
-  for (const e of exams) (byExam[e.id || e.title] ||= []).push(e);
+  for (const e of exams) (byExam[`${e.id || e.title}|${e.level}`] ||= []).push(e);
   const modScore = (m) => {
     const gs = listGens(m).filter((g) => !g.noSrs);
     return gs.length ? Math.round(gs.reduce((a, g) => a + masteryScore(g.id), 0) / gs.length) : 0;
@@ -129,7 +135,7 @@ export function renderSuivi(root) {
   };
   root.innerHTML = `
     <h1>📈 Mon suivi</h1>
-    <p class="muted">Ta maîtrise exercice par exercice : niveau atteint, réussite récente, évolution sur 7 jours. Tout est calculé à partir de tes réponses, sur ton téléphone.</p>
+    <p class="muted">Ta maîtrise exercice par exercice : niveau atteint, réussite récente, évolution sur 7, 30 et 90 jours. Tout est calculé à partir de tes réponses, sur ton téléphone.</p>
     <a class="row-link" href="#/coach" style="border-color:var(--accent)"><span style="font-size:1.4rem">🧭</span><span class="grow"><span class="title">Lancer une séance coach</span><br><span class="sub">Exercices choisis selon ces résultats</span></span><span class="chev">›</span></a>
     ${adv.length ? `<div class="card"><h3>💡 Conseils du coach</h3><div class="list">${adv.map((a) => `<a class="row-link" href="${a.href}"><span>${a.ico}</span><span class="grow small">${esc(a.txt)}</span><span class="chev">›</span></a>`).join('')}</div></div>` : ''}
     <div class="card"><h3>Maîtrise par matière</h3>${mods
@@ -140,7 +146,7 @@ export function renderSuivi(root) {
       })
       .join('')}</div>
     ${Object.keys(byExam).length ? `<div class="card"><h3>Examens blancs : évolution</h3>${Object.values(byExam)
-      .map((list) => lineChart(list.slice(-10).map((e) => ({ d: new Date(e.ts).toISOString().slice(0, 10), v: Math.round((e.ok / e.n) * 100) })), 100, `${list[0].title} (%)`))
+      .map((list) => lineChart(list.slice(-10).map((e) => ({ d: new Date(e.ts).toISOString().slice(0, 10), v: Math.round((e.ok / e.n) * 100) })), 100, `${list[0].title} · niveau ${list[0].level} (%)`))
       .join('')}</div>` : ''}
     ${mods
       .map(
@@ -151,12 +157,15 @@ export function renderSuivi(root) {
             const st = status(g.id);
             const s = genSummary(g.id, 30);
             const d = daysSince(mm.last);
-            return `<a class="row-link mitem" href="#/train/${g.id}"><span class="grow"><span class="title">${esc(g.title)}</span> ${lvlBadge(g.id)} <span class="badge ${st.cls}">${st.label}</span>${bar(masteryScore(g.id))}<span class="sub">${mm.n ? `récent ${pct(recentRate(mm))} · ${s.n} rép./30 j · ${fmtMs(s.avgMs)}/q · ${d === 0 ? 'aujourd’hui' : `il y a ${d} j`}` : 'jamais fait'} ${trendTxt(trend(g.id))}</span></span><span class="chev">›</span></a>`;
+            const sample = responseDiagnostics(g.id);
+            const trends = [7, 30, 90].map((days) => `${days} j ${trendTxt(trend(g.id, days)) || '—'}`).join(' · ');
+            const timing = sample.n ? `Médiane ${fmtMs(sample.medianMs)} · ${sample.wrong} erreurs · ${sample.timeouts} hors délai sur ${sample.n} mesures` : 'Chronométrage détaillé à partir des prochaines réponses';
+            return `<a class="row-link mitem" href="#/train/${g.id}"><span class="grow"><span class="title">${esc(g.title)}</span> ${lvlBadge(g.id)} <span class="badge ${st.cls}">${st.label}</span>${bar(masteryScore(g.id))}<span class="sub">${mm.n ? `récent ${pct(recentRate(mm))} · ${s.n} rép./30 j · ${fmtMs(s.avgMs)}/q · ${d === 0 ? 'aujourd’hui' : `il y a ${d} j`}` : 'jamais fait'}</span>${mm.n ? `<br><span class="sub">${timing}</span><br><span class="sub">${trends}${s.n < 20 ? ' · échantillon insuffisant (moins de 20 réponses sur 30 j)' : ''}</span>` : ''}</span><span class="chev">›</span></a>`;
           })
           .join('')}</div></details>`,
       )
       .join('')}
-    <div class="card small muted"><b>Comment c’est calculé ?</b> Le score de maîtrise combine le niveau atteint (facile → difficile) et la réussite sur les 12 dernières réponses. « Fragile » = moins de 60 % de réussite récente. « Maîtrisé » = niveau maximal avec au moins 80 % de réussite ; au-delà de 14 jours sans pratique, il passe « à entretenir ». La tendance compare les 7 derniers jours aux 7 précédents.</div>`;
+    <div class="card small muted"><b>Comment c’est calculé ?</b> Le score de maîtrise combine le niveau atteint (facile → difficile) et la réussite sur les 30 dernières réponses. « Fragile » = moins de 60 % de réussite récente. « Maîtrisé » = au moins 20 réponses récentes au niveau maximal avec 90 % de réussite (objectif interne, non officiel) ; au-delà de 14 jours sans pratique, il passe « à entretenir ». Chaque tendance compare deux périodes consécutives de même durée. La médiane exclut les dépassements de temps et utilise au plus les 120 dernières réponses mesurées.</div>`;
 }
 
 // Bloc d'accueil : aperçu de la prochaine séance coach.

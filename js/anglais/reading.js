@@ -79,10 +79,29 @@ const TEXTS = [
   },
 ];
 
-export const READING = TEXTS.flatMap((t) =>
+const ADVANCED = [
+  {
+    title: 'When a better measure changes the decision',
+    text: `A regional flight school introduced a dashboard to flag students who might need additional practice. The original tool displayed a single figure: the proportion of successful manoeuvres recorded over the previous month. An instructor, Mira, was initially impressed by the clarity of the display. It was only when she compared the number with her own notes that she noticed how much it concealed.<br><br>
+    One student, Robin, had attempted ten exercises. The first six were performed on familiar equipment in calm conditions. The remaining four were on a different simulator, with deliberately unfamiliar displays. Robin completed all six familiar exercises and none of the unfamiliar ones. Another student, Salim, completed six of ten exercises on unfamiliar equipment. Their percentages were identical, yet Mira argued that it would be misleading to prescribe the same training to both. Robin’s next session would need to distinguish between difficulty reading the displays and difficulty performing the manoeuvre. Salim could already work with the displays, but his instructor wanted to check whether his mistakes clustered around a particular phase.<br><br>
+    The director initially proposed excluding unfamiliar exercises to make comparison fairer. Mira agreed that comparisons should be made under similar conditions, but excluding the unfamiliar sessions entirely would hide precisely the question the school wanted to answer: whether skills carried over to a new setting. Eventually the dashboard kept the overall figure, displayed the number of observations beside each result, and separated performance by setting. Instructors were asked to choose the next exercise based on the remaining uncertainty as well as the recorded errors. The wider lesson was that prediction and diagnosis are different jobs. Even a number good enough to predict average performance across a large class may tell an instructor very little about what one student should do tomorrow.`,
+    qs: [
+      { q: 'What prompted Mira to reconsider the dashboard?', a: 'Contrasting the aggregate figure with the conditions recorded in her notes', d: ['Discovering that the percentages had been calculated incorrectly', 'Learning that some instructors had ignored the dashboard', 'Finding that the familiar exercises were absent from the dashboard'], e: 'The figures are arithmetically correct. The notes expose a difference in the conditions behind the same result.' },
+      { q: 'What should Mira test first with Robin?', a: 'Whether the displays themselves explain the drop in performance', d: ['Whether Robin can replicate Salim’s score on familiar equipment', 'Whether an extra month of identical exercises improves the dashboard average', 'Whether Robin can finish all manoeuvres faster on the original simulator'], e: 'The text says the next session should isolate display reading from execution of the manoeuvre.' },
+      { q: 'Why was the director’s proposal insufficient?', a: 'It removed the very observations needed to assess transfer to unfamiliar equipment', d: ['It made the school’s scores harder to compare across familiar equipment', 'It would have required more simulator time for all students', 'It assumed an unfamiliar setup would improve a student’s score'], e: 'Comparable settings matter, but transfer is itself a separate question that requires data from unfamiliar settings.' },
+      { q: 'What is the most defensible inference from the revised dashboard?', a: 'The same error rate can justify different follow-up exercises', d: ['An overall score becomes useless once conditions are recorded', 'The smallest group of observations should guide every decision', 'A reliable prediction for a class identifies each student’s specific weakness'], e: 'The revision retains the overall score while giving instructors the evidence to choose different next tasks.' },
+      { q: 'In this context, “whether skills carried over” means:', a: 'whether abilities remained useful when the setting changed', d: ['whether previously recorded scores were copied into the new dashboard', 'whether students retained the same instructor', 'whether previously failed exercises were omitted from the records'], e: 'Carry over means transfer from a familiar environment to a different one.' },
+    ],
+  },
+];
+
+const toItems = (texts) => texts.flatMap((t) =>
   t.qs.map((q) => ({
     ...q,
     t: 90,
     ctx: `<b>${t.title}</b><br>${t.text}`,
   })),
 );
+
+export const READING = toItems(TEXTS);
+export const READING_ADVANCED = toItems(ADVANCED);

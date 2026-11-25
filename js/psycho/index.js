@@ -19,7 +19,37 @@ export const GROUPS = ['Suites logiques', 'Raisonnement verbal', 'Raisonnement s
 
 // Formats d'examen blanc. ⚠️ Ce sont des SIMULATIONS : la durée et le nombre exacts de
 // questions des épreuves officielles ne sont pas publiés (voir docs/selection-eopn.md).
+// Les mêmes quotas par générateur s'appliquent à chaque passage d'un format.
+const diagnosticSections = [
+  { title: 'Logique et spatial', gens: ['psy.suites-nombres', 'psy.matrices', 'psy.rotations', 'psy.cubes'], count: 12, time: 10 * 60 },
+  { title: 'Calcul et attention', gens: ['psy.calcul', 'psy.problemes', 'psy.codage', 'psy.comptage'], count: 12, time: 10 * 60 },
+  { title: 'Instruments et orientation', gens: ['psy.instruments', 'psy.horizon', 'psy.caps', 'psy.vent'], count: 12, time: 10 * 60 },
+];
+
+const timedFormats = [
+  { id: 'diagnostic-initial', title: 'Diagnostic initial (30 min)', multiplier: 1 },
+  { id: 'express-30', title: 'Examen express (30 min)', multiplier: 1 },
+  { id: 'intermediaire-60', title: 'Examen intermédiaire (60 min)', multiplier: 2 },
+  { id: 'approfondi-90', title: 'Examen approfondi (90 min)', multiplier: 3 },
+  { id: 'simulation-120', title: 'Simulation longue (120 min)', multiplier: 4 },
+].map(({ id, title, multiplier }) => ({
+  id, title, fixedComposition: true,
+  desc: 'Simulation non officielle en trois blocs : logique et spatial, calcul et attention, instruments et orientation.',
+  sections: diagnosticSections.map((section) => ({
+    ...section, count: section.count * multiplier, time: section.time * multiplier,
+  })),
+}));
+
 export const EXAMS = [
+  ...timedFormats,
+  {
+    id: 'instruments-intensif',
+    title: 'Instruments et orientation · haute difficulté',
+    desc: 'Simulation non officielle : lecture instrumentale et orientation, au niveau maximal des exercices.',
+    fixedComposition: true,
+    fixedLevel: 3,
+    sections: [{ ...diagnosticSections[2], count: 16, time: 12 * 60 }],
+  },
   {
     id: 'tamic',
     title: 'Batterie type TAMI-C',

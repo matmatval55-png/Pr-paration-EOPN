@@ -51,6 +51,18 @@ const mental = {
   ],
   3: [
     (r) => {
+      const a = r.int(12, 39), b = r.int(11, 25), c = r.int(30, 180);
+      return { q: `${a} × ${b} − ${c}`, a: a*b-c, ex: `Priorité à la multiplication : ${a} × ${b} = ${a*b}, puis − ${c} = ${a*b-c}.` };
+    },
+    (r) => {
+      const a = 20 * r.int(5, 45), p = r.pick([15, 35, 45, 65, 85]);
+      return { q: `${p} % de ${a}`, a: a*p/100, ex: `5 % de ${a} = ${a/20}. Multiplier par ${p/5} donne ${a*p/100}.` };
+    },
+    (r) => {
+      const a = r.int(12, 45), b = r.int(3, 9), c = r.int(11, 40);
+      return { q: `(${a} + ${c}) × ${b}`, a: (a+c)*b, ex: `Parenthèses : ${a+c}, puis × ${b} = ${(a+c)*b}.` };
+    },
+    (r) => {
       const a = r.int(12, 49), b = r.int(11, 29);
       const d = b - (b % 10);
       return { q: `${a} × ${b}`, a: a * b, ex: `${a} × ${b} = ${a} × ${d} + ${a} × ${b % 10} = ${a * d} + ${a * (b % 10)} = ${a * b}.` };
@@ -64,7 +76,7 @@ const mental = {
       return { q: `${num}/${d} de ${b}`, a: (num * b) / d, ex: `${b} ÷ ${d} = ${b / d}, puis × ${num} = ${(num * b) / d}.` };
     },
     (r) => {
-      const a = r.int(150, 990), b = r.int(160, a);
+      const a = r.int(160, 990), b = r.int(160, a);
       return { q: `${a} − ${b}`, a: a - b, ex: `Complément : de ${b} à ${Math.ceil(b / 100) * 100} il y a ${Math.ceil(b / 100) * 100 - b}, puis jusqu’à ${a} : ${a - Math.ceil(b / 100) * 100}. Total ${a - b}.` };
     },
     (r) => {
@@ -76,6 +88,45 @@ const mental = {
       return { q: `${b * c} ÷ ${b}`, a: c, ex: `Estime d’abord : ${b} × 10 = ${b * 10}, donc le résultat est ${c >= 10 ? 'supérieur ou égal à' : 'inférieur à'} 10. Puis vérifie : ${b} × ${c} = ${b * c} → réponse ${c}.` };
     },
   ],
+  4: [
+    (r) => {
+      const a = r.int(4, 24), b = r.int(2, 12), p = r.pick([15, 25, 35, 45]);
+      const subtotal = 20 * (a + b);
+      return { q: `(${20 * a} + ${20 * b}) × (1 − ${p}/100)`, a: subtotal * (100 - p) / 100,
+        ex: `Additionne d’abord : ${subtotal}. Calcule 5 % en divisant par 20, multiplie cette part par ${p / 5}, puis retranche-la du total.` };
+    },
+    (r) => {
+      const a = r.int(22, 48), b = r.int(8, 19);
+      return { q: `${a}² − ${b}²`, a: (a - b) * (a + b),
+        ex: `Différence de carrés : calcule la différence ${a - b} et la somme ${a + b}, puis multiplie. Résultat : ${(a - b) * (a + b)}.` };
+    },
+    (r) => {
+      const units = r.int(7, 28), rate = r.int(3, 17), minutes = r.pick([12, 18, 24, 36, 42, 48]);
+      const remaining = units + rate * (60 - minutes) / 6;
+      return { q: `Réservoir de ${units + 10 * rate} L. À ${10 * rate} L/h, combien de litres restent après ${minutes} min ?`, a: remaining,
+        ex: `Un dixième d’heure vaut 6 min. L’appareil consomme ${rate} L chaque 6 min. Retire ${minutes / 6} × ${rate} L de la quantité initiale : ${remaining} L.` };
+    },
+  ],
+  5: [
+    (r) => {
+      const a = r.int(12, 34), b = r.int(5, 22), c = r.int(2, 9);
+      const starting = 40 * a;
+      const final = (starting - 20 * b) * 3 / 4 + 15 * c;
+      return { q: `3/4 de (${starting} − ${20 * b}) + ${c} × 15`, a: final,
+        ex: `La différence est un multiple de 20. Divise-la par 4 avant de multiplier par 3. Ajoute ensuite ${c} × (10 + 5). Total : ${final}.` };
+    },
+    (r) => {
+      const a = r.int(6, 22), b = r.int(4, 19), c = r.int(3, 14);
+      const first = 10 * a, second = 15 * b;
+      return { q: `À ${first} kt pendant 18 min puis ${second} kt pendant 16 min, combien de NM au total si l’on ajoute un segment de ${c} NM ?`, a: 3 * a + 4 * b + c,
+        ex: `18/60 = 3/10 et 16/60 = 4/15. Simplifie avant de multiplier : ${3 * a} NM puis ${4 * b} NM. Ajoute ${c} NM.` };
+    },
+    (r) => {
+      const a = r.int(13, 39), b = r.int(3, 12), c = r.int(2, 8);
+      return { q: `√${a ** 2} × ${b} + ${c}³ − ${b}²`, a: a * b + c ** 3 - b ** 2,
+        ex: `La racine vaut ${a}. Regroupe la multiplication et le carré : ${b} × (${a} − ${b}) = ${b * (a - b)}. Ajoute ${c}³ = ${c ** 3}.` };
+    },
+  ],
 };
 
 register({
@@ -83,15 +134,16 @@ register({
   module: M,
   group: 'Calcul',
   title: 'Calcul mental',
+  levels: 5,
   desc: 'Opérations rapides avec le pavé numérique.',
   make(level, r) {
     const t = r.pick(mental[level])(r);
     return {
       kind: 'num',
-      prompt: `<div class="big-calc">${t.q} = ?</div>`,
+      prompt: `<div class="big-calc">${t.q}${t.q.endsWith('?') ? '' : ' = ?'}</div>`,
       answer: t.a,
       explain: `<p>${t.ex}</p>`,
-      timeLimit: level === 1 ? 12 : level === 2 ? 18 : 25,
+      timeLimit: [0, 12, 15, 20, 35, 45][level],
     };
   },
 });

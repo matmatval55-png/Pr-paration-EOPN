@@ -1,16 +1,15 @@
 // Révision espacée (système de Leitner) : une question ratée revient le lendemain,
 // puis à intervalles croissants à chaque réussite. Une nouvelle erreur la renvoie en boîte 0.
 import { store } from './store.js';
+import { mistakeKey } from './mistakes.js';
 import { getGen } from './registry.js';
 
 const INTERVALS = [1, 3, 7, 14, 30]; // jours
 const DAY = 86400000;
 
-const keyOf = (spec) => `${spec.gen}|${spec.level}|${spec.seed}`;
-
 export function onAnswer(spec, ok, fromReview = false) {
   if (!spec || !getGen(spec.gen) || getGen(spec.gen).noSrs) return;
-  const k = keyOf(spec);
+  const k = mistakeKey(spec);
   store.update((s) => {
     const item = s.srs[k];
     if (!ok) {

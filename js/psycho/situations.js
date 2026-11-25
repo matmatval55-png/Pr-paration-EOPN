@@ -2,6 +2,7 @@
 // dans l'esprit des entraîneurs IFR. Les dessins sont exportés pour les fiches animées.
 import { register } from '../core/registry.js';
 import { buildChoices } from '../core/rng.js';
+import { n } from '../core/fmt.js';
 import { headingSVG } from './instruments.js';
 
 const M = 'psycho', G = 'Conscience de la situation';
@@ -14,13 +15,13 @@ const dirName = (deg) => DIRS[Math.round(n360(deg) / 45) % 8];
 const PLANE = (fill = 'var(--warn)') => `<path d="M0,-14 L3,-4 L13,2 L13,5 L3,2 L2,9 L6,12 L6,14 L0,12 L-6,14 L-6,12 L-2,9 L-3,2 L-13,5 L-13,2 L-3,-4 Z" fill="${fill}" stroke="#000" stroke-width="0.6"/>`;
 
 /* ---------- 1. RMI / radiales VOR ---------- */
-export function rmiSVG(heading, bearingTo) {
+export function rmiSVG(heading, bearingTo, animate = true) {
   // carte tournante (cap) + aiguille vers la station (relèvement magnétique absolu)
   const needle = `<g transform="rotate(${bearingTo - heading} 100 100)">
       <line x1="100" y1="165" x2="100" y2="40" stroke="var(--ok)" stroke-width="5" stroke-linecap="round"/>
       <polygon points="100,26 91,46 109,46" fill="var(--ok)"/>
       <line x1="94" y1="170" x2="106" y2="170" stroke="var(--ok)" stroke-width="5"/>
-      <animateTransform attributeName="transform" type="rotate" from="${bearingTo - heading - 40} 100 100" to="${bearingTo - heading} 100 100" dur="1.6s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/>
+      ${animate ? `<animateTransform attributeName="transform" type="rotate" from="${bearingTo - heading - 40} 100 100" to="${bearingTo - heading} 100 100" dur="1.6s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/>` : ''}
     </g>`;
   return headingSVG(heading).replace('</svg>', `${needle}<circle cx="100" cy="100" r="5" fill="var(--ok)"/></svg>`);
 }
@@ -49,10 +50,10 @@ register({
     const bearingTo = n360(radial + 180); // QDM
     const heading = level === 1 ? r.int(0, 11) * 30 : r.int(0, 35) * 10;
     const ask = level === 1 ? 'pos' : r.pick(['radial', 'radial', 'pos', 'qdm']);
-    const ex = `<p>L’aiguille du RMI pointe <b>vers la balise</b> : sa tête indique le relèvement à suivre pour y aller (QDM = ${cap3(bearingTo)}). La <b>queue</b> de l’aiguille indique la <b>radiale</b> sur laquelle tu te trouves (QDR = QDM ± 180 = <b>${cap3(radial)}</b>).</p><p>Radiale ${cap3(radial)} = tu es au <b>${dirName(radial)}</b> de la balise.</p>${radialMap(radial, heading)}<p class="tip">Ton cap ne change pas ta position : un avion peut être sur la radiale 090 avec n’importe quel cap. Regarde toujours l’aiguille, pas l’avion.</p>`;
+    const ex = `<p>L’aiguille du RMI pointe <b>vers la balise</b> : sa tête indique le relèvement de la balise, qui donne le cap direct en l’absence de vent (QDM = ${cap3(bearingTo)}). La <b>queue</b> de l’aiguille indique la <b>radiale</b> sur laquelle tu te trouves (QDR = QDM ± 180 = <b>${cap3(radial)}</b>).</p><p>Radiale ${cap3(radial)} = tu es au <b>${dirName(radial)}</b> de la balise.</p>${radialMap(radial, heading)}<p class="tip">Ton cap ne change pas ta position : un avion peut être sur la radiale 090 avec n’importe quel cap. Regarde toujours l’aiguille, pas l’avion.</p>`;
     let prompt, correct, distract;
     if (ask === 'pos') {
-      prompt = 'Où te trouves-tu par rapport à la balise ?';
+      prompt = 'Dans quel secteur de la rose à huit directions te trouves-tu par rapport à la balise ?';
       correct = `Au ${dirName(radial)}`;
       distract = [`Au ${dirName(radial + 180)}`, `Au ${dirName(radial + 90)}`, `Au ${dirName(radial - 90)}`, `Au ${dirName(radial + 45)}`];
     } else if (ask === 'radial') {
@@ -132,27 +133,40 @@ register({
     }
     // dérive : route nord, vent de travers
     const crossFrom = r.pick([270, 90, 240, 300, 60, 120]);
-    const fromLeft = n360(crossFrom) > 180;
-    const corr = r.pick([5, 8, 10]);
+    const fromLeft = crossFrom > 180;
+    const tas = 120;
+    const crossFactor = Math.sin(crossFrom * Math.PI / 180);
+    const targetCorrection = r.pick([5, 8, 10]);
+    const wind = Math.round(tas * Math.sin(targetCorrection * Math.PI / 180) / Math.abs(crossFactor));
+    const cross = wind * crossFactor;
+    const correction = Math.asin(cross / tas) * 180 / Math.PI;
+    const groundNorth = tas - wind * Math.cos(crossFrom * Math.PI / 180);
+    const drift = -cross / groundNorth;
+    const endX = 150 + 230 * drift;
     const anim = `<svg viewBox="0 0 300 300" class="mech" style="max-width:300px">
       <rect width="300" height="300" fill="var(--instr-bg)" rx="14"/>
       <line x1="150" y1="290" x2="150" y2="10" stroke="var(--ok)" stroke-width="3" stroke-dasharray="10 6"/><text x="156" y="22" font-size="12" fill="var(--ok)">route voulue 360</text>
       <g><g transform="rotate(0)">${PLANE()}</g>
-        <animateMotion dur="5s" repeatCount="indefinite" path="M150,270 L${fromLeft ? 230 : 70},40"/></g>
-      <g transform="translate(${fromLeft ? 30 : 270} 150) rotate(${fromLeft ? 90 : -90})">${[0, 25, 50].map((y) => `<line x1="${y - 25}" y1="-20" x2="${y - 25}" y2="10" stroke="var(--accent)" stroke-width="3" marker-end="url(#da)"/>`).join('')}</g>
+        <animateMotion dur="5s" repeatCount="indefinite" path="M150,270 L${endX},40"/></g>
+      <g transform="translate(${fromLeft ? 30 : 270} 150) rotate(${crossFrom})">${[0, 25, 50].map((y) => `<line x1="${y - 25}" y1="-20" x2="${y - 25}" y2="10" stroke="var(--accent)" stroke-width="3" marker-end="url(#da)"/>`).join('')}</g>
       <defs><marker id="da" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
       <text x="${fromLeft ? 8 : 292}" y="196" font-size="12" text-anchor="${fromLeft ? 'start' : 'end'}" fill="var(--accent)">vent</text>
     </svg>`;
-    const correct = `Cap ${cap3(fromLeft ? 360 - corr : corr)} (corriger vers ${fromLeft ? 'la gauche' : 'la droite'}, face au vent)`;
-    const { choices, answer } = buildChoices(r, correct, [`Cap ${cap3(fromLeft ? corr : 360 - corr)} (corriger vers ${fromLeft ? 'la droite' : 'la gauche'})`, 'Cap 360 (aucune correction)', `Cap ${cap3(fromLeft ? 270 : 90)}`], 4);
+    const correct = `Cap ${cap3(correction)}`;
+    const direction = Math.sign(correction);
+    const { choices, answer } = buildChoices(r, correct, [
+      `Cap ${cap3(-correction)}`,
+      `Cap ${cap3(correction + direction * 4)}`,
+      `Cap ${cap3(correction - direction * 4)}`,
+    ], 4);
     return {
       kind: 'mcq',
-      prompt: `Avec un cap 360, ton avion dérive comme sur l’animation (vent de travers ${fromLeft ? 'de l’ouest' : 'de l’est'}). Quel cap prendre pour suivre la route 360 ?`,
+      prompt: `Route voulue 360°, vitesse vraie ${tas} kt et vent du ${cap3(crossFrom)}° à ${wind} kt. Quel cap prendre, au degré près ?`,
       visual: anim,
       choices,
       answer,
-      explain: `<p>Le vent ${fromLeft ? 'd’ouest pousse l’avion vers l’est (à droite)' : 'd’est pousse l’avion vers l’ouest (à gauche)'} : c’est la <b>dérive</b>.</p><p>Pour la compenser, on oriente le nez <b>du côté d’où vient le vent</b> (on « crabe ») : cap ${cap3(fromLeft ? 360 - corr : corr)}. La route au sol redevient 360.</p><p class="tip">Règle : « on corrige face au vent ». Cap ≠ route quand il y a du vent.</p>`,
-      timeLimit: 30,
+      explain: `<p>La composante traversière vaut ${wind} × sin(${cap3(crossFrom)}°) ≈ ${n(cross, 1)} kt. Le vent pousse l’avion ${fromLeft ? 'à droite' : 'à gauche'} de la route.</p><p>Pour annuler cette composante, il faut incliner le vecteur vitesse propre vers le vent : arcsin(${n(cross, 1)} / ${tas}) ≈ ${n(correction, 1)}°, d’où <b>${correct}</b>.</p><p class="tip">De tête, ici l’angle est petit : multiplie le rapport composante traversière / vitesse vraie par environ 57 pour obtenir des degrés. Pour la composante traversière, sin(60°) ≈ 0,87 et sin(90°) = 1.</p>`,
+      timeLimit: 45,
     };
   },
 });

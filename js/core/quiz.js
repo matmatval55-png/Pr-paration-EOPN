@@ -1,8 +1,9 @@
+import { recordMistake } from './mistakes.js';
 // Moteur de séance : affiche les questions, chronomètre, corrige et enregistre.
 import { markSeen } from './seen.js';
 import { updateMastery } from './mastery.js';
 import { makeQuestion } from './registry.js';
-import { record } from './stats.js';
+import { record, recordActivity } from './stats.js';
 import { onAnswer } from './srs.js';
 import { el, esc, keypad, parseNum, vibrate } from './ui.js';
 import { n as fmtN } from './fmt.js';
@@ -29,12 +30,17 @@ export function stopActiveQuiz() {
 
 export function runQuiz(root, opts) {
   stopActiveQuiz();
-  const history = [];
+  const history = [...(opts.initialHistory || [])];
   const startAll = performance.now();
   let raf = 0;
   let cleanup = null;
   let ended = false;
   let totalTimer = null;
+  let generationFailed = false;
+  const timeBudget = opts.wallDeadline == null ? (opts.totalTime ? opts.totalTime * 1000 : Infinity) : Math.max(0, opts.wallDeadline - Date.now());
+  const deadline = startAll + timeBudget;
+  const wallDeadline = opts.wallDeadline ?? Date.now() + timeBudget;
+  const timeLeft = () => Math.min(deadline - performance.now(), wallDeadline - Date.now());
 
   root.innerHTML = '';
   const wrap = el(`
@@ -59,17 +65,17 @@ export function runQuiz(root, opts) {
     else opts.onQuit?.();
   };
 
-  if (opts.totalTime) {
-    const end = startAll + opts.totalTime * 1000;
+  if (opts.totalTime || opts.wallDeadline != null) {
     totalTimer = setInterval(() => {
-      const left = Math.max(0, end - performance.now());
+      const left = Math.max(0, timeLeft());
       count.dataset.time = fmtClock(left);
+      opts.onClock?.();
       if (left <= 0) finish(true);
     }, 250);
   }
 
   function meta(quit = false) {
-    return { ms: performance.now() - startAll, quit };
+    return { ms: performance.now() - startAll, quit, generationFailed };
   }
 
   // Clavier (iPad avec clavier, ordinateur) : A-F ou 1-6 pour répondre, Entrée pour passer à la suite.
@@ -131,6 +137,7 @@ export function runQuiz(root, opts) {
 
   function nextQuestion() {
     if (ended) return;
+    if (timeLeft() <= 0) return finish(true);
     cleanup?.();
     cleanup = null;
     const spec = opts.next(history.length, history);
@@ -140,9 +147,13 @@ export function runQuiz(root, opts) {
       q = makeQuestion(spec);
     } catch (e) {
       console.error(e);
-      return nextQuestion();
+      generationFailed = true;
+      stop();
+      body.textContent = 'Séance interrompue : une question n’a pas pu être générée. Ce résultat ne constitue pas un examen complet.';
+      return;
     }
     updateCount();
+    opts.onQuestion?.(history.length);
     if (q.pre) showPre(q);
     else showQuestion(q);
   }
@@ -170,18 +181,28 @@ export function runQuiz(root, opts) {
     body.append(card);
     const area = card.querySelector('.q-answer');
 
+    const tl = opts.noTimer ? 0 : (q.timeLimit ?? opts.timePerQ);
     const answer = (result) => {
       if (answered || ended) return;
+      if (timeLeft() <= 0) return finish(true);
+      if (tl && performance.now() - t0 >= tl * 1000) result = { ok: false, timeout: true };
       answered = true;
       cancelAnimationFrame(raf);
       const ms = performance.now() - t0;
       const item = { spec: q.spec, q, ms, ...result };
       history.push(item);
-      record(q.spec.gen, item.ok, ms);
-      updateMastery(q.spec, item.ok);
+      opts.onProgress?.(history);
+      const review = opts.mode === 'review' || opts.isReview?.(history.length - 1);
+      if (review) {
+        recordActivity(ms);
+      } else {
+        record(q.spec.gen, item.ok, ms, { timeout: item.timeout, level: q.spec.level });
+        if (opts.mode !== 'exam') updateMastery(q.spec, item.ok);
+      }
+      if (!item.ok) recordMistake(item);
       markSeen(q.spec, q);
-      onAnswer(q.spec, item.ok, opts.mode === 'review');
-      vibrate(item.ok ? 15 : [40, 40, 40]);
+      onAnswer(q.spec, item.ok, review);
+      if (opts.mode !== 'exam') vibrate(item.ok ? 15 : [40, 40, 40]);
       if (opts.mode === 'exam') {
         cleanup?.();
         cleanup = null;
@@ -189,7 +210,6 @@ export function runQuiz(root, opts) {
       } else showFeedback(card, item);
     };
 
-    const tl = opts.noTimer ? 0 : (q.timeLimit ?? opts.timePerQ);
     if (q.kind === 'custom') {
       cleanup = q.mount(area, (r) => answer(r), { mode: opts.mode }) || null;
       if (tl) runTimer(tl, () => answer({ ok: false, timeout: true }));
@@ -295,11 +315,15 @@ export function summaryHTML(history, { title = 'Bilan' } = {}) {
   const ms = history.reduce((a, h) => a + h.ms, 0);
   const rate = history.length ? ok / history.length : 0;
   const wrong = history.filter((h) => !h.ok);
+  const timeouts = wrong.filter((h) => h.timeout).length;
+  const correctTimes = history.filter((h) => h.ok).map((h) => h.ms).sort((a,b) => a-b);
+  const median = correctTimes.length ? (correctTimes[Math.floor((correctTimes.length-1)/2)] + correctTimes[Math.floor(correctTimes.length/2)])/2 : null;
   return `
     <div class="summary">
       <h2>${esc(title)}</h2>
       <div class="score-ring" style="--p:${Math.round(rate * 100)}"><span>${ok}/${history.length}</span></div>
       <p class="muted center">Réussite ${Math.round(rate * 100)} % · temps moyen ${history.length ? (ms / history.length / 1000).toFixed(1).replace('.', ',') : 0} s</p>
+      <div class="card small"><b>Diagnostic de performance</b><p>Erreurs hors délai : ${timeouts} · réponses incorrectes dans le délai : ${wrong.length-timeouts} · temps médian des bonnes réponses : ${median == null ? '—' : (median/1000).toFixed(1)+' s'}.</p><p class="muted">Une erreur dans le délai ne permet pas à elle seule de distinguer inattention et manque de connaissances.</p></div>
       ${
         wrong.length
           ? `<h3>À revoir (${wrong.length})</h3><p class="muted small">Ces questions sont ajoutées à ta révision espacée.</p>
