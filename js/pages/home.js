@@ -39,7 +39,7 @@ export function renderHome(root) {
   const due = dueItems().length;
   const weak = weakPoints(3);
   const dleft = daysUntil(s.settings.selectionDate);
-  const todayN = s.days[today()]?.n || 0;
+  const todayN = Object.values(s.stats).reduce((n, g) => n + (g[today()]?.[0] || 0), 0);
   root.innerHTML = `
     <h1>Bonjour 👋</h1>
     <div class="stat-row">
