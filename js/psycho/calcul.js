@@ -51,6 +51,18 @@ const mental = {
   ],
   3: [
     (r) => {
+      const a = r.int(12, 39), b = r.int(11, 25), c = r.int(30, 180);
+      return { q: `${a} × ${b} − ${c}`, a: a*b-c, ex: `Priorité à la multiplication : ${a} × ${b} = ${a*b}, puis − ${c} = ${a*b-c}.` };
+    },
+    (r) => {
+      const a = 20 * r.int(5, 45), p = r.pick([15, 35, 45, 65, 85]);
+      return { q: `${p} % de ${a}`, a: a*p/100, ex: `5 % de ${a} = ${a/20}. Multiplier par ${p/5} donne ${a*p/100}.` };
+    },
+    (r) => {
+      const a = r.int(12, 45), b = r.int(3, 9), c = r.int(11, 40);
+      return { q: `(${a} + ${c}) × ${b}`, a: (a+c)*b, ex: `Parenthèses : ${a+c}, puis × ${b} = ${(a+c)*b}.` };
+    },
+    (r) => {
       const a = r.int(12, 49), b = r.int(11, 29);
       const d = b - (b % 10);
       return { q: `${a} × ${b}`, a: a * b, ex: `${a} × ${b} = ${a} × ${d} + ${a} × ${b % 10} = ${a * d} + ${a * (b % 10)} = ${a * b}.` };
@@ -64,7 +76,7 @@ const mental = {
       return { q: `${num}/${d} de ${b}`, a: (num * b) / d, ex: `${b} ÷ ${d} = ${b / d}, puis × ${num} = ${(num * b) / d}.` };
     },
     (r) => {
-      const a = r.int(150, 990), b = r.int(160, a);
+      const a = r.int(160, 990), b = r.int(160, a);
       return { q: `${a} − ${b}`, a: a - b, ex: `Complément : de ${b} à ${Math.ceil(b / 100) * 100} il y a ${Math.ceil(b / 100) * 100 - b}, puis jusqu’à ${a} : ${a - Math.ceil(b / 100) * 100}. Total ${a - b}.` };
     },
     (r) => {
@@ -91,7 +103,7 @@ register({
       prompt: `<div class="big-calc">${t.q} = ?</div>`,
       answer: t.a,
       explain: `<p>${t.ex}</p>`,
-      timeLimit: level === 1 ? 12 : level === 2 ? 18 : 25,
+      timeLimit: level === 1 ? 12 : level === 2 ? 15 : 20,
     };
   },
 });
