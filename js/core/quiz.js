@@ -35,6 +35,8 @@ export function runQuiz(root, opts) {
   let cleanup = null;
   let ended = false;
   let totalTimer = null;
+  let generationFailed = false;
+  const deadline = opts.totalTime ? startAll + opts.totalTime * 1000 : Infinity;
 
   root.innerHTML = '';
   const wrap = el(`
@@ -60,7 +62,7 @@ export function runQuiz(root, opts) {
   };
 
   if (opts.totalTime) {
-    const end = startAll + opts.totalTime * 1000;
+    const end = deadline;
     totalTimer = setInterval(() => {
       const left = Math.max(0, end - performance.now());
       count.dataset.time = fmtClock(left);
@@ -69,7 +71,7 @@ export function runQuiz(root, opts) {
   }
 
   function meta(quit = false) {
-    return { ms: performance.now() - startAll, quit };
+    return { ms: performance.now() - startAll, quit, generationFailed };
   }
 
   // Clavier (iPad avec clavier, ordinateur) : A-F ou 1-6 pour répondre, Entrée pour passer à la suite.
@@ -140,7 +142,10 @@ export function runQuiz(root, opts) {
       q = makeQuestion(spec);
     } catch (e) {
       console.error(e);
-      return nextQuestion();
+      generationFailed = true;
+      stop();
+      body.textContent = 'Séance interrompue : une question n’a pas pu être générée. Ce résultat ne constitue pas un examen complet.';
+      return;
     }
     updateCount();
     if (q.pre) showPre(q);
@@ -172,6 +177,8 @@ export function runQuiz(root, opts) {
 
     const answer = (result) => {
       if (answered || ended) return;
+      if (performance.now() >= deadline) return finish(true);
+      if (tl && performance.now() - t0 >= tl * 1000) result = { ok: false, timeout: true };
       answered = true;
       cancelAnimationFrame(raf);
       const ms = performance.now() - t0;
@@ -181,7 +188,7 @@ export function runQuiz(root, opts) {
       updateMastery(q.spec, item.ok);
       markSeen(q.spec, q);
       onAnswer(q.spec, item.ok, opts.mode === 'review');
-      vibrate(item.ok ? 15 : [40, 40, 40]);
+      if (opts.mode !== 'exam') vibrate(item.ok ? 15 : [40, 40, 40]);
       if (opts.mode === 'exam') {
         cleanup?.();
         cleanup = null;
