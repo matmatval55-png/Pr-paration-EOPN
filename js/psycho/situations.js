@@ -2,6 +2,7 @@
 // dans l'esprit des entraîneurs IFR. Les dessins sont exportés pour les fiches animées.
 import { register } from '../core/registry.js';
 import { buildChoices } from '../core/rng.js';
+import { n } from '../core/fmt.js';
 import { headingSVG } from './instruments.js';
 
 const M = 'psycho', G = 'Conscience de la situation';
@@ -132,27 +133,40 @@ register({
     }
     // dérive : route nord, vent de travers
     const crossFrom = r.pick([270, 90, 240, 300, 60, 120]);
-    const fromLeft = n360(crossFrom) > 180;
-    const corr = r.pick([5, 8, 10]);
+    const fromLeft = crossFrom > 180;
+    const tas = 120;
+    const crossFactor = Math.sin(crossFrom * Math.PI / 180);
+    const targetCorrection = r.pick([5, 8, 10]);
+    const wind = Math.round(tas * Math.sin(targetCorrection * Math.PI / 180) / Math.abs(crossFactor));
+    const cross = wind * crossFactor;
+    const correction = Math.asin(cross / tas) * 180 / Math.PI;
+    const groundNorth = tas - wind * Math.cos(crossFrom * Math.PI / 180);
+    const drift = -cross / groundNorth;
+    const endX = 150 + 230 * drift;
     const anim = `<svg viewBox="0 0 300 300" class="mech" style="max-width:300px">
       <rect width="300" height="300" fill="var(--instr-bg)" rx="14"/>
       <line x1="150" y1="290" x2="150" y2="10" stroke="var(--ok)" stroke-width="3" stroke-dasharray="10 6"/><text x="156" y="22" font-size="12" fill="var(--ok)">route voulue 360</text>
       <g><g transform="rotate(0)">${PLANE()}</g>
-        <animateMotion dur="5s" repeatCount="indefinite" path="M150,270 L${fromLeft ? 230 : 70},40"/></g>
-      <g transform="translate(${fromLeft ? 30 : 270} 150) rotate(${fromLeft ? 90 : -90})">${[0, 25, 50].map((y) => `<line x1="${y - 25}" y1="-20" x2="${y - 25}" y2="10" stroke="var(--accent)" stroke-width="3" marker-end="url(#da)"/>`).join('')}</g>
+        <animateMotion dur="5s" repeatCount="indefinite" path="M150,270 L${endX},40"/></g>
+      <g transform="translate(${fromLeft ? 30 : 270} 150) rotate(${crossFrom})">${[0, 25, 50].map((y) => `<line x1="${y - 25}" y1="-20" x2="${y - 25}" y2="10" stroke="var(--accent)" stroke-width="3" marker-end="url(#da)"/>`).join('')}</g>
       <defs><marker id="da" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
       <text x="${fromLeft ? 8 : 292}" y="196" font-size="12" text-anchor="${fromLeft ? 'start' : 'end'}" fill="var(--accent)">vent</text>
     </svg>`;
-    const correct = `Cap ${cap3(fromLeft ? 360 - corr : corr)} (corriger vers ${fromLeft ? 'la gauche' : 'la droite'}, face au vent)`;
-    const { choices, answer } = buildChoices(r, correct, [`Cap ${cap3(fromLeft ? corr : 360 - corr)} (corriger vers ${fromLeft ? 'la droite' : 'la gauche'})`, 'Cap 360 (aucune correction)', `Cap ${cap3(fromLeft ? 270 : 90)}`], 4);
+    const correct = `Cap ${cap3(correction)}`;
+    const direction = Math.sign(correction);
+    const { choices, answer } = buildChoices(r, correct, [
+      `Cap ${cap3(-correction)}`,
+      `Cap ${cap3(correction + direction * 4)}`,
+      `Cap ${cap3(correction - direction * 4)}`,
+    ], 4);
     return {
       kind: 'mcq',
-      prompt: `Avec un cap 360, ton avion dérive comme sur l’animation (vent de travers ${fromLeft ? 'de l’ouest' : 'de l’est'}). Quel cap prendre pour suivre la route 360 ?`,
+      prompt: `Route voulue 360°, vitesse vraie ${tas} kt et vent du ${cap3(crossFrom)}° à ${wind} kt. Quel cap prendre, au degré près ?`,
       visual: anim,
       choices,
       answer,
-      explain: `<p>Le vent ${fromLeft ? 'd’ouest pousse l’avion vers l’est (à droite)' : 'd’est pousse l’avion vers l’ouest (à gauche)'} : c’est la <b>dérive</b>.</p><p>Pour la compenser, on oriente le nez <b>du côté d’où vient le vent</b> (on « crabe ») : cap ${cap3(fromLeft ? 360 - corr : corr)}. La route au sol redevient 360.</p><p class="tip">Règle : « on corrige face au vent ». Cap ≠ route quand il y a du vent.</p>`,
-      timeLimit: 30,
+      explain: `<p>La composante traversière vaut ${wind} × sin(${cap3(crossFrom)}°) ≈ ${n(cross, 1)} kt. Le vent pousse l’avion ${fromLeft ? 'à droite' : 'à gauche'} de la route.</p><p>Pour annuler cette composante, il faut incliner le vecteur vitesse propre vers le vent : arcsin(${n(cross, 1)} / ${tas}) ≈ ${n(correction, 1)}°, d’où <b>${correct}</b>.</p><p class="tip">De tête, ici l’angle est petit : multiplie le rapport composante traversière / vitesse vraie par environ 57 pour obtenir des degrés. Pour la composante traversière, sin(60°) ≈ 0,87 et sin(90°) = 1.</p>`,
+      timeLimit: 45,
     };
   },
 });

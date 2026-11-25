@@ -1,8 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
-// Stratégie « stale-while-revalidate » : réponse immédiate depuis le cache,
-// mise à jour en arrière-plan. Une nouvelle version est installée en contournant le cache HTTP,
-// puis la page se recharge d'elle-même (voir app.js).
-const VERSION = 'v20';
+// Les ressources préchargées restent cohérentes au sein d’une version.
+// À la mise à jour, la nouvelle version est installée en contournant le cache HTTP.
+const VERSION = 'v21';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
