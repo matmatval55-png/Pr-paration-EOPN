@@ -126,8 +126,7 @@ export function recordActivity(ms, n = 1) {
   const d = today();
   store.update((s) => {
     const day = (s.days[d] ||= { n: 0, ok: 0, ms: 0 });
-    day.n += n;
-    day.ok += n;
-    day.ms += Math.round(ms || 0);
+    day.activityN = (day.activityN || 0) + n;
+    day.activityMs = (day.activityMs || 0) + Math.round(ms || 0);
   });
 }
