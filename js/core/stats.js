@@ -118,7 +118,7 @@ export function weakPoints(limit = 5) {
 }
 
 export function totalAnswers() {
-  return Object.values(store.data.days).reduce((a, d) => a + d.n, 0);
+  return Object.values(store.data.stats).reduce((a, g) => a + Object.values(g).reduce((n, row) => n + row[0], 0), 0);
 }
 
 // Activité hors questions (flashcards, simulation d'entretien, sport…) : compte pour la série de jours.
