@@ -13,7 +13,7 @@ export function renderExam(root, id) {
     root.innerHTML = '<p>Examen introuvable.</p>';
     return;
   }
-  let level = 2;
+  let level = 3;
   const past = store.data.exams.filter((e) => e.id === id).slice(-5).reverse();
   root.innerHTML = '';
   const page = el(`
@@ -25,7 +25,7 @@ export function renderExam(root, id) {
         <h3>Déroulé</h3>
         ${ex.sections.map((s, i) => (s.pause ? `<div class="section-res muted"><span>☕ ${esc(s.title)}</span><span>${fmtClock(s.pause * 1000)}</span></div>` : `<div class="section-res"><span>${ex.sections.slice(0, i + 1).filter((x) => !x.pause).length}. ${esc(s.title)}</span><span class="muted">${s.count} q · ${fmtClock(s.time * 1000)}</span></div>`)).join('')}
         <p class="small muted">⚠️ Format simulé : la durée et le nombre exacts de questions des épreuves officielles ne sont pas publiés. Aucune correction pendant l’examen ; bilan détaillé à la fin.</p>
-        <div class="field"><label>Difficulté</label><div class="seg"><button data-l="1">Facile</button><button data-l="2" class="on">Moyen</button><button data-l="3">Difficile</button></div></div>
+        <div class="field"><label>Difficulté</label><div class="seg"><button data-l="1">Facile</button><button data-l="2">Moyen</button><button data-l="3" class="on">Difficile</button></div></div>
         <button class="btn primary block" data-start>Démarrer l’examen</button>
       </div>
       ${past.length ? `<div class="card"><h3>Derniers résultats</h3>${past.map((p) => `<div class="section-res"><span>${new Date(p.ts).toLocaleDateString('fr-FR')} · niv. ${p.level}</span><b>${Math.round((p.ok / p.n) * 100)} %</b></div>`).join('')}</div>` : ''}
@@ -84,9 +84,11 @@ export function renderExam(root, id) {
       };
       inter.querySelector('[data-go]').onclick = () => {
         const specs = prepare(s);
-        if (!specs.length) {
-          results.push({ title: s.title + ' (aucune question nouvelle)', total: 0, history: [] });
-          return step(k + 1);
+        if (specs.length !== s.count) {
+          document.body.classList.remove('in-quiz');
+          renderExam(root, id);
+          alert('Examen non validé : banque de questions inédites insuffisante pour une section complète. Aucun score global enregistré.');
+          return;
         }
         runQuiz(root, {
           title: s.title,
@@ -94,7 +96,8 @@ export function renderExam(root, id) {
           mode: 'exam',
           totalTime: Math.round((s.time * specs.length) / s.count),
           next: (i) => specs[i] || null,
-          onFinish(history) {
+          onFinish(history, meta) {
+            if (meta?.generationFailed) return;
             results.push({ title: s.title, total: specs.length, history });
             step(k + 1);
           },
@@ -158,7 +161,7 @@ export function renderExam(root, id) {
             return `<div class="section-res"><span>${esc(r.title)}<br><span class="small muted">${r.history.length}/${r.total} traitées</span></span><b>${o}/${r.total}</b></div>`;
           })
           .join('')}</div>
-        ${summaryHTML(all, { title: 'Correction détaillée' })}
+        ${summaryHTML(all, { title: 'Correction détaillée (questions traitées uniquement)' })}
         <div class="btn-row"><button class="btn primary" data-again>Refaire</button><a class="btn" href="${ex.back || '#/psycho'}">Retour</a></div>
       </div>`);
     page.querySelector('[data-again]').onclick = () => renderExam(root, id);
