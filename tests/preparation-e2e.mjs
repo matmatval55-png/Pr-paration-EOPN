@@ -13,9 +13,15 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(base + '#/train/psy.calcul');
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+    await page.reload();
+    await page.evaluate(() => navigator.serviceWorker.dispatchEvent(new Event('controllerchange')));
+    const update = page.getByRole('button', { name: /Mise à jour disponible/ });
+    await update.waitFor();
     await page.locator('[data-name=level] [data-v="5"]').click();
     await page.locator('[data-name=chrono] [data-v="0"]').click();
     await page.locator('[data-start]').click();
+    await update.waitFor({ state: 'hidden' });
     await page.locator('.keypad [data-k="0"]').click();
     await page.locator('.kp-ok').click();
     await page.getByText('Réponse incorrecte').waitFor();

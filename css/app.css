@@ -576,11 +576,8 @@ details.card[open] > summary::after { content: '–'; }
 
 
 .update-notice {
-  position: fixed;
-  z-index: 10;
-  inset: auto max(12px, env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) auto;
-  max-width: calc(100vw - 24px);
-  background: var(--instr-bg);
-  box-shadow: 0 2px 12px #0006;
+  display: block;
+  margin: 12px auto 0;
+  max-width: calc(100% - 32px);
 }
 .in-quiz .update-notice { display: none; }

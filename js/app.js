@@ -194,6 +194,6 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       store.flush();
       location.reload();
     };
-    document.body.append(notice);
+    view.before(notice);
   });
 }
