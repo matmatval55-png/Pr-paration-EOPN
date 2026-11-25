@@ -46,3 +46,15 @@ Le score d’examen divise les réponses correctes par les questions prévues. L
 Le coach calcule la précision au niveau courant sur les observations disponibles. Il affiche un manque de données avant cinq observations et exige vingt observations récentes au niveau maximal avec 90 % de réussite pour la maîtrise interne. Les révisions actualisent les échéances et le carnet mais sont comptées comme activité de révision. Les anciennes données agrégées conservent leur définition historique.
 
 Le carnet d’erreurs contient du texte échappé à l’affichage, une référence de générateur et un compteur. Le bouton de création de carte copie la question et la réponse attendue vers le paquet de sa matière. Les catégories d’erreur sont renseignées par l’utilisateur.
+
+## Vérifications reproductibles
+
+- `npm test` sous Node 20 et Node 24. Les 125 tests passent sur chaque version. La boucle de génération couvre 87 200 couples graine–niveau. La couverture de structure et de reproductibilité ne remplace pas une vérification pédagogique de chaque réponse.
+- `node tests/e2e.mjs` a terminé avec `E2E OK` sous Chromium pour l’iPhone 13, l’iPad 7 et le profil ordinateur. Les parcours couvrent les routes principales, l’entraînement, les examens, la bibliothèque, le planning, l’entretien et le rechargement hors ligne.
+- `node tests/exam-e2e.mjs` dans Chromium avec iPhone 13 et iPad 7 émulés. Expiration, détection d’interruption, conservation du dénominateur et rechargement hors ligne.
+- `node tests/preparation-e2e.mjs` dans Chromium avec iPad 7, iPhone 13 paysage et ordinateur émulés. Carnet, classification, création de flashcard, révision séparée, composition d’examen, export, import invalide et restauration.
+- Parcours ciblé sur les quatre blocs du diagnostic en accélérant l’horloge. Les 48 questions figurent dans le dénominateur et les résultats par exercice totalisent 48 omissions ou dépassements.
+- Six vues contrôlées sans débordement horizontal en paysage pour iPhone et iPad émulés. Réécoute d’une réponse et relance chronométrée avec un flux audio simulé.
+- Les téléchargements Playwright WebKit et les requêtes vers le ministère des Armées et l’API GitHub ont reçu un HTTP 403 du proxy. Git HTTPS a permis de vérifier le commit de la PR. Les tests sur appareils physiques, le site public et les sources non joignables restent non vérifiés.
+
+Le commit `442c621ec623489b4c6fd68255997b7bf33766ac` est la référence de `main` relevée avant la revue. La branche de production est conservée à ce point tant que les critères de livraison restent ouverts.
