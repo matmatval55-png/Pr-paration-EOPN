@@ -704,3 +704,7 @@ h2 { font-size:1.28rem; }
 }
 @media(min-width:1200px){body:not(.in-quiz) main {max-width:1350px;} .academy-library{grid-template-columns:repeat(4,minmax(0,1fr));}}
 @media(max-width:480px){.academy-library{grid-template-columns:1fr;} .academy-hero{min-height:205px;} .stat{padding:10px;}}
+
+.bottomnav .academy-side-extra {display:none;}
+@media(min-width:760px){body:not(.in-quiz) .bottomnav .academy-side-extra {display:flex;} .bottomnav{overflow-y:auto;} }
+@media(prefers-color-scheme:dark){:root[data-auto]:not([data-theme]){--bg:#131e2d;--card:#1c2b3e;--card2:#273b52;--text:#edf3fa;--muted:#aebed1;--line:#344960;--accent:#91b9e7;--accent-2:#b6d3f2;--on-accent:#14243a;--ok:#83d6ae;--ok-bg:#203f37;--danger:#ff9a9e;--danger-bg:#492e39;--warn:#f3c57c;--instr-bg:#172538;--shadow:none;color-scheme:dark;}}
