@@ -1,3 +1,4 @@
+import { renderAcademy,renderFocus,renderSkills,renderNotebook,renderMemory,renderFavorites } from './pages/academy.js';
 import { renderNavLab } from './pages/navlab.js';
 // Point d'entrée : navigation par « hash » (#/page), thème, service worker.
 import './psycho/index.js';
@@ -92,6 +93,12 @@ const backFor = (genId) => {
 };
 
 const routes = [
+  [/^mission$/, () => renderAcademy(view), 'home'],
+  [/^focus$/, () => renderFocus(view), 'home'],
+  [/^competences$/, () => renderSkills(view), 'home'],
+  [/^carnet$/, () => renderNotebook(view), 'home'],
+  [/^memoire$/, () => renderMemory(view), 'home'],
+  [/^favoris$/, () => renderFavorites(view), 'home'],
   [/^$/, () => renderHome(view), 'home'],
   [/^laboratoire$/, () => renderNavLab(view), 'psycho'],
   [/^psycho$/, () => renderPsycho(view), 'psycho'],
