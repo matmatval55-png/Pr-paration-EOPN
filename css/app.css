@@ -623,3 +623,24 @@ details.card[open] > summary::after { content: '–'; }
 .sheet-recall { background: var(--card); padding: 18px; border-radius: 16px; border: 1px solid var(--line); }
 .sheet-recall textarea { width: 100%; box-sizing: border-box; min-height: 130px; font: inherit; color: var(--text); padding: 12px; border-radius: 10px; }
 @media (max-width: 480px) { .revision-sheet .sheet-section { padding: 14px; } }
+
+/* V32: paper notebook, scoped to course content */
+.revision-sheet { --text:#26354b; --muted:#52647a; --card:#fffdf8; --card2:#f0f4f8; --line:#d8e1e9; --accent:#315e89; --sheet-blue:#527fae; --sheet-green:#3c8066; --sheet-amber:#a06b29; color:var(--text); background:#f8f6ef!important; border:1px solid #e0ddd2!important; border-radius:20px; padding:clamp(12px,3vw,28px)!important; font-family:system-ui,sans-serif; }
+.revision-sheet .sheet-section { background:transparent; border:0; border-radius:0; padding:12px 4px 20px; margin:0; }
+.revision-sheet [hidden] { display:none!important; }
+.revision-sheet h2,.revision-sheet h3 { color:#233b56; font-size:1.45rem; letter-spacing:-.025em; border:0; margin:8px 0 18px; }
+.revision-sheet b,.revision-sheet strong { text-decoration:none; background:linear-gradient(transparent 42%,#f7e5a1 42%,#f7e5a1 94%,transparent 94%); color:#26354b; }
+.revision-sheet .ex { background:#e5f2e9; border-color:#79b69a; }
+.revision-sheet .tip { background:#fff0d9; border-color:#d5a360; }
+.revision-sheet .sheet-formula { background:#e5edf9; border-color:#b3c8e6; font-size:1.2rem; }
+.revision-sheet .schema,.revision-sheet .photo { background:#fff; padding:12px; border-radius:12px; }
+.revision-sheet .notebook-nav { border-bottom:1px solid #d8e1e9; padding-bottom:14px; margin-bottom:14px; }
+.notebook-top,.notebook-controls { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.notebook-top span,.notebook-label { font-size:.72rem; font-weight:800; letter-spacing:.12em; color:#52749a; }
+.notebook-progress { font-size:.85rem; color:#52647a; margin:10px 0; }
+.revision-sheet .btn,.notebook-memory { color:#284a70; background:#e5edf9; border:1px solid #b3c8e6; border-radius:10px; padding:10px 14px; font:inherit; font-size:.85rem; font-weight:650; }
+.revision-sheet .btn:disabled { opacity:.45; }
+.notebook-memory { display:block; margin-top:20px; }
+.notebook-mask .notebook-key { color:transparent!important; background:#b9cce2!important; text-shadow:none; border-radius:4px; }
+.revision-sheet table { background:#fffdf8; color:#26354b; }
+.revision-sheet a { color:#315e89; }
