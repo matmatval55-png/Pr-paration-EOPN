@@ -14,6 +14,7 @@ const DEFAULT = () => ({
   hist: {}, // idExercice -> empreintes de toutes les questions déjà posées (jamais de doublon)
   mastery: {}, // idExercice -> { lvl, best, n, ok, last, h } (niveau mémorisé, voir mastery.js)
   exams: [], // historique des examens blancs
+  academy: {},
   progress: {}, // ex. 'maths.fractions' -> { read: true }
   sport: [], // tests et séances de sport
   personalCards: {}, // matière -> [[recto, verso], …]
