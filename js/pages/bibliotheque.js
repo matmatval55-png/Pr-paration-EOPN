@@ -29,7 +29,7 @@ export function renderBibliotheque(root) {
   const all = SECTIONS.flatMap((s) => s.fiches);
   const read = all.filter(isRead).length;
   root.innerHTML = `
-    <h1>📖 Cours</h1>
+    <h1>📖 Cours</h1><a class="btn primary block" href="#/etude">Lancer une étude guidée</a>
     <p class="muted">Toutes les fiches de cours, sans exercices : à lire tranquillement, dans les transports ou avant de dormir. Chaque fiche renvoie vers les exercices correspondants.</p>
     <input type="search" class="search" placeholder="🔍 Rechercher dans les cours (ex. : finesse, QNH, fractions…)" aria-label="Rechercher">
     <div class="search-res"></div>
