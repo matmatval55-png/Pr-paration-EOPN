@@ -1,3 +1,4 @@
+import {shortcutsHTML} from './workspace.js';
 import { store, today } from '../core/store.js';
 import { streak, weakPoints, totalAnswers } from '../core/stats.js';
 import { dueItems } from '../core/srs.js';
@@ -42,6 +43,7 @@ export function renderHome(root) {
   const todayN = Object.values(s.stats).reduce((n, g) => n + (g[today()]?.[0] || 0), 0);
   root.innerHTML = `
     <section class="academy-hero"><span class="academy-kicker">Prépa EOPN · Flight Academy</span><h1>Prêt pour ta prochaine mission ?</h1><p>Construis tes connaissances, entraîne tes réflexes et suis ta progression.</p><a class="btn" href="#/mission">Commencer ma journée →</a></section><div class="academy-actions"><a class="tile" href="#/bibliotheque"><span class="ico">📖</span><b>Bibliothèque</b><span class="small">Tes cours</span></a><a class="tile" href="#/psycho"><span class="ico">🧠</span><b>Psychotechniques</b><span class="small">Entraînement</span></a><a class="tile" href="#/exam/express"><span class="ico">🎯</span><b>Examen blanc</b><span class="small">Évalue ton niveau</span></a><a class="tile" href="#/stats"><span class="ico">📊</span><b>Progression</b><span class="small">Tes résultats</span></a></div>
+    ${shortcutsHTML()}
     <div class="stat-row">
       <div class="stat"><b>${st} 🔥</b><span>jour${st > 1 ? 's' : ''} d’affilée</span></div>
       <div class="stat"><b>${todayN}</b><span>questions aujourd’hui</span></div>

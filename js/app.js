@@ -1,3 +1,4 @@
+import {renderWorkspace,renderSearch,renderCalendar,renderLexicon,mountReadingMode} from './pages/workspace.js';
 import {renderPilotCenter} from './pages/pilotcenter.js';
 import {renderPedagogy,renderChanges} from './pages/pedagogy.js';
 import {renderTree,renderCards,renderApproach} from './pages/advanced.js';
@@ -96,6 +97,10 @@ const backFor = (genId) => {
 };
 
 const routes = [
+  [/^espace$/, () => renderWorkspace(view), 'home'],
+  [/^recherche$/, () => renderSearch(view), 'home'],
+  [/^calendrier$/, () => renderCalendar(view), 'stats'],
+  [/^lexique$/, () => renderLexicon(view), 'biblio'],
   [/^pilotcenter$/, () => renderPilotCenter(view), 'psycho'],
   [/^pedagogie$/, () => renderPedagogy(view), 'home'],
   [/^versions$/, () => renderChanges(view), 'plus'],
@@ -194,6 +199,7 @@ document.addEventListener('click', (e) => {
 applyTheme();
 startDecor();
 mountVersionBadge();
+mountReadingMode();
 applyFontSize();
 // Demande au navigateur de ne pas effacer les données (évite le nettoyage automatique de Safari).
 navigator.storage?.persist?.().catch(() => {});
