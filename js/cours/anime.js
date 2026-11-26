@@ -35,7 +35,7 @@ export const FICHES_ANIME = [
     train: '#/train/bia.aero',
     html: `<p>Les filets d’air glissent autour de l’aile. Sur l’<b>extrados</b>, ils accélèrent et la pression baisse ; sur l’<b>intrados</b>, la pression est un peu plus forte : c’est la <b>portance</b>.</p>
       ${fig(ecoulementSVG(false), 'Incidence normale : filets collés au profil.')}
-      <p>Si l’on augmente trop l’incidence (environ 15 à 18°), les filets ne suivent plus la courbure de l’extrados : ils <b>décollent</b> et forment des tourbillons. La portance chute brutalement : c’est le <b>décrochage</b>.</p>
+      <p>Si l’on dépasse l’incidence critique (variable selon le profil et la configuration), les filets ne suivent plus la courbure de l’extrados : ils <b>décollent</b> et forment des tourbillons. La portance chute brutalement : c’est le <b>décrochage</b>.</p>
       ${fig(ecoulementSVG(true), 'Incidence trop forte : décollement et tourbillons sur l’extrados.')}
       <p class="tip">Sortie de décrochage : rendre la main (diminuer l’incidence), mettre de la puissance, remettre les ailes à plat, puis reprendre le vol normal sans brutalité.</p>`,
   },
@@ -61,7 +61,7 @@ export const FICHES_ANIME = [
     train: '#/train/psy.papi',
     html: `<p>Le <b>PAPI</b> (Precision Approach Path Indicator) est une rangée de 4 feux à côté de la piste. Chaque feu est blanc ou rouge selon l’angle sous lequel on le voit.</p>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${[4, 3, 2, 1, 0].map((w) => `<figure class="schema" style="margin:0">${papiSVG(w)}<figcaption>${{ 4: '4 blancs : trop haut', 3: '3 blancs : un peu haut', 2: '2 + 2 : sur le plan ✓', 1: '3 rouges : un peu bas', 0: '4 rouges : trop bas' }[w]}</figcaption></figure>`).join('')}</div>
-      <p class="tip">Objectif : <b>2 blancs + 2 rouges</b> jusqu’à l’arrondi. Si tu vois du rouge partout, remets de la puissance et remonte sur le plan (ou remets les gaz).</p>`,
+      <p class="tip">Repère : <b>2 blancs + 2 rouges</b> indiquent le plan nominal. Une indication basse nécessite une correction adaptée ; si l’approche ne peut pas être stabilisée, remise de gaz selon les procédures applicables.</p>`,
   },
   {
     id: 'vor',
@@ -70,7 +70,7 @@ export const FICHES_ANIME = [
     html: `<p>Une balise <b>VOR</b> émet 360 « routes » appelées <b>radiales</b>, numérotées selon la direction <b>depuis</b> la balise : la radiale 090 part vers l’est.</p>
       <div class="instr-row">${rmiSVG(30, 270)}${radialMap(90, 30)}</div>
       <p>Sur le <b>RMI</b>, l’aiguille pointe toujours <b>vers la balise</b>. Ici, la tête indique 270 : pour rejoindre la balise, il faut prendre le cap 270. La <b>queue</b> indique 090 : tu es sur la <b>radiale 090</b>, donc à l’<b>est</b> de la balise, quel que soit ton cap (ici 030).</p>
-      <ul><li><b>QDM</b> = cap magnétique pour aller vers la balise (tête de l’aiguille).</li><li><b>QDR</b> = radiale sur laquelle tu te trouves (queue de l’aiguille) = QDM ± 180.</li></ul>`,
+      <ul><li><b>QDM</b> = relèvement magnétique vers la balise (cap à suivre sans vent) (tête de l’aiguille).</li><li><b>QDR</b> = radiale sur laquelle tu te trouves (queue de l’aiguille) = QDM ± 180.</li></ul>`,
   },
   {
     id: 'attitudes',
@@ -87,7 +87,7 @@ export const FICHES_ANIME = [
     title: 'Voir et éviter : l’anticollision (animé)',
     train: '#/train/psy.trafic',
     html: `<p>En vol à vue, chaque pilote est responsable de <b>voir et éviter</b> les autres aéronefs. On annonce un trafic comme sur une horloge : 12 h devant, 3 h à droite, 9 h à gauche.</p>
-      <div class="instr-row"><figure class="schema">${trafficSVG(2, true, false)}<figcaption>Trafic à 2 h qui reste au même endroit du pare-brise et grossit : <b>collision</b> !</figcaption></figure><figure class="schema">${trafficSVG(2, false, true)}<figcaption>Trafic qui glisse dans le pare-brise : il passera devant.</figcaption></figure></div>
+      <div class="instr-row"><figure class="schema">${trafficSVG(2, true, false)}<figcaption>Trafic à 2 h qui reste au même endroit du pare-brise et grossit : <b>collision</b> !</figcaption></figure><figure class="schema">${trafficSVG(2, false, true)}<figcaption>Trafic dont le relèvement varie : risque de collision à évaluer en continu.</figcaption></figure></div>
       <ul><li><b>Position relative constante + distance qui diminue = trajectoire de collision.</b></li><li>Convergence : priorité à l’aéronef qui vient de la <b>droite</b>.</li><li>Face à face : chacun s’écarte vers sa <b>droite</b>.</li><li>Dépassement : par la droite.</li></ul>`,
   },
   {
@@ -103,7 +103,7 @@ export const FICHES_ANIME = [
     id: 'cdi-ils',
     title: 'Aiguilles CDI et ILS (animé)',
     train: '#/train/psy.navaig',
-    html: `<p>Le <b>CDI</b> (VOR) et l’<b>ILS</b> montrent un écart par rapport à une route ou à un plan de descente. Règle d’or : <b>on vole vers l’aiguille</b>.</p>
+    html: `<p>Le <b>CDI</b> (VOR) et l’<b>ILS</b> montrent un écart par rapport à une route ou à un plan de descente. Avec un guidage correctement sélectionné et en approche normale, l’aiguille indique le côté du plan à rejoindre. Attention à la logique TO/FROM du VOR.</p>
       <div class="instr-row"><figure class="schema">${cdiSVG(3)}<figcaption>Aiguille à droite : la route est à droite, je corrige à droite.</figcaption></figure><figure class="schema">${ilsSVG(-2, 1)}<figcaption>Axe à gauche (je suis à droite) ; plan au-dessus (je suis trop bas).</figcaption></figure></div>
       <ul><li><b>Alignement de piste</b> (aiguille verticale) : indique où est l’axe de piste.</li><li><b>Pente</b> (aiguille horizontale) : en haut = le plan est au-dessus de toi = tu es <b>trop bas</b> → réduis le taux de descente.</li><li>Les deux aiguilles centrées en croix : parfait, sur l’axe et sur le plan.</li></ul>
       <p class="tip">Sur un VOR, 1 point ≈ 2° d’écart. L’indicateur TO/FROM dit si la route affichée te rapproche (TO) ou t’éloigne (FROM) de la balise.</p>`,
@@ -144,3 +144,9 @@ export const FICHES_ANIME = [
       <p class="tip">Message de détresse : « MAYDAY MAYDAY MAYDAY », indicatif, nature du problème, intentions, position, altitude. Urgence sans danger immédiat : « PAN PAN ».</p>`,
   },
 ];
+
+const animFig=(body,caption)=>fig('<svg viewBox="0 0 360 220" role="img" aria-label="'+caption+'"><rect width="360" height="220" rx="14" fill="#eef3f8"/>'+body+'</svg>',caption);
+const check=(q,a)=>'<details class="visual-recall"><summary>'+q+'</summary><p>'+a+'</p></details>';
+FICHES_ANIME.push(
+{id:'moteur-flux',title:'Turboréacteur : trajet de l’air',train:'#/train/bia.aeronefs',html:'<h2>Suivre le flux</h2>'+animFig('<path d="M20 65 L95 80 L270 80 L340 60 L340 160 L270 140 L95 140 L20 155Z" fill="#c5d4e2" stroke="#315f91"/><g fill="#315f91"><rect x="80" y="80" width="12" height="60"/><rect x="110" y="80" width="10" height="60"/><rect x="140" y="80" width="10" height="60"/><rect x="250" y="80" width="12" height="60"/></g><rect x="165" y="87" width="65" height="46" rx="12" fill="#e8a15b"/><g fill="#315f91" font-size="12" text-anchor="middle"><text x="110" y="50">Compresseur</text><text x="198" y="175">Combustion</text><text x="255" y="50">Turbine</text><text x="320" y="190">Tuyère</text></g>'+[0,1,2,3].map(i=>'<circle cy="110" r="5" fill="#34816c"><animate attributeName="cx" from="12" to="348" dur="3s" begin="'+i*.75+'s" repeatCount="indefinite"/></circle>').join(''),'Flux simplifié dans un turboréacteur')+'<h2>Les quatre étapes</h2><p>Compression de l’air, combustion avec apport de carburant, détente dans la turbine qui entraîne le compresseur, puis accélération des gaz dans la tuyère. Le schéma ne représente pas le flux secondaire d’un turbofan.</p>'+check('Quel élément entraîne le compresseur ?','La turbine, par un arbre mécanique.')},
+{id:'derive-anime',title:'Dérive : cap et route',train:'#/train/psy.vent',html:'<h2>Observer le déplacement</h2>'+animFig('<path d="M55 190V25" stroke="#315f91" stroke-width="2" stroke-dasharray="5 5"/><path d="M55 190L250 25" stroke="#34816c" stroke-width="3"/><path d="M90 110H200" stroke="#b86a36" stroke-width="3"/><path d="M190 103L200 110L190 117" fill="none" stroke="#b86a36" stroke-width="3"/><g fill="#263b50" font-size="13"><text x="12" y="20">Cap nord</text><text x="245" y="20">Route sol</text><text x="105" y="100">Vent vers l’est</text></g><g><path d="M0 -13L5 2L15 8L15 11L0 7L-15 11L-15 8L-5 2Z" fill="#315f91"/><animateMotion path="M55 190L250 25" dur="5s" repeatCount="indefinite"/></g>','Cap maintenu au nord, dérive vers l’est')+'<h2>Interprétation</h2><p>Le vent venant de l’ouest déplace la trajectoire vers l’est. Pour maintenir une route nord, il faut orienter le cap vers l’ouest d’un angle adapté au vent et à la vitesse air.</p>'+check('Le cap est-il identique à la route dans cet exemple ?','Non, le cap reste nord mais la route sol dévie vers l’est.')});
