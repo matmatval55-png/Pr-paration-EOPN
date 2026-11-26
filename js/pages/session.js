@@ -1,3 +1,4 @@
+import { enhanceSheet } from '../core/sheet.js';
 // Session chrono : tu choisis une durée, un compte à rebours démarre, et jusqu'à la fin il n'y a
 // que des questions (choisies par le coach, jamais déjà vues), entrecoupées de temps en temps
 // d'une fiche de cours liée à ce que tu viens de travailler (en priorité là où tu t'es trompé).
@@ -143,6 +144,7 @@ export function renderSession(root) {
         <button class="btn block" data-skip>Passer cette fiche</button>
       </div>`);
       root.append(box);
+      enhanceSheet(box.querySelector('.fiche'));
       scrollTo(0, 0);
       const clock = box.querySelector('[data-clock]');
       const tick = () => {

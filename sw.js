@@ -1,7 +1,7 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Les ressources préchargées restent cohérentes au sein d’une version.
 // À la mise à jour, la nouvelle version est installée en contournant le cache HTTP.
-const VERSION = 'v30';
+const VERSION = 'v31';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
@@ -40,6 +40,7 @@ const FILES = [
   './js/core/reports.js',
   './js/core/rng.js',
   './js/core/seen.js',
+  './js/core/sheet.js',
   './js/core/srs.js',
   './js/core/stats.js',
   './js/core/store.js',
