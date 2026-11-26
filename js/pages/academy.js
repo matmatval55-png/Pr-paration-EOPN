@@ -16,10 +16,11 @@ export function missionPlan(scores,minutes=300){
 }
 export function renderAcademy(root){
  const scores=mods.map(([id,label])=>({id,label,...moduleSummary(id,30)}));
- if(!data().missions?.[day()])update(a=>{(a.missions||={})[day()]={blocks:missionPlan(scores,data().targetMinutes||300),done:{}};});
- const mission=data().missions[day()],done=mission.blocks.reduce((n,b,i)=>n+(mission.done[i]?b.min:0),0),total=mission.blocks.reduce((n,b)=>n+b.min,0);
- root.innerHTML='<span class="academy-kicker">Flight Academy Pro</span><h1>Mission du jour</h1><div class="card"><h2>'+done+' / '+total+' minutes</h2><div class="progress"><div style="width:'+done/total*100+'%"></div></div><p class="muted">Temps déclaré manuellement. Prévois des pauses en plus des cinq heures.</p>'+mission.blocks.map((b,i)=>'<div class="row-link"><input type="checkbox" aria-label="Terminer '+esc(b.label)+'" data-done="'+i+'" '+(mission.done[i]?'checked':'')+'><span class="grow"><b>'+esc(b.label)+'</b><br>'+b.min+' min</span>'+link('#/'+b.id,'Ouvrir')+'</div>').join('')+'</div><div class="grid">'+[['pilotcenter','Pilot Training Center'],['pedagogie','Centre pédagogique'],['arbre','Carte des compétences'],['cartes','Flashcards individuelles'],['approche','Laboratoire approche'],['focus','Concentration'],['competences','Profil de compétences'],['carnet','Cahier personnel'],['memoire','Flashcards & rappels'],['favoris','Favoris'],['stats','Performances'],['erreurs','Carnet d’erreurs'],['exam/personnaliser','Examen personnalisé'],['laboratoire','Laboratoire instruments'],['coach','Coach'],['reglages','Sauvegarde / transfert']].map(([id,label])=>'<a class="tile" href="#/'+id+'"><b>'+label+'</b></a>').join('')+'</div>';
- root.querySelectorAll('[data-done]').forEach(b=>b.onchange=()=>{update(a=>a.missions[day()].done[b.dataset.done]=b.checked);renderAcademy(root);});
+ const missionDay=day();
+ if(!data().missions?.[missionDay])update(a=>{(a.missions||={})[missionDay]={blocks:missionPlan(scores,data().targetMinutes||300),done:{}};});
+ const mission=data().missions[missionDay],done=mission.blocks.reduce((n,b,i)=>n+(mission.done[i]?b.min:0),0),total=mission.blocks.reduce((n,b)=>n+b.min,0);
+ root.innerHTML='<span class="academy-kicker">Flight Academy Pro</span><h1>Mission du jour</h1><div class="card"><h2>'+done+' / '+total+' minutes</h2><div class="progress"><div style="width:'+done/total*100+'%"></div></div><p class="muted">Temps déclaré manuellement. Prévois des pauses en plus du temps de travail.</p>'+mission.blocks.map((b,i)=>'<div class="row-link"><input type="checkbox" aria-label="Terminer '+esc(b.label)+'" data-done="'+i+'" '+(mission.done[i]?'checked':'')+'><span class="grow"><b>'+esc(b.label)+'</b><br>'+b.min+' min</span>'+link('#/'+b.id,'Ouvrir')+'</div>').join('')+'</div><div class="grid">'+[['pilotcenter','Pilot Training Center'],['pedagogie','Centre pédagogique'],['arbre','Carte des compétences'],['cartes','Flashcards individuelles'],['approche','Laboratoire approche'],['focus','Concentration'],['competences','Profil de compétences'],['carnet','Cahier personnel'],['memoire','Flashcards & rappels'],['favoris','Favoris'],['stats','Performances'],['erreurs','Carnet d’erreurs'],['exam/personnaliser','Examen personnalisé'],['laboratoire','Laboratoire instruments'],['coach','Coach'],['reglages','Sauvegarde / transfert']].map(([id,label])=>'<a class="tile" href="#/'+id+'"><b>'+label+'</b></a>').join('')+'</div>';
+ root.querySelectorAll('[data-done]').forEach(b=>b.onchange=()=>{update(a=>a.missions[missionDay].done[b.dataset.done]=b.checked);renderAcademy(root);});
 }
 export function renderFocus(root){
  let end=0,remaining=25*60000,interval,phase='Travail';
@@ -48,7 +49,7 @@ export function renderNotebook(root){
  canvas.onpointerdown=e=>{if(e.button!==0)return;canvas.setPointerCapture(e.pointerId);active=[point(e)];strokes.push(active);redraw();};
  canvas.onpointermove=e=>{if(active){active.push(point(e));redraw();}};
  canvas.onpointerup=canvas.onpointercancel=()=>{active=null;save();};
- let current=select.value; select.onchange=()=>{const next=select.value;select.value=current;save();select.value=next;current=next;load();}; notes.onchange=save;root.querySelector('[data-save]').onclick=save;root.querySelector('[data-clear]').onclick=()=>{strokes=[];redraw();};load();
+ let current=select.value; select.onchange=()=>{const next=select.value;select.value=current;save();select.value=next;current=next;load();}; notes.oninput=save;root.querySelector('[data-save]').onclick=save;root.querySelector('[data-clear]').onclick=()=>{strokes=[];redraw();save();};load();
 }
 export function renderMemory(root){
  const cards=fiches.filter(f=>!data().recall?.[f.key]||data().recall[f.key].due<=Date.now());let i=0,reveal=false;

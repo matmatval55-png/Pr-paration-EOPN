@@ -17,7 +17,7 @@ export function enhanceSheet(article, { recall = true } = {}) {
     const t = p.textContent.trim();
     if (t.length < 100 && /^[^.!?]{1,30}\s*=/.test(t) && !t.includes(':')) p.classList.add('sheet-formula');
   }
-  const sections = [...article.querySelectorAll(':scope > .sheet-section')].filter(s => s.textContent.trim() || s.querySelector('svg,img'));
+  const sections = [...article.querySelectorAll(':scope > .sheet-section')].filter(s => {if(s.textContent.trim() || s.querySelector('svg,img,table,canvas'))return true;s.remove();return false;});
   const nav = document.createElement('div');
   nav.className = 'notebook-nav';
   nav.innerHTML = '<div class="notebook-top"><span>CARNET DE RÉVISION</span><button type="button" class="btn" data-all>Tout afficher</button></div><div class="notebook-progress" role="status"></div><div class="notebook-controls"><button type="button" class="btn" data-prev>← Précédent</button><button type="button" class="btn" data-next>Suivant →</button></div>';
