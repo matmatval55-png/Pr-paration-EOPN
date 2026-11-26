@@ -1,3 +1,4 @@
+import { enhanceSheet } from '../core/sheet.js';
 // Bibliothèque de cours : uniquement des fiches à lire, avec suivi de lecture.
 import { SECTIONS } from '../cours/index.js';
 import { store } from '../core/store.js';
@@ -80,6 +81,7 @@ export function renderFiche(root, secId, id) {
       </div>
     </div>`);
   root.append(page);
+  enhanceSheet(page.querySelector('.fiche'));
   page.querySelector('[data-read]').onclick = () => {
     store.update((s) => {
       const p = (s.progress[f.key] ||= {});
