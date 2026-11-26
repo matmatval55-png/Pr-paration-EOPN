@@ -41,6 +41,6 @@ export function renderApproach(root){
  function paint(){const e=approachError(d,x,h),a=120-Math.max(-80,Math.min(80,e.loc*32)),b=120+Math.max(-80,Math.min(80,e.gs*100));q('[data-loc]').setAttribute('d','M'+a+' 30V210');q('[data-gs]').setAttribute('d','M30 '+b+'H210');q('[data-state]').textContent=d.toFixed(2)+' NM · '+Math.round(h)+' ft au-dessus du seuil · cap relatif '+heading+'° · '+vs+' ft/min';}
  function stop(){clearInterval(timer);timer=null;q('[data-start]').textContent='Démarrer';}
  q('[data-heading]').oninput=e=>{heading=Number(e.target.value);paint();};q('[data-vs]').oninput=e=>{vs=Number(e.target.value);paint();};
- q('[data-start]').onclick=()=>{if(timer)return stop();if(d<=.2||h<=0)return;q('[data-start]').textContent='Pause';timer=setInterval(()=>{const a=heading*Math.PI/180;d-=120*Math.cos(a)/3600;x+=120*6076.12*Math.sin(a)/3600;h+=vs/60;paint();if(d<=.2||h<=0){stop();q('[data-state]').textContent+=' · Fin de l’exercice';}},1000);};
+ q('[data-start]').onclick=()=>{if(timer)return stop();if(d<=.2||h<=0)return;q('[data-start]').textContent='Pause';timer=setInterval(()=>{const a=heading*Math.PI/180;d=Math.max(.001,d-120*Math.cos(a)/3600);x+=120*6076.12*Math.sin(a)/3600;h=Math.max(0,h+vs/60);paint();if(d<=.2||h<=0){stop();q('[data-state]').textContent+=' · Fin de l’exercice';}},1000);};
  q('[data-reset]').onclick=()=>{stop();d=6;x=350;h=2100;heading=0;vs=-600;q('[data-heading]').value=0;q('[data-vs]').value=-600;paint();};paint();return()=>clearInterval(timer);
 }
