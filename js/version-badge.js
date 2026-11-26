@@ -27,7 +27,7 @@ export function mountVersionBadge() {
   const m = versionMark();
   const a = document.createElement('a');
   a.className = 'ver-badge';
-  a.href = '#/plus';
+  a.href = '#/versions';
   a.title = `Version ${m.v} : ${m.shape} ${m.color}`;
   a.setAttribute('aria-label', a.title);
   a.innerHTML = `${m.svg}<span>v${m.v}</span>`;
