@@ -1,3 +1,4 @@
+import {renderTree,renderCards,renderApproach} from './pages/advanced.js';
 import { renderAcademy,renderFocus,renderSkills,renderNotebook,renderMemory,renderFavorites } from './pages/academy.js';
 import { renderNavLab } from './pages/navlab.js';
 // Point d'entrée : navigation par « hash » (#/page), thème, service worker.
@@ -93,6 +94,9 @@ const backFor = (genId) => {
 };
 
 const routes = [
+  [/^arbre$/, () => renderTree(view), 'stats'],
+  [/^cartes$/, () => renderCards(view), 'cours'],
+  [/^approche$/, () => renderApproach(view), 'psycho'],
   [/^mission$/, () => renderAcademy(view), 'home'],
   [/^focus$/, () => renderFocus(view), 'home'],
   [/^competences$/, () => renderSkills(view), 'home'],
