@@ -30,19 +30,19 @@ export function renderBibliotheque(root) {
   const all = SECTIONS.flatMap((s) => s.fiches);
   const read = all.filter(isRead).length;
   root.innerHTML = `
-    <h1>📖 Cours</h1><a class="btn primary block" href="#/etude">Lancer une étude guidée</a>
+    <span class="academy-kicker">Flight Academy · connaissances</span><h1>Bibliothèque de cours</h1><a class="btn primary block" href="#/etude">Lancer une étude guidée</a>
     <p class="muted">Toutes les fiches de cours, sans exercices : à lire tranquillement, dans les transports ou avant de dormir. Chaque fiche renvoie vers les exercices correspondants.</p>
     <input type="search" class="search" placeholder="🔍 Rechercher dans les cours (ex. : finesse, QNH, fractions…)" aria-label="Rechercher">
     <div class="search-res"></div>
     <div class="card"><div class="section-res" style="border:0"><span><b>${read}</b> fiche(s) lue(s) sur ${all.length}</span><b>${Math.round((read / all.length) * 100)} %</b></div><div class="progress"><div style="width:${(read / all.length) * 100}%"></div></div></div>
-    ${SECTIONS.map((s) => {
+    <div class="academy-library">${SECTIONS.map((s) => {
       const r = s.fiches.filter(isRead).length;
       return `<details class="card" ${r < s.fiches.length && r > 0 ? 'open' : ''}>
         <summary><b>${s.ico} ${esc(s.title)}</b> <span class="small muted">· ${r}/${s.fiches.length} lues</span></summary>
         <div class="list" style="margin-top:8px">${s.fiches
           .map((f, i) => `<a class="row-link" href="#/fiche/${s.id}/${f.id}"><span class="badge ${isRead(f) ? 'ok' : ''}">${isRead(f) ? '✓' : i + 1}</span><span class="grow"><span class="title">${esc(f.title)}</span>${f.sub ? `<br><span class="sub">${esc(f.sub)}</span>` : ''}</span><span class="chev">›</span></a>`)
           .join('')}</div></details>`;
-    }).join('')}
+    }).join('')}</div>
     <a class="row-link" href="#/selection"><span>ℹ️</span><span class="grow"><span class="title">La sélection EOPN</span><br><span class="sub">Déroulé, conditions, barème et sources officielles</span></span><span class="chev">›</span></a>`;
   bindSearch(root);
 }

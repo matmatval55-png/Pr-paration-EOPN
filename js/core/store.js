@@ -4,7 +4,7 @@ const KEY = 'eopn.v1';
 const DEFAULT = () => ({
   version: 1,
   createdAt: Date.now(),
-  settings: { theme: 'dark', selectionDate: '', hoursPerWeek: 6, sex: 'H' },
+  settings: { theme: 'light', selectionDate: '', hoursPerWeek: 6, sex: 'H' },
   profile: { age: 18, studies: 'L1 droit', education: 'Bac général · maths et SES', english: 'B2', targetEnglish: 'C1', goals: 'EOPN, compétences transférables EOPAN et cadets', experience: 'Expérience régulière sur simulateur de vol et pratique sportive', dailyMinutes: 45 },
   days: {}, // 'AAAA-MM-JJ' -> { n, ok, ms }
   stats: {}, // idExercice -> { 'AAAA-MM-JJ': [n, ok, ms] }

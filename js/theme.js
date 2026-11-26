@@ -11,7 +11,7 @@ export function applyTheme() {
     root.dataset.auto = '1'; // « Auto » : suit le réglage clair / sombre de l'appareil
   }
   const dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0a0a0a' : '#fafafa');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#131e2d' : '#f4f3ef');
 }
 
 export function applyFontSize() {

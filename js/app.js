@@ -53,6 +53,11 @@ if (!store.data.settings.design2) {
   });
 }
 
+// Apply the approved light academy design once; settings remain editable.
+if (!store.data.settings.academyV33) {
+  store.update(s => { s.settings.theme = 'light'; s.settings.academyV33 = true; });
+}
+
 // Historique « jamais deux fois la même question » : on y reprend les questions déjà connues
 // (anciennes banques vues, questions ratées en révision).
 if (!store.data.settings.histV1) {
