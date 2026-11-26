@@ -17,6 +17,40 @@ export function enhanceSheet(article, { recall = true } = {}) {
     const t = p.textContent.trim();
     if (t.length < 100 && /^[^.!?]{1,30}\s*=/.test(t) && !t.includes(':')) p.classList.add('sheet-formula');
   }
+  const sections = [...article.querySelectorAll(':scope > .sheet-section')].filter(s => s.textContent.trim() || s.querySelector('svg,img'));
+  const nav = document.createElement('div');
+  nav.className = 'notebook-nav';
+  nav.innerHTML = '<div class="notebook-top"><span>CARNET DE RÉVISION</span><button type="button" class="btn" data-all>Tout afficher</button></div><div class="notebook-progress" role="status"></div><div class="notebook-controls"><button type="button" class="btn" data-prev>← Précédent</button><button type="button" class="btn" data-next>Suivant →</button></div>';
+  article.prepend(nav);
+  let index = 0, all = false;
+  const paint = () => {
+    sections.forEach((s,i) => { s.hidden = !all && i !== index; });
+    nav.querySelector('.notebook-progress').textContent = all ? sections.length+' notions · fiche complète' : 'Notion '+(index+1)+' / '+sections.length;
+    nav.querySelector('[data-prev]').disabled = all || index===0;
+    nav.querySelector('[data-next]').disabled = all || index>=sections.length-1;
+    nav.querySelector('[data-all]').textContent = all ? 'Notion par notion' : 'Tout afficher';
+  };
+  nav.querySelector('[data-prev]').onclick = () => { if(index>0)index--;paint(); };
+  nav.querySelector('[data-next]').onclick = () => { if(index<sections.length-1)index++;paint(); };
+  nav.querySelector('[data-all]').onclick = () => { all=!all;paint(); };
+  for (const [i,s] of sections.entries()) {
+    const heading = s.querySelector('h2,h3');
+    const label = document.createElement('div');
+    label.className = 'notebook-label';
+    label.textContent = 'NOTION '+String(i+1).padStart(2,'0');
+    s.prepend(label);
+    const terms = [...s.querySelectorAll('b,strong')].filter(t => t.textContent.trim().length>=3 && t.textContent.trim().length<=65 && !t.closest('svg,table,.ex,.tip'));
+    if(terms.length) {
+      const check = document.createElement('button');
+      check.type='button';check.className='notebook-memory';
+      check.textContent='Masquer les mots clés';
+      check.setAttribute('aria-pressed','false');
+      check.onclick=()=>{const hide=s.classList.toggle('notebook-mask');check.textContent=hide?'Révéler les mots clés':'Masquer les mots clés';check.setAttribute('aria-pressed',String(hide));};
+      terms.forEach(t=>t.classList.add('notebook-key'));
+      s.append(check);
+    }
+  }
+  if(sections.length) paint(); else nav.remove();
   if (!recall) return;
   const tools = document.createElement('div');
   tools.className = 'sheet-tools';
