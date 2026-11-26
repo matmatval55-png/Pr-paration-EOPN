@@ -1,10 +1,11 @@
 // Service worker : met l'application en cache pour un fonctionnement hors ligne.
 // Les ressources préchargées restent cohérentes au sein d’une version.
 // À la mise à jour, la nouvelle version est installée en contournant le cache HTTP.
-const VERSION = 'v32';
+const VERSION = 'v33';
 const CACHE = `prepa-eopn-${VERSION}`;
 const FILES = [
   './',
+  './icons/academy-sky.svg',
   './index.html',
   './manifest.webmanifest',
   './css/app.css',
