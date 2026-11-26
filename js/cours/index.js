@@ -1,3 +1,4 @@
+import {FUNDAMENTALS} from './fondamentaux.js';
 // Bibliothèque de cours : toutes les fiches à lire, regroupées par module.
 import { CHAPTERS as MATHS } from '../maths/index.js';
 import { CHAPTERS as PHYS } from '../physique/index.js';
@@ -54,6 +55,7 @@ const SPORT = [
 ];
 
 export const SECTIONS = [
+  {id:'fondamentaux',ico:'📘',title:'Fondamentaux appliqués · exercices corrigés',fiches:FUNDAMENTALS},
   { id: 'psycho', ico: '🧠', title: 'Psychotechniques', fiches: FICHES_PSYCHO },
   { id: 'maths', ico: '📐', title: 'Maths', fiches: fromChapters('maths', MATHS) },
   { id: 'physique', ico: '⚛️', title: 'Physique', fiches: fromChapters('physique', PHYS) },

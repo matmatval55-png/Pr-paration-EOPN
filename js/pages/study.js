@@ -59,7 +59,7 @@ export function renderStudy(root) {
       }
       if(!specs.length||Date.now()>=end)return result([]);
       document.body.classList.add('in-quiz');
-      runQuiz(root,{title:'Test des cours étudiés',mode:'train',total:specs.length,wallDeadline:end,noTimer:true,isReview:j=>reviews[j],next:j=>specs[j]||null,onFinish:result,onQuit:()=>result([])});
+      runQuiz(root,{title:'Test des cours étudiés',mode:'exam',total:specs.length,wallDeadline:end,noTimer:true,isReview:j=>reviews[j],next:j=>specs[j]||null,onFinish:result,onQuit:()=>result([])});
     }
     function draw() {
       if(disposed)return;
@@ -67,6 +67,7 @@ export function renderStudy(root) {
       const x=plan[i];
       root.innerHTML='<div class="quiz-head"><div class="quiz-title">Étude '+(i+1)+' / '+plan.length+'</div><div data-clock></div></div><h1>'+esc(x.f.title)+'</h1>'+(recall?'<div class="card"><h3>Restitution sans le cours</h3><p>Explique à voix haute les idées principales, les définitions et les méthodes. Note ce que tu as oublié.</p><textarea rows="5" aria-label="Restitution personnelle" placeholder="Écris ce dont tu te souviens (facultatif)"></textarea></div>':'<article class="card course fiche">'+x.f.html+'</article>')+'<button class="btn primary block" data-next>'+(recall?'Terminer cette fiche':'Masquer le cours et restituer')+'</button><button class="btn block" data-skip>Passer la fiche</button><button class="btn block" data-test>Passer au test maintenant</button>';
       enhanceSheet(root.querySelector('.fiche'), { recall: false });
+      const note=root.querySelector('textarea');if(note){note.value=store.data.progress[x.f.key]?.recallText||'';note.oninput=()=>store.update(s=>{(s.progress[x.f.key]||={}).recallText=note.value;});}
       root.querySelector('[data-next]').onclick=()=>{
         if(!recall){recall=true;return draw();}
         completed.push(x);store.update(s=>{const p=(s.progress[x.f.key]||={});p.read=true;p.studyAt=Date.now();});i++;recall=false;draw();
