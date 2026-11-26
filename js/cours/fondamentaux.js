@@ -1,4 +1,5 @@
-const lesson=(id,title,html)=>({id,title,html});
+const related={unites:'physique/unites',temps:'physique/cinematique',vent:'physique/cinematique',forces:'physique/forces',descente:'maths/trigo',pourcentages:'maths/pourcentages'};
+const lesson=(id,title,html)=>({id,title,html,train:'#/'+related[id]+'/exos'});
 export const FUNDAMENTALS=[
 lesson('unites','Conversions et contrôle des unités', '<h2>Principe</h2><p>1 NM = 1852 m ; 1 kt = 1 NM/h ; 1 h = 3600 s.</p><h2>Méthode</h2><p>Pour convertir des km/h en m/s, divise par 3,6. Pour des nœuds en m/s, multiplie par 1852/3600.</p><h2>Exemple corrigé</h2><p>90 kt = 90 × 1852 / 3600 = 46,3 m/s.</p><h2>À restituer</h2><p>Convertis 72 km/h en m/s.</p><details><summary>Correction</summary>72 / 3,6 = 20 m/s.</details>'),
 lesson('temps','Distance, vitesse et temps', '<h2>Relations</h2><p>d = v × t ; t = d/v ; v = d/t.</p><h2>Exemple</h2><p>À 120 kt, 30 NM demandent 30/120 h = 15 min. Utilise la vitesse sol pour un trajet au sol.</p><h2>À restituer</h2><p>Combien de minutes pour 45 NM à 180 kt ?</p><details><summary>Correction</summary>45/180 × 60 = 15 min.</details>'),
