@@ -590,3 +590,36 @@ details.card[open] > summary::after { content: '–'; }
 .navlab-instruments svg { width: 100%; display: block; }
 
 @media (min-width: 640px) { .navlab-instruments { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Revision sheets — readable on iPad and phone, without changing source content. */
+.course.revision-sheet, .course.fiche {
+  --sheet-blue: #70b8ff; --sheet-green: #72d6ae; --sheet-amber: #f0bd72;
+  background: transparent; border: 0; padding: 0; line-height: 1.65;
+  font-size: 1.04rem; overflow-wrap: anywhere;
+}
+.revision-sheet .sheet-section { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin: 12px 0; min-width: 0; }
+.revision-sheet .sheet-section > :first-child { margin-top: 0; }
+.revision-sheet .sheet-section > :last-child { margin-bottom: 0; }
+.revision-sheet h2, .revision-sheet h3 { color: var(--text); font-size: 1.2rem; line-height: 1.3; border: 0; padding: 0; margin: 0 0 14px; }
+.revision-sheet h2 { border-bottom: 2px solid var(--sheet-blue); padding-bottom: 10px; }
+.revision-sheet p { margin: 10px 0; }
+.revision-sheet li { margin: 9px 0; padding-left: 4px; }
+.revision-sheet li::marker { color: var(--sheet-blue); font-weight: 700; }
+.revision-sheet b, .revision-sheet strong { font-weight: 750; text-decoration: underline; text-decoration-color: var(--sheet-blue); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.revision-sheet .ex, .revision-sheet .tip { padding: 14px 16px; margin: 14px 0; border-radius: 10px; border-left: 4px solid var(--sheet-green); background: var(--card2); }
+.revision-sheet .tip { border-left-color: var(--sheet-amber); }
+.revision-sheet .ex::before, .revision-sheet .tip::before { display: block; font-size: .72rem; letter-spacing: .1em; font-weight: 800; margin-bottom: 6px; color: var(--text); }
+.revision-sheet .ex::before { content: 'EXEMPLE / APPLICATION'; }
+.revision-sheet .tip::before { content: 'POINT DE VIGILANCE'; }
+.revision-sheet .sheet-formula { text-align: center; font-weight: 650; font-variant-numeric: tabular-nums; padding: 14px; border: 1px solid var(--sheet-blue); border-radius: 10px; background: var(--card2); }
+.revision-sheet .table-wrap { overflow-x: auto; }
+.revision-sheet table { max-width: 100%; }
+.revision-sheet td, .revision-sheet th { padding: 10px 8px; }
+.revision-sheet img, .revision-sheet svg { max-width: 100%; }
+.sheet-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.sheet-tools .btn { flex: 1 1 130px; }
+.sheet-tools + .revision-sheet { margin-top: 0; }
+.revision-sheet.sheet-hidden { display: none; }
+.sheet-recall { background: var(--card); padding: 18px; border-radius: 16px; border: 1px solid var(--line); }
+.sheet-recall textarea { width: 100%; box-sizing: border-box; min-height: 130px; font: inherit; color: var(--text); padding: 12px; border-radius: 10px; }
+@media (max-width: 480px) { .revision-sheet .sheet-section { padding: 14px; } }
