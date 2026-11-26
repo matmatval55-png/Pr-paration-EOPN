@@ -1,3 +1,4 @@
+import {renderPedagogy,renderChanges} from './pages/pedagogy.js';
 import {renderTree,renderCards,renderApproach} from './pages/advanced.js';
 import { renderAcademy,renderFocus,renderSkills,renderNotebook,renderMemory,renderFavorites } from './pages/academy.js';
 import { renderNavLab } from './pages/navlab.js';
@@ -94,6 +95,8 @@ const backFor = (genId) => {
 };
 
 const routes = [
+  [/^pedagogie$/, () => renderPedagogy(view), 'home'],
+  [/^versions$/, () => renderChanges(view), 'plus'],
   [/^arbre$/, () => renderTree(view), 'stats'],
   [/^cartes$/, () => renderCards(view), 'cours'],
   [/^approche$/, () => renderApproach(view), 'psycho'],
