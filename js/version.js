@@ -1,2 +1,2 @@
 // Généré par scripts/bump-version.py : ne pas modifier à la main.
-export const VERSION = 46;
+export const VERSION = 47;
