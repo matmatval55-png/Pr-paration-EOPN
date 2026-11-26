@@ -1,3 +1,4 @@
+import {mountScratchpad} from '../core/scratchpad.js';
 import { enhanceSheet } from '../core/sheet.js';
 // Pages « cours » génériques (maths, physique) : liste des chapitres et chapitre (cours / méthode / exercices).
 import { genSummary } from '../core/stats.js';
@@ -42,6 +43,7 @@ export function renderChapter(root, { module, chapters, id, tab = 'cours' }) {
       <div class="tab-body"></div>
     </div>`);
   root.append(page);
+  mountScratchpad(root,ch.genId);
   const body = page.querySelector('.tab-body');
   const show = (t) => {
     page.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.t === t));
