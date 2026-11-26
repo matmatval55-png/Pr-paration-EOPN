@@ -1,3 +1,4 @@
+import {renderFlightLab} from './pages/flightlab.js';
 import {renderWorkspace,renderSearch,renderCalendar,renderLexicon,mountReadingMode} from './pages/workspace.js';
 import {renderPilotCenter} from './pages/pilotcenter.js';
 import {renderPedagogy,renderChanges} from './pages/pedagogy.js';
@@ -97,6 +98,7 @@ const backFor = (genId) => {
 };
 
 const routes = [
+  [/^flightlab$/, () => renderFlightLab(view), 'psycho'],
   [/^espace$/, () => renderWorkspace(view), 'home'],
   [/^recherche$/, () => renderSearch(view), 'home'],
   [/^calendrier$/, () => renderCalendar(view), 'stats'],
