@@ -51,6 +51,17 @@ export function enhanceSheet(article, { recall = true } = {}) {
     }
   }
   if(sections.length) paint(); else nav.remove();
+  for(const svg of article.querySelectorAll('svg')){
+    if(!svg.querySelector('animate,animateTransform,animateMotion')||typeof svg.pauseAnimations!=='function')continue;
+    const bar=document.createElement('div');bar.className='animation-controls';
+    bar.innerHTML='<button type="button" class="btn" data-pause>Pause</button><button type="button" class="btn" data-restart>Rejouer</button><button type="button" class="btn" data-step>+ 1 s</button>';
+    const pause=bar.querySelector('[data-pause]');
+    const setPaused=v=>{if(v)svg.pauseAnimations();else svg.unpauseAnimations();pause.textContent=v?'Lecture':'Pause';pause.setAttribute('aria-pressed',String(v));};
+    pause.onclick=()=>setPaused(!svg.animationsPaused());
+    bar.querySelector('[data-restart]').onclick=()=>{svg.setCurrentTime(0);setPaused(false);};
+    bar.querySelector('[data-step]').onclick=()=>{setPaused(true);svg.setCurrentTime(svg.getCurrentTime()+1);};
+    svg.after(bar);setPaused(true);
+  }
   if (!recall) return;
   const tools = document.createElement('div');
   tools.className = 'sheet-tools';
