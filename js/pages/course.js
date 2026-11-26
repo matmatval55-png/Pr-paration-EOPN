@@ -1,3 +1,4 @@
+import { enhanceSheet } from '../core/sheet.js';
 // Pages « cours » génériques (maths, physique) : liste des chapitres et chapitre (cours / méthode / exercices).
 import { genSummary } from '../core/stats.js';
 import { store } from '../core/store.js';
@@ -74,6 +75,7 @@ export function renderChapter(root, { module, chapters, id, tab = 'cours' }) {
             })),
       );
     }
+    enhanceSheet(body.querySelector('.course'));
     body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => (show(b.dataset.go), scrollTo(0, 0))));
   };
   page.querySelectorAll('.tabs button').forEach((b) => (b.onclick = () => show(b.dataset.t)));
