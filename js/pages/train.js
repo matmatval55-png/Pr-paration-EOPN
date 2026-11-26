@@ -1,3 +1,4 @@
+import {mountScratchpad} from '../core/scratchpad.js';
 // Page d'entraînement générique pour un générateur (psycho, maths, physique…).
 import { makePicker, remaining, resetHistory, seenTotal } from '../core/seen.js';
 import { levelFor } from '../core/mastery.js';
@@ -96,6 +97,7 @@ export function renderTrain(root, genId, { back = '#/psycho', progressive = fals
         renderTrain(root, genId, { back, progressive, defaults: state });
       },
     });
+    if(['maths','physique'].includes(g.module))mountScratchpad(root,genId);
   }
 
   // Plus aucune question nouvelle pour cet exercice.
