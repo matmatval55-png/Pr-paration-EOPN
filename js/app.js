@@ -1,3 +1,4 @@
+import {renderPilotCenter} from './pages/pilotcenter.js';
 import {renderPedagogy,renderChanges} from './pages/pedagogy.js';
 import {renderTree,renderCards,renderApproach} from './pages/advanced.js';
 import { renderAcademy,renderFocus,renderSkills,renderNotebook,renderMemory,renderFavorites } from './pages/academy.js';
@@ -95,6 +96,7 @@ const backFor = (genId) => {
 };
 
 const routes = [
+  [/^pilotcenter$/, () => renderPilotCenter(view), 'psycho'],
   [/^pedagogie$/, () => renderPedagogy(view), 'home'],
   [/^versions$/, () => renderChanges(view), 'plus'],
   [/^arbre$/, () => renderTree(view), 'stats'],
